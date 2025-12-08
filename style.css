@@ -194,6 +194,52 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 /* 차트 복구 */
 .chart-wrapper { width: 100%; height: 280px; position: relative; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
 
+/* 업적 (Patch v2.12 CSS 추가) */
+.achieve-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 10px; 
+    padding: 10px 0;
+}
+
+.achieve-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 10px; 
+    padding-bottom: 10px;
+    position: relative;
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid #eee;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.achieve-item:active {
+    transform: scale(0.98);
+}
+
+.achieve-icon {
+    font-size: 28px;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.achieve-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #636e72;
+    text-align: center;
+    word-break: keep-all;
+}
+
+.achieve-item.locked {
+    opacity: 0.5;
+}
+
 /* 토너먼트 */
 .vote-wrapper { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; padding: 10px 0; }
 .ticket-badge { font-size: 13px; font-weight: bold; color: #6c5ce7; background: #f0f3ff; padding: 5px 12px; border-radius: 20px; display: inline-block; margin-bottom: 5px; }
@@ -245,63 +291,8 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 
 
 /* ========================================
-   업적 (Achievement) - 누락된 Grid 레이아웃
-======================================== */
-.achieve-grid {
-    display: grid;
-    /* 4개의 열을 만들고, 동일한 너비로 자동 조절 */
-    grid-template-columns: repeat(4, 1fr); 
-    gap: 10px; /* 아이템 간 간격 */
-    padding: 10px 0;
-}
-
-.achieve-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    
-    /* [핵심] 정사각 모양을 유지하도록 padding-top을 이용한 트릭 사용 */
-    padding-top: 10px; 
-    padding-bottom: 10px;
-    position: relative;
-    overflow: hidden;
-
-    background: var(--card);
-    border: 1px solid #eee;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.achieve-item:active {
-    transform: scale(0.98);
-}
-
-.achieve-icon {
-    font-size: 28px;
-    margin-bottom: 5px;
-    display: block;
-}
-
-.achieve-title {
-    font-size: 10px;
-    font-weight: 600;
-    color: #636e72;
-    text-align: center;
-    word-break: keep-all;
-}
-
-/* 잠금 상태 (opacity는 logic.js에서 적용 가능) */
-.achieve-item.locked {
-    opacity: 0.5;
-}
-
-/* ========================================
     바텀 시트 (Patch v4.4 - 위치 및 Z-Index 강제 고정)
 ======================================== */
-
-/* 어두운 배경 (Overlay) */
 .sheet-overlay {
     position: fixed !important; 
     top: 0;
@@ -318,26 +309,19 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 
 /* 하얀색 팝업창 (Sheet) */
 .bottom-sheet {
-    /* [핵심] 위치 계산 오류 방지: left/right로 너비를 강제 확보 */
     position: fixed !important; 
     bottom: -100%; 
-    
-    /* [수정] 좌우로 꽉 채우고 중앙으로 쏠리게 (transform 제거) */
     left: 0; 
     right: 0;
     margin: 0 auto;
-    
     max-width: 420px;
     width: 100%;
-
     background: white;
     border-radius: 20px 20px 0 0;
     padding: 30px 20px;
     box-sizing: border-box;
-    
     transition: bottom 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
     z-index: 10001 !important; 
-    
     max-height: 80vh; 
     overflow-y: auto; 
     box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
