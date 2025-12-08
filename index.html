@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>It's me! v1.0</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* ========================================
+           기본 설정
+        ======================================== */
+        :root {
+            --primary: #6c5ce7;
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --nav-height: 60px;
+        }
+        
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* ========================================
+           DB 상태 표시
+        ======================================== */
+        .db-status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #e6fffa;
+            border: 1px solid #00b894;
+            color: #00b894;
+            padding: 2px 6px;
+            border-radius: 8px;
+            display: none;
+            z-index: 1000;
+        }
+        .db-status.on { display: block; }
+
+        /* ========================================
+           화면 및 네비게이션
+        ======================================== */
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 20px;
+            padding-bottom: calc(20px + var(--nav-height));
+            box-sizing: border-box;
+            overflow-y: auto;
+            position: relative;
+        }
+        .screen.active { display: flex; }
+
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background: white;
+            border-top: 1px solid #eee;
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 50;
+        }
+        .app-container.logged-in .bottom-nav { display: flex; }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            font-size: 10px;
+            color: #b2bec3;
+            cursor: pointer;
+            padding: 5px 0;
+        }
+        .nav-item.active {
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .nav-icon {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* ========================================
+           기본 타이포그래피
+        ======================================== */
+        h1, h2, h3 {
+            color: #2d3436;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+        
+        p {
+            color: #636e72;
+            font-size: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        /* ========================================
+           버튼 스타일
+        ======================================== */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 10px;
+            transition: 0.1s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-kakao {
+            background-color: #FEE500;
+            color: #191919;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .btn-outline {
+            background: white;
+            border: 2px solid #dfe6e9;
+            color: #636e72;
+        }
+
+        /* ========================================
+           MBTI 그리드
+        ======================================== */
+        .mbti-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .mbti-btn {
+            padding: 10px 0;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid #dfe6e9;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            color: #636e72;
+        }
+        .mbti-btn:active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* ========================================
+           메인 화면 - 아바타 & 헤더
+        ======================================== */
+        .header-area {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .header-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #2d3436;
+            margin: 0;
+        }
+        .header-badge {
+            display: inline-block;
+            background: #eee;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #636e72;
+            margin-top: 5px;
+        }
+
+        .avatar-area {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            background: #fff0f6;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            border: 3px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .avatar-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--primary);
+            color: white;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        /* ========================================
+           서브 탭바
+        ======================================== */
+        .sub-tab-bar {
+            display: flex;
+            margin-bottom: 20px;
+            background: #f1f2f6;
+            border-radius: 12px;
+            padding: 4px;
+        }
+        .sub-tab {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 14px;
+            color: #636e72;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+        .sub-tab.active {
+            background: white;
+            color: var(--primary);
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .sub-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .sub-content.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========================================
+           차트
+        ======================================== */
+        .chart-wrapper {
+            width: 100%;
+            height: 280px;
+            position: relative;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* ========================================
+           토너먼트 - VS 카드
+        ======================================== */
+        .ticket-badge {
+            font-size: 13px;
+            font-weight: bold;
+            color: #6c5ce7;
+            background: #f0f3ff;
+            padding: 5px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .round-badge {
+            background: #2d3436;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .vs-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .vs-card {
+            padding: 15px;
+            border: 2px solid #dfe6e9;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            transition: 0.2s;
+        }
+        .vs-card:active {
+            border-color: var(--primary);
+            background-color: #f0f3ff;
+            transform: scale(0.98);
+        }
+
+        .vs-avatar {
+            width: 50px;
+            height: 50px;
+            background: #eee;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+
+        .vs-text-area {
+            text-align: left;
+            flex: 1;
+        }
+        .vs-name {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .vs-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+            font-weight: bold;
+        }
+
+        /* ========================================
+           우승 화면
+        ======================================== */
+        .winner-box {
+            text-align: center;
+            padding: 40px 20px;
+            animation: popUp 0.5s ease;
+        }
+        .winner-avatar {
+            font-size: 80px;
+            margin-bottom: 20px;
+            display: inline-block;
+            animation: bounce 1s infinite alternate;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+        @keyframes popUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* ========================================
+           랭킹 화면
+        ======================================== */
+        .rank-header-area { margin-bottom: 10px; }
+        .rank-filter-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .stat-pills {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .stat-pill {
+            white-space: nowrap;
+            padding: 6px 12px;
+            border-radius: 20px;
+            background: #f1f2f6;
+            color: #636e72;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .stat-pill.active {
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .list-wrap {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* ========================================
+           상점
+        ======================================== */
+        .shop-section { margin-bottom: 30px; }
+        .shop-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2d3436;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+        }
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .shop-item {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .shop-item:active { transform: scale(0.98); }
+        .shop-item-img { font-size: 30px; margin-bottom: 5px; }
+        .shop-item-name { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
+        .shop-item-price { font-size: 12px; color: var(--primary); font-weight: bold; }
+        .cash-price { color: #00b894; }
+
+        /* ========================================
+           설정 화면
+        ======================================== */
+        .settings-profile {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #f1f2f6;
+        }
+        .st-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #fff0f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            margin-right: 15px;
+        }
+        .st-info { flex: 1; }
+        .st-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: #2d3436;
+        }
+        .st-account {
+            font-size: 12px;
+            color: #b2bec3;
+            margin-top: 4px;
+        }
+
+        .settings-msg-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .st-msg-label {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .st-msg-text {
+            font-size: 14px;
+            color: #2d3436;
+            line-height: 1.4;
+        }
+        .st-msg-edit {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #b2bec3;
+            cursor: pointer;
+        }
+
+        .settings-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 30px 0;
+        }
+        .st-menu-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f2f6;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+            font-size: 15px;
+            color: #2d3436;
+        }
+
+        /* ========================================
+           바텀 시트
+        ======================================== */
+        .sheet-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            z-index: 100;
+        }
+        .sheet-overlay.open { display: block; }
+
+        .bottom-sheet {
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 30px 20px;
+            box-sizing: border-box;
+            transition: bottom 0.3s ease-out;
+            z-index: 101;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .sheet-overlay.open .bottom-sheet { bottom: 0; }
+
+        .sheet-icon { font-size: 50px; margin-bottom: 15px; }
+        .sheet-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2d3436;
+        }
+        .sheet-desc {
+            font-size: 14px;
+            color: #636e72;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .achieve-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .achieve-item {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px 5px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .achieve-item.unlocked .achieve-icon {
+            opacity: 1;
+            filter: none;
+        }
+        .achieve-icon {
+            font-size: 30px;
+            margin-bottom: 5px;
+            opacity: 0.3;
+            filter: grayscale(100%);
+        }
+        .achieve-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #636e72;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container" id="mainContainer">
+    <!-- DB 연결 상태 표시 -->
+    <div id="dbStatus" class="db-status">● DB OK</div>
+
+    <!-- ========================================
+         로그인 화면
+    ======================================== -->
+    <div id="screen-login" class="screen active">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
+            <div style="font-size: 60px; margin-bottom: 20px;">🧐</div>
+            <h1>It's me!</h1>
+            <p>남들이 보는 진짜 나,<br>3초 만에 확인해보세요.</p>
+        </div>
+        <button class="btn btn-kakao" onclick="loginWithServer()">카카오로 시작하기</button>
+        <button class="btn btn-outline" onclick="loginWithServer()">이메일로 시작하기</button>
+    </div>
+
+    <!-- ========================================
+         MBTI 선택 화면
+    ======================================== -->
+    <div id="screen-mbti" class="screen">
+        <div style="height: 20px;"></div>
+        <h2>기초 데이터 입력</h2>
+        <p>초기 그래프 생성을 위해<br>본인의 MBTI를 선택해주세요.</p>
+        
+        <div class="mbti-grid">
+            <button class="mbti-btn" onclick="saveMbtiToServer('ENFP')">ENFP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ISTJ')">ISTJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ENTP')">ENTP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('INFJ')">INFJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ISTP')">ISTP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ISFP')">ISFP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('INFP')">INFP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('INTP')">INTP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ESTP')">ESTP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ESFP')">ESFP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ESTJ')">ESTJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ESFJ')">ESFJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ENFJ')">ENFJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ENTJ')">ENTJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('INTJ')">INTJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ISFJ')">ISFJ</button>
+        </div>
+        
+        <button class="btn btn-primary" onclick="goScreen('screen-test-1')">🤔 잘 모르겠어요 (30초 테스트)</button>
+    </div>
+
+    <!-- ========================================
+         간단 테스트 화면들
+    ======================================== -->
+    <div id="screen-test-1" class="screen">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+            <h3>Q1. 불금이다!<br>친구들이 부르면?</h3>
+            <button class="btn btn-outline" onclick="nextTest('E', 'screen-test-2')">오예! 당장 나간다! (E)</button>
+            <button class="btn btn-outline" onclick="nextTest('I', 'screen-test-2')">기 빨려... 집이 최고야. (I)</button>
+        </div>
+    </div>
+
+    <div id="screen-test-2" class="screen">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+            <h3>Q2. 멍 때릴 때<br>무슨 생각해?</h3>
+            <button class="btn btn-outline" onclick="nextTest('S', 'screen-test-3')">배고파... 저녁 뭐 먹지? (S)</button>
+            <button class="btn btn-outline" onclick="nextTest('N', 'screen-test-3')">좀비가 나타나면 어떡하지? (N)</button>
+        </div>
+    </div>
+
+    <div id="screen-test-3" class="screen">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+            <h3>Q3. 친구가 우울해서<br>화분 샀다고 하면?</h3>
+            <button class="btn btn-outline" onclick="nextTest('T', 'screen-test-4')">무슨 화분 샀어? 얼마야? (T)</button>
+            <button class="btn btn-outline" onclick="nextTest('F', 'screen-test-4')">헐... 무슨 일 있어? ㅠㅠ (F)</button>
+        </div>
+    </div>
+
+    <div id="screen-test-4" class="screen">
+        <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+            <h3>Q4. 여행 갈 때<br>계획은?</h3>
+            <button class="btn btn-outline" onclick="finishTest('J')">엑셀 켜고 분 단위 일정표 (J)</button>
+            <button class="btn btn-outline" onclick="finishTest('P')">여권만 챙겨서 출발! (P)</button>
+        </div>
+    </div>
+
+    <!-- ========================================
+         메인 화면 (나의 거울)
+    ======================================== -->
+    <div id="screen-main" class="screen">
+        <div class="header-area">
+            <h2 class="header-title">나의 거울</h2>
+            <div class="header-badge">👑 상위 12% (종합)</div>
+        </div>
+
+        <div class="avatar-area">
+            <div class="avatar-circle">
+                <span id="myAvatar">🦊</span>
+                <div class="avatar-badge" id="myMbtiBadge">#???</div>
+            </div>
+        </div>
+
+        <div class="sub-tab-bar">
+            <div class="sub-tab active" onclick="goSubTab('tab-prism', this)">프리즘</div>
+            <div class="sub-tab" onclick="goSubTab('tab-history', this)">발자취</div>
+            <div class="sub-tab" onclick="goSubTab('tab-trophy', this)">업적</div>
+        </div>
+
+        <div id="tab-prism" class="sub-content active">
+            <div class="chart-wrapper">
+                <canvas id="myRadarChart"></canvas>
+            </div>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; text-align:center;">
+                <div style="font-size: 12px; color: #636e72; margin-bottom: 5px;">💬 나의 한마디</div>
+                <div id="mainMsg" style="font-weight: bold; color: #2d3436; font-size: 14px;">"상태 메시지를 입력해주세요"</div>
+            </div>
+        </div>
+
+        <div id="tab-history" class="sub-content">
+            <ul class="list-wrap">
+                <li class="list-item">
+                    <div style="font-size: 24px; margin-right: 15px; background: #f0f3ff; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%;">📈</div>
+                    <div style="flex: 1;">
+                        <div style="font-weight:bold;">[일머리] 점수 상승!</div>
+                        <div style="font-size: 12px; color: #b2bec3; margin-top: 4px;">방금 전 · 김 대리님 평가</div>
+                    </div>
+                    <div style="color:#e74c3c; font-weight:bold;">+10</div>
+                </li>
+            </ul>
+        </div>
+
+        <div id="tab-trophy" class="sub-content">
+            <div class="achieve-grid">
+                <div class="achieve-item unlocked" onclick="openSheet('👶', '첫 걸음', '가입을 환영합니다!', '2025.12.05')">
+                    <div class="achieve-icon">👶</div>
+                    <div class="achieve-title">첫 걸음</div>
+                </div>
+                <div class="achieve-item">
+                    <div class="achieve-icon">🔥</div>
+                    <div class="achieve-title">열정</div>
+                </div>
+                <div class="achieve-item">
+                    <div class="achieve-icon">👑</div>
+                    <div class="achieve-title">인기인</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================
+         토너먼트 평가 화면
+    ======================================== -->
+    <div id="screen-vote" class="screen">
+        <div style="text-align:center; margin-top:10px;">
+            <span class="ticket-badge" id="ticketDisplay">🎫 남은 티켓: 5/5</span>
+            <br>
+            <span class="round-badge" id="roundBadge">토너먼트 시작</span>
+            <h3 id="voteTitle" style="text-align:center; min-height:50px; margin-top:10px;">질문을 불러오는 중...</h3>
+        </div>
+
+        <div class="vs-container" id="vsContainer">
+            <div class="vs-card" onclick="vote(0)">
+                <div class="vs-avatar" id="avatarA">❓</div>
+                <div class="vs-text-area">
+                    <div class="vs-name" id="nameA">...</div>
+                    <div class="vs-desc" id="descA">...</div>
+                </div>
+            </div>
+            <div style="text-align:center; font-weight:bold; color:#ccc;">VS</div>
+            <div class="vs-card" onclick="vote(1)">
+                <div class="vs-avatar" id="avatarB">❓</div>
+                <div class="vs-text-area">
+                    <div class="vs-name" id="nameB">...</div>
+                    <div class="vs-desc" id="descB">...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="winnerContainer" style="display:none; flex:1; flex-direction:column; justify-content:center; align-items:center;">
+            <div class="winner-box">
+                <div class="winner
