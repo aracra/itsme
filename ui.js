@@ -1,4 +1,4 @@
-// ui.js 파일 (Patch v2.20) - 함수 정의와 window 등록 분리
+// ui.js 파일 (Patch v3.1)
 
 // ========================================
 // 전역 변수 초기화 (UI용)
@@ -12,7 +12,6 @@ let myChart = null;
 // ========================================
 function updateTicketUI() {
     const el = document.getElementById('ticketDisplay');
-    // [핵심 복구]: index.html의 ID와 형식에 맞춰 복구
     if(el && window.myInfo) {
         el.innerText = `🎫 남은 티켓: ${window.myInfo.tickets || 0}/5`; 
     }
@@ -143,7 +142,7 @@ function nextTest(val, nextScreenId) {
 function finishTest(lastVal) {
     tempTestResult.push(lastVal);
     let finalMbti = "ENFP"; 
-    // ... (MBTI 계산 로직 생략) ...
+    // [MBTI 계산 로직 생략]
     
     if(typeof window.saveMbtiToServer === 'function') {
         window.saveMbtiToServer(finalMbti);
@@ -168,7 +167,6 @@ function saveNicknameAndNext() {
     
     window.myInfo.nickname = nickname;
     
-    // [핵심 수정]: logic.js의 닉네임 전용 저장 함수를 호출합니다.
     if(typeof window.saveNicknameToDB === 'function') {
         window.saveNicknameToDB(nickname);
     }
@@ -208,7 +206,7 @@ window.closeSheet = closeSheet;
 
 function init() {
     if (typeof window.loadDataFromServer === 'function') {
-         window.loadDataFromServer();
+        window.loadDataFromServer();
     } else {
         console.warn("⚠️ logic.js 로드 실패! 핵심 기능 작동 불가.");
     }

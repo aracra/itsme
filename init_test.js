@@ -1,25 +1,22 @@
-// init_test.js 파일 내용 (Patch v2.17 - Firebase 강제 초기화 로직 포함)
+// init_test.js 파일 (Full Code: Patch v3.5)
 
 console.log("======================================");
 console.log("🚀 DB 초기화 스크립트 로드 중... (자체 초기화)");
 console.log("======================================");
 
-// [핵심 수정]: Firebase 앱이 초기화되지 않았다면 강제로 초기화 시도
+// [🔥 v3.1 수정: Firebase 앱 강제 초기화 로직 안전화]
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-    if (window.firebaseConfig) {
+    if (window.firebaseConfig) { 
         // logic.js에서 노출된 config를 사용하여 강제 초기화
         firebase.initializeApp(window.firebaseConfig);
         console.log("Firebase 앱 (DEFAULT) 강제 초기화 완료.");
     } else {
-        console.error("Firebase Config를 logic.js에서 로드하지 못했습니다. 초기화 스크립트 실행 불가.");
+        console.warn("Firebase Config를 logic.js에서 로드하지 못했습니다. 초기화 스크립트 실행 불가.");
     }
 } 
 
-const db = typeof firebase !== 'undefined' ? firebase.firestore() : null;
-const FieldValue = typeof firebase !== 'undefined' ? firebase.firestore.FieldValue : null;
-
 // ========================================
-// 1. 초기 데이터 정의
+// 1. 초기 데이터 정의 (Firebase 종속성이 없는 데이터만 상단에 유지)
 // ========================================
 const TEST_USERS = [
     { 
@@ -48,39 +45,17 @@ const TEST_QUESTIONS = [
     { text: "갑작스러운 돌발 상황에 재치있게 대처하나요?", type: 1 }  
 ];
 
-const TEST_LOGS = [
-    { 
-        target_uid: 'user_friend_1', sender_uid: 'user_me', action_type: 'VOTE', stat_type: 4, score_change: 20, 
-        message: "나(Me)님이 투표하여 [텐션] 점수를 받았습니다.", is_read: false, 
-        timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:00:00'))
-    },
-    { 
-        target_uid: 'user_friend_1', sender_uid: 'anonymous', action_type: 'VOTE', stat_type: 0, score_change: 20, 
-        message: "익명 투표로 [지성] 점수를 받았습니다.", is_read: false, 
-        timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:05:00'))
-    },
-    { 
-        target_uid: 'user_friend_1', sender_uid: 'user_me', action_type: 'ACHIEVE', stat_type: -1, score_change: 10, 
-        message: "업적 [소중한 한 표]를 달성했습니다. 토큰 10개 획득!", is_read: false, 
-        timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:10:00'))
-    }
-];
-
-const TEST_ROLLING_VOTES = [
-     { stat_type: 4, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:00:00')) },
-     { stat_type: 0, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:05:00')) },
-     { stat_type: 5, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-05T10:00:00')) },
-     { stat_type: 1, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-04T10:00:00')) },
-     { stat_type: 4, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-03T10:00:00')) }
-];
-
-
 // ========================================
 // 2. DB 삽입 로직
 // ========================================
 window.initializeTestDB = async function() { 
-    if (!db || !FieldValue) {
-        alert("Firebase SDK가 완전히 로드되지 않았습니다. 잠시 후 다시 시도하세요.");
+    // [🔥 v3.4 수정: window에서 db와 FieldValue를 가져옴과 동시에 유효성 검사 강화]
+    const db = window.db;
+    const FieldValue = window.FieldValue;
+
+    if (!db || !FieldValue || typeof firebase === 'undefined' || !firebase.firestore || !firebase.firestore.Timestamp) {
+        alert("Firebase SDK가 완전히 로드되지 않았습니다. 잠시 후 다시 시도하거나, 콘솔 오류를 확인하세요.");
+        console.error("DB/FieldValue/Timestamp 중 하나 이상 미정의! logic.js와 Firebase SDK 로드 상태를 확인하세요."); 
         return;
     }
 
@@ -89,10 +64,61 @@ window.initializeTestDB = async function() {
         return;
     }
     
+    // [🔥 v3.2 수정: Firebase 종속 데이터를 함수 호출 시점에 정의]
+    const TEST_LOGS = [
+        { 
+            target_uid: 'user_friend_1', sender_uid: 'user_me', action_type: 'VOTE', stat_type: 4, score_change: 20, 
+            message: "나(Me)님이 투표하여 [텐션] 점수를 받았습니다.", is_read: false, 
+            timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:00:00'))
+        },
+        { 
+            target_uid: 'user_friend_1', sender_uid: 'anonymous', action_type: 'VOTE', stat_type: 0, score_change: 20, 
+            message: "익명 투표로 [지성] 점수를 받았습니다.", is_read: false, 
+            timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:05:00'))
+        },
+        { 
+            target_uid: 'user_friend_1', sender_uid: 'user_me', action_type: 'ACHIEVE', stat_type: -1, score_change: 10, 
+            message: "업적 [소중한 한 표]를 달성했습니다. 토큰 10개 획득!", is_read: false, 
+            timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:10:00'))
+        }
+    ];
+
+    const TEST_ROLLING_VOTES = [
+         { stat_type: 4, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:00:00')) },
+         { stat_type: 0, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:05:00')) },
+         { stat_type: 5, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-05T10:00:00')) },
+         { stat_type: 1, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-04T10:00:00')) },
+         { stat_type: 4, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-03T10:00:00')) }
+    ];
+    // [🔥 v3.2 수정 끝]
+
+
     console.log("--- DB 초기화 시작 ---");
     const batch = db.batch();
 
-    // ... (Questions, Users, Logs, Received Votes 삽입 로직 유지) ...
+    // 1. Questions 컬렉션 삽입 (기존 데이터 삭제)
+    const qSnap = await db.collection("questions").get();
+    qSnap.forEach(doc => batch.delete(doc.ref));
+    TEST_QUESTIONS.forEach(q => {
+        batch.set(db.collection("questions").doc(), q);
+    });
+
+    // 2. Users 컬렉션 삽입 (테스트 친구들)
+    TEST_USERS.forEach(user => {
+        batch.set(db.collection("users").doc(user.id), user);
+    });
+    
+    // 3. Logs 컬렉션 삽입
+    const logSnap = await db.collection("logs").get();
+    logSnap.forEach(doc => batch.delete(doc.ref));
+    TEST_LOGS.forEach(log => {
+        batch.set(db.collection("logs").doc(), log);
+    });
+    
+    // 4. Received Votes 서브 컬렉션 삽입 (Rolling Window 테스트용)
+    TEST_ROLLING_VOTES.forEach(vote => {
+         batch.set(db.collection("users").doc('user_friend_1').collection("received_votes").doc(), vote);
+    });
     
     await batch.commit();
     

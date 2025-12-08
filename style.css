@@ -1,5 +1,7 @@
+/* style.css (Patch v3.3) */
+
 /* ========================================
-    기본 설정 (Patch v3.7 - 안정화 버전)
+   기본 설정 (Patch v3.7 - 안정화 버전)
 ======================================== */
 :root {
     --primary: #6c5ce7;
@@ -37,7 +39,7 @@ body {
 }
 
 /* ========================================
-    DB 상태 표시
+   DB 상태 표시
 ======================================== */
 .db-status {
     position: absolute;
@@ -56,7 +58,7 @@ body {
 .db-status.on { display: block; }
 
 /* ========================================
-    화면 (Screen) - 스크롤 영역
+   화면 (Screen) - 스크롤 영역
 ======================================== */
 .screen {
     display: none;
@@ -85,10 +87,10 @@ body {
 }
 
 /* ========================================
-    하단 네비게이션 (Bottom Nav) - 다시 Fixed로 복귀
+   하단 네비게이션 (Bottom Nav) - 다시 Fixed로 복귀
 ======================================== */
 .bottom-nav {
-	/* [핵심] 다시 Fixed로 화면 맨 밑에 붙이고 */
+    /* [핵심] 다시 Fixed로 화면 맨 밑에 붙이고 */
     position: fixed !important;
     bottom: 0;
     left: 0;
@@ -106,7 +108,7 @@ body {
     display: none;
     justify-content: space-around;
     align-items: center;
-	/* Z-Index는 50으로 유지 */
+    /* Z-Index는 50으로 유지 */
     z-index: 50; /* 메뉴바는 팝업보다 낮게 */
     
     /* 높이 보정 */
@@ -157,7 +159,7 @@ body {
 }
 
 /* ========================================
-    기타 컴포넌트 (기존 유지)
+   기타 컴포넌트 (기존 유지)
 ======================================== */
 h1, h2, h3 { color: #2d3436; margin: 0 0 15px 0; text-align: center; }
 p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
@@ -262,7 +264,32 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .stat-pill { white-space: nowrap; padding: 6px 7px; border-radius: 12px; background: #f1f2f6; color: #636e72; font-size: 10.5px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: 0.2s; flex-shrink: 1; }
 .stat-pill.active { background: white; border-color: var(--primary); color: var(--primary); box-shadow: 0 2px 4px rgba(108, 92, 231, 0.15); font-weight: 700; }
 .list-wrap { list-style: none; padding: 0; margin: 0; }
-.list-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; }
+
+/* [🔥 v3.3 수정: 랭킹 목록 스타일 보강 시작] */
+.list-item { 
+    display: flex; /* Flexbox 활성화 */
+    align-items: center; 
+    padding: 15px 0; 
+    border-bottom: 1px solid #eee; 
+    width: 100%; 
+    box-sizing: border-box; 
+    /* 이전 스타일과 통합 및 보강 */
+}
+
+/* 랭킹 리스트 전용 스타일 */
+.list-item .rank-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f0f2f6;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    margin-left: 10px;
+}
+/* [🔥 v3.3 수정 끝] */
+
 .list-item > div:first-child { text-align: center; margin-right: 10px; font-weight: 900; }
 .list-item > div:last-child { text-align: right; white-space: nowrap; }
 
@@ -291,7 +318,7 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 
 
 /* ========================================
-    바텀 시트 (Patch v4.4 - 위치 및 Z-Index 강제 고정)
+   바텀 시트 (Patch v4.4 - 위치 및 Z-Index 강제 고정)
 ======================================== */
 .sheet-overlay {
     position: fixed !important; 
