@@ -1,11 +1,36 @@
-// ui.js (Full Code: Patch v33.0)
+// ui.js (Full Code: Patch v52.0)
 
 let myMbti="",tempTestResult=[],myChart=null;
 function updateTicketUI(){const e=document.getElementById('ticketDisplay');if(e&&window.myInfo)e.innerText=`🎫 남은 티켓: ${window.myInfo.tickets||0}/5`;}
 function updateProfileUI(){if(!window.myInfo)return;const d={mainMsg:`"${window.myInfo.msg||'상태 메시지'}"`,settingMsg:`"${window.myInfo.msg||'상태 메시지'}"`,shopTokenDisplay:window.myInfo.tokens,myAvatar:window.myInfo.avatar,settingsAvatar:window.myInfo.avatar,myNicknameDisplay:window.myInfo.nickname,settingsNickname:window.myInfo.nickname,myMbtiBadge:`#${window.myInfo.mbti}`};for(const k in d){const e=document.getElementById(k);if(e)e.innerText=d[k];}if(document.getElementById('tab-prism')?.classList.contains('active')&&window.drawChart)window.drawChart(); if(window.applyActiveEffects)window.applyActiveEffects();}
 function setMyTypeUI(m){myMbti=m;if(document.getElementById('myMbtiBadge'))document.getElementById('myMbtiBadge').innerText=`#${m}`;document.getElementById('screen-login').classList.remove('active');document.getElementById('screen-mbti').classList.remove('active');document.getElementById('mainContainer').classList.add('logged-in');if(window.goTab)window.goTab('screen-main',document.querySelector('.nav-item:first-child'));}
-function goTab(s,n){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(s).classList.add('active');document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));if(n)n.classList.add('active');if(s==='screen-main')window.goSubTab('tab-prism',document.querySelector('.sub-tab:first-child'));else if(s==='screen-rank'&&window.renderRankList)window.renderRankList(window.currentFilter);else if(s==='screen-vote'&&window.startTournament)window.startTournament();if(updateProfileUI)updateProfileUI();}
-function goSubTab(c,t){document.querySelectorAll('.sub-content').forEach(x=>x.classList.remove('active'));document.getElementById(c).classList.add('active');document.querySelectorAll('.sub-tab').forEach(x=>x.classList.remove('active'));if(t)t.classList.add('active');if(c==='tab-prism'&&window.drawChart)setTimeout(window.drawChart,50);else if(c==='tab-history'&&window.renderHistoryList)window.renderHistoryList();else if(c==='tab-trophy'&&window.renderAchievementsList)window.renderAchievementsList();}
+function goTab(s,n){
+    document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+    document.getElementById(s).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+    if(n)n.classList.add('active');
+    
+    if(s==='screen-main'){
+        // [🔥 v41.0] 메인 탭 로드시 차트 렌더링을 다음 프레임으로 지연시켜 DOM/CSS 파싱 완료 보장
+        setTimeout(() => {
+             window.goSubTab('tab-prism',document.querySelector('.sub-tab:first-child'));
+        }, 0); 
+    } else if(s==='screen-rank'&&window.renderRankList) {
+        window.renderRankList(window.currentFilter);
+    } else if(s==='screen-vote'&&window.startTournament) {
+        window.startTournament();
+    }
+    if(updateProfileUI)updateProfileUI();
+}
+function goSubTab(c,t){
+    document.querySelectorAll('.sub-content').forEach(x=>x.classList.remove('active'));
+    document.getElementById(c).classList.add('active');
+    document.querySelectorAll('.sub-tab').forEach(x=>x.classList.remove('active'));
+    if(t)t.classList.add('active');
+    if(c==='tab-prism'&&window.drawChart)setTimeout(window.drawChart,50);
+    else if(c==='tab-history'&&window.renderHistoryList)window.renderHistoryList();
+    else if(c==='tab-trophy'&&window.renderAchievementsList)window.renderAchievementsList();
+}
 function goScreen(s){document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));document.getElementById(s).classList.add('active');}
 function logout(){localStorage.clear();location.reload();}
 function loginWithServer(){goScreen('screen-nickname');}
@@ -79,7 +104,7 @@ window.openInventory=function(){
 window.applyActiveEffects=function(){
     const b=document.body;
     // 모든 테마 클래스를 제거
-    b.classList.remove('bg-gold','bg-dark', 'bg-pink'); // [🔥 v33.0] 핑크 모드 클래스 추가
+    b.classList.remove('bg-gold','bg-dark', 'bg-pink'); 
     
     if(!window.myInfo?.inventory)return;
     const e=window.myInfo.inventory.find(i=>i.type==='effect'&&i.isActive);
@@ -97,4 +122,3 @@ window.updateProfileUI=function(){
 }
 
 window.updateTicketUI=updateTicketUI;window.updateProfileUI=window.updateProfileUI;window.setMyTypeUI=setMyTypeUI;window.goTab=goTab;window.goSubTab=goSubTab;window.goScreen=goScreen;window.logout=logout;window.loginWithServer=loginWithServer;window.nextTest=nextTest;window.finishTest=finishTest;window.saveNicknameAndNext=saveNicknameAndNext;window.openSheet=openSheet;window.closeSheet=closeSheet;window.editProfileMsg=editProfileMsg;window.disableVoteScreen=disableVoteScreen;window.debugLogin=debugLogin;
-function init(){if(typeof window.loadDataFromServer==='function')window.loadDataFromServer();else console.warn("logic.js fail");}window.addEventListener('DOMContentLoaded',init);

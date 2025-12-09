@@ -1,4 +1,4 @@
-// logic.js (Full Code: v33.0)
+// logic.js (Full Code: v52.0)
 
 // 1. Firebase
 window.firebaseConfig = { apiKey: "AIzaSyCZJB72jkS2rMgM213Wu9fEuW4Q4jN1scc", authDomain: "it-s-me-96d66.firebaseapp.com", projectId: "it-s-me-96d66", storageBucket: "it-s-me-96d66.firebasestorage.app", messagingSenderId: "950221311348", appId: "1:950221311348:web:43c851b6a4d7446966f021", measurementId: "G-J3SYEX4SYW" };
@@ -47,16 +47,25 @@ window.initGame = async function() {
     try {
         const db=window.db;
         try { 
+            // Achievement 마스터 데이터 초기화
             const batch=db.batch();
             window.ACHIEVEMENTS_MASTER_DATA.forEach(a=>batch.set(db.collection("achievements").doc(a.id),a));
             await batch.commit().catch(()=>{});
-            const as=await db.collection("achievements").get();
+            
+            // Achievement 리스트 로드
+            const as=await db.collection("achievements").get().catch(()=>[]); 
             window.achievementsList=[]; as.forEach(d=>window.achievementsList.push(d.data()));
-        } catch(e){window.achievementsList=window.ACHIEVEMENTS_MASTER_DATA;}
+        } catch(e){window.achievementsList=window.ACHIEVEMENTS_MASTER_DATA;} // 실패 시 로컬 마스터 데이터 사용
 
         updateStatus("● 데이터 로드..");
-        const qs=await db.collection("questions").get(); window.questions=[]; qs.forEach(d=>window.questions.push(d.data()));
-        const us=await db.collection("users").get(); window.candidates=[]; us.forEach(d=>{let u=d.data(); u.id=d.id; u.stats=u.stats||[50,50,50,50,50,50]; if(!u.avatar)u.avatar='👤'; if(u.id!==getUserId()&&u.nickname) window.candidates.push(u);});
+        
+        // Questions 로드
+        const qs=await db.collection("questions").get().catch(()=>[]); 
+        window.questions=[]; qs.forEach(d=>window.questions.push(d.data()));
+        
+        // Users (Candidates) 로드
+        const us=await db.collection("users").get().catch(()=>[]); 
+        window.candidates=[]; us.forEach(d=>{let u=d.data(); u.id=d.id; u.stats=u.stats||[50,50,50,50,50,50]; if(!u.avatar)u.avatar='👤'; if(u.id!==getUserId()&&u.nickname) window.candidates.push(u);});
 
         await window.checkAndResetTickets();
         const myDoc=await db.collection("users").doc(getUserId()).get().catch(()=>null);
@@ -68,14 +77,20 @@ window.initGame = async function() {
         }
 
         updateStatus("● 렌더링..");
-        if(window.myInfo.mbti && document.getElementById('screen-login').classList.contains('active')){
-            if(window.setMyTypeUI) window.setMyTypeUI(window.myInfo.mbti);
-        } else if(window.candidates.length>=2 && window.renderRankList) {
-            window.renderRankList(window.currentFilter);
-        }
-        if(window.updateProfileUI) window.updateProfileUI();
         
-        // [🔥 v33.0] DB 상태 강제 초록불 (확실하게)
+        // [🔥 v41.0] 렌더링 및 UI 전환 로직에 try-catch 추가하여 오류 발생 시 앱이 멈추지 않도록 처리
+        try {
+            if(window.myInfo.mbti && document.getElementById('screen-login').classList.contains('active')){
+                if(window.setMyTypeUI) window.setMyTypeUI(window.myInfo.mbti);
+            } else if(window.candidates.length>=2 && window.renderRankList) {
+                window.renderRankList(window.currentFilter);
+            }
+            if(window.updateProfileUI) window.updateProfileUI();
+        } catch (uiError) {
+            console.error("UI 렌더링 중 오류 발생:", uiError);
+        }
+
+        // DB 연결 성공 메시지는 최종적으로 무조건 출력
         setTimeout(() => updateStatus("● DB OK", 'ok'), 500);
 
     } catch(e){console.error(e);updateStatus("● 로딩 실패",'error');}
@@ -321,7 +336,50 @@ window.renderAchievementsList=async function(ids){
         el.innerHTML=`<div class="achieve-icon">${a.icon}</div><div class="achieve-title">${a.title}</div>`; c.appendChild(el);
     });
 }
-window.drawChart=function(){const c=document.getElementById('myRadarChart');if(!c)return;if(window.myChart)window.myChart.destroy();window.myChart=new Chart(c,{type:'radar',data:{labels:STAT_MAP,datasets:[{label:'나',data:window.myInfo.stats,fill:true,backgroundColor:'rgba(108,92,231,0.2)',borderColor:'rgb(108,92,231)',pointBackgroundColor:'rgb(108,92,231)',pointBorderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,scales:{r:{angleLines:{color:'#dfe6e9'},grid:{color:'#dfe6e9'},pointLabels:{color:'#636e72',font:{size:14,weight:'bold'}},suggestedMin:0,suggestedMax:100,ticks:{display:false,stepSize:25}}},plugins:{legend:{display:false}}}});};
+window.drawChart=function(){
+    const c=document.getElementById('myRadarChart');
+    if(!c)return;
+    if(window.myChart)window.myChart.destroy();
+    
+    // [🔥 v40.0] CSS 변수를 읽어와 동적으로 차트 색상 적용 (테마 통합)
+    const style = getComputedStyle(document.body);
+    const gridColor = style.getPropertyValue('--color-chart-grid') || '#BEBEBE'; // fallback을 #BEBEBE로 변경 (요청 사항 유지)
+    const pointLabelColor = style.getPropertyValue('--color-chart-label') || '#636e72'; 
+
+    window.myChart=new Chart(c,{
+        type:'radar',
+        data:{
+            labels:STAT_MAP,
+            datasets:[{
+                label:'나',
+                data:window.myInfo.stats,
+                fill:true,
+                backgroundColor:'rgba(108,92,231,0.2)',
+                borderColor:'rgb(108,92,231)',
+                pointBackgroundColor:'rgb(108,92,231)',
+                pointBorderColor:'#fff'
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            scales:{
+                r:{
+                    angleLines:{color:gridColor}, // 육각 선
+                    grid:{color:gridColor},      // 그리드 선
+                    pointLabels:{
+                        color:pointLabelColor,
+                        font:{size:14,weight:'bold'}
+                    },
+                    suggestedMin:0,
+                    suggestedMax:100,
+                    ticks:{display:false,stepSize:25}
+                }
+            },
+            plugins:{legend:{display:false}}
+        }
+    });
+};
 window.startTournament=function(){
     if(window.myInfo.tickets<=0){if(window.disableVoteScreen)window.disableVoteScreen();return;}
     if(window.candidates.length<2){alert("후보 부족");return;}
@@ -388,3 +446,9 @@ const cb=document.createElement('button');cb.className='btn btn-outline';cb.inne
 const nb=document.createElement('button');nb.className='btn btn-primary';
 if(window.myInfo.tickets<=0){document.getElementById('winnerText').innerHTML=`점수 전달 완료!<br><span style="color:#e74c3c;font-weight:bold;">🎫 티켓 소진!</span>`;nb.innerText="메인으로 돌아가기";nb.onclick=()=>{if(window.disableVoteScreen)window.disableVoteScreen();window.goTab('screen-main',document.querySelector('.nav-item'));};}else{document.getElementById('winnerText').innerText="이 친구에게 점수가 전달되었습니다.";nb.innerText="다음 토너먼트 시작하기";nb.onclick=window.startTournament;}bc.appendChild(nb);wb.appendChild(bc);if(typeof confetti==='function')confetti({particleCount:100,spread:70,origin:{y:0.6}});}
 async function saveScore(w,s){w.stats[window.currentQ?.type||0]=Math.min(100,w.stats[window.currentQ?.type||0]+s);const i=window.candidates.findIndex(c=>c.id===w.id);if(i!==-1)window.candidates[i].stats=w.stats;if(window.renderRankList)window.renderRankList(window.currentFilter);if(window.db){window.db.collection("users").doc(w.id).collection("received_votes").add({stat_type:window.currentQ?.type||0,score_change:s,timestamp:window.FieldValue.serverTimestamp()});window.db.collection("users").doc(w.id).update({stats:w.stats});}}
+
+// [🔥 v43.0] defer 적용 후, DOMContentLoaded 이벤트로 안전하게 initGame 호출
+/*
+function init(){if(typeof window.loadDataFromServer==='function')window.loadDataFromServer();}
+window.addEventListener('DOMContentLoaded',init);
+*/

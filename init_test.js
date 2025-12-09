@@ -1,16 +1,11 @@
-// init_test.js (Full Code: Patch v32.0 - Inventory System)
+// init_test.js (Full Code: Patch v47.0 - Cleaned Firebase Init)
 
 console.log("======================================");
-console.log("🚀 DB 초기화 스크립트 (v32.0)");
+console.log("🚀 DB 초기화 스크립트 (v47.0)");
 console.log("======================================");
 
-if (typeof firebase !== 'undefined' && !firebase.apps.length) {
-    if (window.firebaseConfig) { 
-        firebase.initializeApp(window.firebaseConfig);
-    }
-} 
+// [🔥 v35.0] Firebase 초기화 로직을 제거하여 logic.js의 initGame 함수만 실행하도록 보장
 
-// [🔥 v32.0] 기본 아바타 변경 및 inventory 필드 추가
 const TEST_USERS = [
     { 
         id: 'user_test_a', nickname: '테스트 A (나)', avatar: '👤', mbti: 'ENTP', 

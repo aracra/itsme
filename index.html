@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v33.0 (End Game)</title>
-    <link rel="stylesheet" href="style.css?v=33.0">
+    <title>It's me! v53.0 (End Game)</title>
+    <link rel="stylesheet" href="style.css?v=53.0">
 </head>
 <body>
 
@@ -69,7 +69,7 @@
 
     <div id="screen-test-1" class="screen full-center"><div style="padding:20px; text-align:center;"><h3>Q1. 불금이다!<br>친구들이 부르면?</h3><button class="btn btn-outline" onclick="nextTest('E', 'screen-test-2')">오예! 당장 나간다! (E)</button><button class="btn btn-outline" onclick="nextTest('I', 'screen-test-2')">기 빨려... 집이 최고야. (I)</button></div></div>
     <div id="screen-test-2" class="screen full-center"><div style="padding:20px; text-align:center;"><h3>Q2. 멍 때릴 때<br>무슨 생각해?</h3><button class="btn btn-outline" onclick="nextTest('S', 'screen-test-3')">배고파... 저녁 뭐 먹지? (S)</button><button class="btn btn-outline" onclick="nextTest('N', 'screen-test-3')">좀비가 나타나면 어떡하지? (N)</button></div></div>
-    <div id="screen-test-3" class="screen full-center"><div style="padding:20px; text-align:center;"><h3>Q3. 친구가 우울해서<br>화분 샀다고 하면?</h3><button class="btn btn-outline" onclick="nextTest('T', 'screen-test-4')">무슨 화분 샀어? 얼마야? (T)</button><button class="btn btn-outline" onclick="nextTest('F', 'screen-test-4')">헐... 무슨 일 있어? ㅠㅠ (F)</button></div></div>
+    <div id="screen-test-3" class="screen full-center"><div style="padding:20px; text-align:center;"><h3>Q3. 친구가 우울해서<br>화분 샀다고 하면?</h3><button class="btn btn-outline" onclick="nextTest('T', 'screen-test-4')">무슨 화분 샀어? 얼마야? (T)</BUTTON><button class="btn btn-outline" onclick="nextTest('F', 'screen-test-4')">헐... 무슨 일 있어? ㅠㅠ (F)</button></div></div>
     <div id="screen-test-4" class="screen full-center"><div style="padding:20px; text-align:center;"><h3>Q4. 여행 갈 때<br>계획은?</h3><button class="btn btn-outline" onclick="finishTest('J')">엑셀 켜고 분 단위 일정표 (J)</button><button class="btn btn-outline" onclick="finishTest('P')">여권만 챙겨서 출발! (P)</button></div></div>
     <div id="screen-nickname" class="screen full-center"><div style="padding:20px; text-align:center;"><h2>반가워요! 👋</h2><input type="text" id="inputNickname" placeholder="닉네임 입력" style="width:100%; padding:15px; margin-bottom:20px; border:2px solid #ddd; border-radius:10px;"><button class="btn btn-primary" onclick="saveNicknameAndNext()">다음으로</button></div></div>
     
@@ -221,12 +221,26 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="logic.js?v=33.0"></script>
-<script src="ui.js?v=33.0"></script>
-<script src="init_test.js?v=33.0"></script>    
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+
+<script src="logic.js?v=52.0" defer></script>
+<script src="ui.js?v=52.0" defer></script>
+<script src="init_test.js?v=52.0" defer></script> 
+
+<script>
+    window.addEventListener('DOMContentLoaded', function() {
+        if (window.loadDataFromServer) {
+            window.loadDataFromServer();
+        } else {
+            // logic.js 로드 실패 시의 폴백 처리 (극히 드물지만 안전 보장)
+            console.error("logic.js가 로드되지 않았습니다. 앱 초기화 실패.");
+            document.getElementById('dbStatus').innerText = "● 로드 오류";
+            document.getElementById('dbStatus').classList.add('error');
+        }
+    });
+</script>
 </body>
 </html>
