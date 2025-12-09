@@ -1,6 +1,6 @@
-/* style.css (v57.0 - Layout Stabilization Update) */
+/* style.css (v18.57 - Layout Stabilization Update) */
 
-/* [🔥 v57.0] 전역 레이아웃 안정화: 패딩이 너비를 넘치게 하는 현상 원천 차단 */
+/* [🔥 v18.57] 전역 레이아웃 안정화: 패딩이 너비를 넘치게 하는 현상 원천 차단 */
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 /* 1. 기본 설정 */
@@ -83,7 +83,7 @@ p { color: var(--dark-text-secondary); font-size: 15px; margin-bottom: 25px; tex
 .header-title { font-size: 22px; font-weight: 800; color: var(--dark-text-primary); margin: 0; }
 .header-badge { display: inline-block; background: #eee; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #f39c12; margin-top: 5px; }
 
-/* [🔥 v57.0] 로그인 버튼 영역 안전 스타일 추가 */
+/* [🔥 v18.57] 로그인 버튼 영역 안전 스타일 추가 */
 .login-btn-area {
     width: 100%; 
     padding: 20px; 

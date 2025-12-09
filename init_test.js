@@ -1,4 +1,4 @@
-// init_test.js (Full Code: Patch v47.0 - Cleaned Firebase Init)
+// init_test.js (Full Code: v18.57 - Cleaned Firebase Init)
 
 console.log("======================================");
 console.log("🚀 DB 초기화 스크립트 (v47.0)");
