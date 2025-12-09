@@ -1,4 +1,4 @@
-// logic.js (Full Code: Patch v5.8 - Round Indicator Fix)
+// logic.js (Full Code: Patch v6.1 - Stable)
 
 // ========================================
 // Firebase 초기화
@@ -63,7 +63,7 @@ window.currentQ = null;
 window.currentFilter = -1;
 window.isVoting = false; 
 window.isGamePaid = false;
-window.currentRoundMax = 0; // [🔥 v5.8] 현재 라운드 강 (8강, 4강 등) 고정 변수
+window.currentRoundMax = 0; 
 window.myInfo = {
     tickets: 5,
     lastTicketDate: "",
@@ -284,12 +284,9 @@ window.startTournament = function() {
              return;
         }
     }
-    
-    // UI 초기화
     document.getElementById('winnerContainer').style.display = 'none';
     document.getElementById('passBtn').style.display = 'block';
     
-    // [🔥 v5.8] 라운드 뱃지 다시 보이기 (우승 화면에서 숨겼을 수 있으므로)
     const badge = document.getElementById('roundBadge');
     if(badge) badge.style.display = 'inline-block';
 
@@ -303,7 +300,7 @@ window.startTournament = function() {
     }
     
     let players = [...window.candidates].sort(() => Math.random() - 0.5);
-    // 최대 8명까지 (16명은 너무 길어서)
+    // 최대 8명까지
     if(players.length >= 8) players = players.slice(0, 8);
     else if(players.length >= 4) players = players.slice(0, 4);
     else players = players.slice(0, 2);
@@ -311,7 +308,6 @@ window.startTournament = function() {
     window.tournamentRound = players;
     window.nextRound = [];
     
-    // [🔥 v5.8] 현재 라운드 총 인원 고정 (8, 4, 2...)
     window.currentRoundMax = players.length;
     
     updateRoundTitle();
@@ -320,30 +316,34 @@ window.startTournament = function() {
 
 function updateRoundTitle() {
     const badge = document.getElementById('roundBadge');
-    if(badge) {
-        // [🔥 v5.8] 실시간 length가 아니라, 고정된 currentRoundMax 사용
-        if(window.currentRoundMax === 2) badge.innerText = "👑 결승전";
-        else badge.innerText = `🏆 ${window.currentRoundMax}강전`;
+    if(badge && window.currentRoundMax > 0) {
+        const totalMatches = window.currentRoundMax / 2;
+        const currentMatch = (window.currentRoundMax - window.tournamentRound.length) / 2 + 1;
+        
+        if(window.currentRoundMax === 2) {
+            badge.innerText = "👑 결승전";
+        } else {
+            badge.innerText = `🏆 ${window.currentRoundMax}강전 (${currentMatch}/${totalMatches})`;
+        }
     }
 }
 
 function showMatch() {
-    // 1. 현재 라운드가 끝났는지 확인 (남은 선수가 2명 미만)
+    // 1. 현재 라운드 종료 체크
     if(window.tournamentRound.length < 2) {
-        // 결승전이었다면 우승자 화면으로
         if(window.nextRound.length === 1) {
             showWinner(window.nextRound[0]);
             return;
         }
-        // 다음 라운드 진출자가 있다면 라운드 교체
         if(window.nextRound.length > 0) {
             window.tournamentRound = window.nextRound;
             window.nextRound = [];
             window.tournamentRound.sort(() => Math.random() - 0.5); 
             
-            // [🔥 v5.8] 다음 라운드 인원수로 업데이트 (예: 8 -> 4)
             window.currentRoundMax = window.tournamentRound.length;
             updateRoundTitle();
+            
+            fireRoundEffect(window.currentRoundMax);
         } else {
             console.error("토너먼트 오류: 다음 라운드 진출자가 없습니다.");
             return;
@@ -356,8 +356,31 @@ function showMatch() {
         return; 
     }
     
+    updateRoundTitle();
+    
     updateCard('A', window.tournamentRound[0]);
     updateCard('B', window.tournamentRound[1]);
+}
+
+function fireRoundEffect(round) {
+    const badge = document.getElementById('roundBadge');
+    if(badge) {
+        badge.classList.remove('pulse-anim');
+        void badge.offsetWidth; 
+        badge.classList.add('pulse-anim');
+    }
+
+    const colors = round === 2 ? ['#ffd700', '#ffa500'] : ['#6c5ce7', '#00b894'];
+    
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 100,
+            spread: 80,
+            origin: { y: 0.2 }, 
+            colors: colors,
+            disableForReducedMotion: true
+        });
+    }
 }
 
 function updateCard(pos, user) {
@@ -371,7 +394,8 @@ window.vote = function(idx) {
     if (window.isVoting) return;
     if (!window.tournamentRound || window.tournamentRound.length < 2) return;
 
-    if (window.myInfo.tickets <= 0) { 
+    // [🔥 v6.1 핵심 수정] 티켓 0개여도 이미 지불했으면(isGamePaid) 통과!
+    if (!window.isGamePaid && window.myInfo.tickets <= 0) { 
         alert("티켓 소진!");
         return; 
     }
@@ -438,7 +462,7 @@ function showWinner(winner) {
     document.getElementById('vsContainer').style.display = 'none';
     document.getElementById('passBtn').style.display = 'none';
     
-    // [🔥 v5.8] 우승 화면에서는 라운드 뱃지(4강전 등)를 숨김
+    // [🔥 v6.1 확인] 우승 화면에서 뱃지 확실하게 숨김
     const badge = document.getElementById('roundBadge');
     if(badge) badge.style.display = 'none';
 

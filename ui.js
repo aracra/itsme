@@ -1,4 +1,4 @@
-// ui.js (Full Code: Patch v5.2)
+// ui.js (Full Code: Patch v6.3 - Clean Refresh)
 
 // ========================================
 // 전역 변수 초기화
@@ -225,14 +225,19 @@ function closeSheet() {
     document.querySelectorAll('.sheet-overlay').forEach(el => el.classList.remove('open'));
 }
 
+// [🔥 v6.3 수정] 화면 겹침 방지 (우승 화면 강제 숨김 추가)
 function disableVoteScreen() {
     const voteWrapper = document.getElementById('voteWrapper');
     const passBtn = document.getElementById('passBtn');
-    
+    const winnerContainer = document.getElementById('winnerContainer'); // [Added]
+    const roundBadge = document.getElementById('roundBadge'); // [Added]
+
     if (document.getElementById('noTicketMsg')) return;
 
     if (voteWrapper) voteWrapper.style.display = 'none';
     if (passBtn) passBtn.style.display = 'none';
+    if (winnerContainer) winnerContainer.style.display = 'none'; // [Added] 우승 화면 끄기
+    if (roundBadge) roundBadge.style.display = 'none'; // [Added] 뱃지도 끄기
     
     const voteScreen = document.getElementById('screen-vote');
     if (voteScreen) {
