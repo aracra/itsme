@@ -1,14 +1,14 @@
-// ui.js 파일 (Full Code: Patch v4.7 - 평가 탭 진입 시 startTournament 호출)
+// ui.js (Full Code: Patch v5.2)
 
 // ========================================
-// 전역 변수 초기화 (UI용)
+// 전역 변수 초기화
 // ========================================
 let myMbti = "";
 let tempTestResult = [];
 let myChart = null;
 
 // ========================================
-// UI 업데이트 함수들 (logic.js에서 호출됨)
+// UI 업데이트 함수들
 // ========================================
 function updateTicketUI() {
     const el = document.getElementById('ticketDisplay');
@@ -29,7 +29,6 @@ function updateProfileUI() {
 
     if(!window.myInfo) return;
 
-    // [🔥 v3.8 수정] 따옴표는 UI에서 붙입니다.
     const displayMsg = window.myInfo.msg || "상태 메시지를 입력해주세요";
     if(mainMsg) mainMsg.innerText = `"${displayMsg}"`;
     if(settingMsg) settingMsg.innerText = `"${displayMsg}"`;
@@ -57,7 +56,7 @@ function updateProfileUI() {
 
 
 // ========================================
-// MBTI UI 설정 (화면 전환 핵심 로직)
+// MBTI UI 설정
 // ========================================
 function setMyTypeUI(mbti) {
     console.log("UI 전환 시작: ", mbti);
@@ -95,8 +94,6 @@ function goTab(screenId, navEl) {
     } else if (screenId === 'screen-rank' && typeof window.renderRankList === 'function') {
         window.renderRankList(window.currentFilter);
     } else if (screenId === 'screen-vote' && typeof window.startTournament === 'function') {
-        // [🔥 v4.7 핵심 수정] 평가 탭 진입 시, 토너먼트 시작 로직 강제 호출
-        // (이전에는 메인 로드 시와 승자 화면에서만 호출되었음)
         window.startTournament(); 
     }
     
@@ -130,7 +127,7 @@ function goScreen(screenId) {
 
 
 // ========================================
-// 기타 UI/로직 함수 (index.html에서 호출됨)
+// 기타 UI/로직 함수
 // ========================================
 function logout() {
     localStorage.clear();
@@ -146,11 +143,9 @@ function nextTest(val, nextScreenId) {
     goScreen(nextScreenId);
 }
 
-// [🔥 v3.2 수정: MBTI 테스트 결과 계산 로직 추가]
 function finishTest(lastVal) {
     tempTestResult.push(lastVal);
     
-    // 1. 결과 카운팅: E/I, S/N, T/F, J/P 순서
     const counts = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
     tempTestResult.forEach(val => {
         counts[val]++;
@@ -162,7 +157,6 @@ function finishTest(lastVal) {
     finalMbti += counts['T'] >= counts['F'] ? 'T' : 'F';
     finalMbti += counts['J'] >= counts['P'] ? 'J' : 'P';
     
-    // 2. 결과 처리
     if(typeof window.saveMbtiToServer === 'function') {
         window.saveMbtiToServer(finalMbti);
     } else {
@@ -193,7 +187,6 @@ function saveNicknameAndNext() {
     goScreen('screen-mbti');
 }
 
-// [🔥 v3.8 추가] 나의 한마디(상태 메시지) 수정 시작
 window.editProfileMsg = async function() {
     if (!window.myInfo) {
         alert("사용자 정보 로드 전입니다.");
@@ -201,13 +194,9 @@ window.editProfileMsg = async function() {
     }
     
     const currentMsg = window.myInfo.msg === "상태 메시지를 입력해주세요" ? "" : window.myInfo.msg;
-    
     const newMsg = prompt("새로운 '나의 한마디'를 입력해주세요. (최대 50자)", currentMsg);
     
-    if (newMsg === null) {
-        // 취소
-        return;
-    }
+    if (newMsg === null) return;
     
     const trimmedMsg = newMsg.trim().substring(0, 50);
 
@@ -222,7 +211,6 @@ window.editProfileMsg = async function() {
         alert("오류: DB 저장 함수를 찾을 수 없습니다.");
     }
 }
-// [🔥 v3.8 추가 끝]
 
 
 function openSheet(icon, title, desc, sub="") {
@@ -237,19 +225,15 @@ function closeSheet() {
     document.querySelectorAll('.sheet-overlay').forEach(el => el.classList.remove('open'));
 }
 
-// [🔥 v4.3 추가] 투표 화면 비활성화 UI 추가
 function disableVoteScreen() {
     const voteWrapper = document.getElementById('voteWrapper');
     const passBtn = document.getElementById('passBtn');
-    const noTicketMsg = document.getElementById('noTicketMsg');
-
-    // 이미 메시지가 있으면 중복 실행 방지
-    if (noTicketMsg) return;
+    
+    if (document.getElementById('noTicketMsg')) return;
 
     if (voteWrapper) voteWrapper.style.display = 'none';
     if (passBtn) passBtn.style.display = 'none';
     
-    // ⚠️ 임시로 투표 화면 컨테이너에 메시지 표시. (추후 HTML에 전용 화면 추가 권장)
     const voteScreen = document.getElementById('screen-vote');
     if (voteScreen) {
         const tempMsg = document.createElement('div');
@@ -261,12 +245,9 @@ function disableVoteScreen() {
             <p>내일 다시 평가에 참여해 주세요.</p>
             <button class="btn btn-primary" onclick="goTab('screen-main', document.querySelector('.nav-item:first-child'))">메인으로</button>
         `;
-        // 기존 요소를 숨긴 후 메시지 표시
         voteScreen.appendChild(tempMsg);
     }
 }
-// [🔥 v4.3 추가 끝]
-
 
 // ========================================
 // 앱 시작: 모든 함수를 window 객체에 연결
@@ -285,7 +266,7 @@ window.saveNicknameAndNext = saveNicknameAndNext;
 window.openSheet = openSheet;
 window.closeSheet = closeSheet;
 window.editProfileMsg = editProfileMsg; 
-window.disableVoteScreen = disableVoteScreen; // [🔥 v4.3 추가]
+window.disableVoteScreen = disableVoteScreen;
 
 function init() {
     if (typeof window.loadDataFromServer === 'function') {
@@ -295,4 +276,4 @@ function init() {
     }
 }
 
-init();
+window.addEventListener('DOMContentLoaded', init);

@@ -1,22 +1,20 @@
-// init_test.js 파일 (Full Code: Patch v4.2 - Users 컬렉션 전체 삭제 추가)
+// init_test.js (Full Code: Patch v5.2)
 
 console.log("======================================");
 console.log("🚀 DB 초기화 스크립트 로드 중... (자체 초기화)");
 console.log("======================================");
 
-// [🔥 v3.1 수정: Firebase 앱 강제 초기화 로직 안전화]
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     if (window.firebaseConfig) { 
-        // logic.js에서 노출된 config를 사용하여 강제 초기화
         firebase.initializeApp(window.firebaseConfig);
         console.log("Firebase 앱 (DEFAULT) 강제 초기화 완료.");
     } else {
-        console.warn("Firebase Config를 logic.js에서 로드하지 못했습니다. 초기화 스크립트 실행 불가.");
+        console.warn("Firebase Config를 logic.js에서 로드하지 못했습니다.");
     }
 } 
 
 // ========================================
-// 1. 초기 데이터 정의 (Firebase 종속성이 없는 데이터만 상단에 유지)
+// 1. 초기 데이터 정의
 // ========================================
 const TEST_USERS = [
     { 
@@ -49,13 +47,12 @@ const TEST_QUESTIONS = [
 // 2. DB 삽입 로직
 // ========================================
 window.initializeTestDB = async function() { 
-    // [🔥 v3.4 수정: window에서 db와 FieldValue를 가져옴과 동시에 유효성 검사 강화]
     const db = window.db;
     const FieldValue = window.FieldValue;
 
     if (!db || !FieldValue || typeof firebase === 'undefined' || !firebase.firestore || !firebase.firestore.Timestamp) {
         alert("Firebase SDK가 완전히 로드되지 않았습니다. 잠시 후 다시 시도하거나, 콘솔 오류를 확인하세요.");
-        console.error("DB/FieldValue/Timestamp 중 하나 이상 미정의! logic.js와 Firebase SDK 로드 상태를 확인하세요."); 
+        console.error("DB/FieldValue/Timestamp 중 하나 이상 미정의!"); 
         return;
     }
 
@@ -64,7 +61,6 @@ window.initializeTestDB = async function() {
         return;
     }
     
-    // [🔥 v3.2 수정: Firebase 종속 데이터를 함수 호출 시점에 정의]
     const TEST_LOGS = [
         { 
             target_uid: 'user_friend_1', sender_uid: 'user_me', action_type: 'VOTE', stat_type: 4, score_change: 20, 
@@ -90,22 +86,19 @@ window.initializeTestDB = async function() {
           { stat_type: 1, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-04T10:00:00')) },
           { stat_type: 4, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-03T10:00:00')) }
     ];
-    // [🔥 v3.2 수정 끝]
 
 
     console.log("--- DB 초기화 시작 ---");
     const batch = db.batch();
 
-    // 0. Users 컬렉션 전체 삭제 (🔥 v4.2 추가)
-    // 현재 로그인 계정을 포함하여 모든 쓰레기 유저를 삭제합니다.
+    // 0. Users 컬렉션 전체 삭제
     const uSnap = await db.collection("users").get();
     uSnap.forEach(doc => {
-        // 서브 컬렉션(received_votes)이 있는 경우 수동 삭제가 필요하지만, 테스트 환경이므로 일단 메인 문서만 삭제합니다.
         batch.delete(doc.ref);
     });
     console.log(`기존 사용자 ${uSnap.size}명 삭제 대기.`);
 
-    // 1. Questions 컬렉션 삽입 (기존 데이터 삭제)
+    // 1. Questions 컬렉션 삽입
     const qSnap = await db.collection("questions").get();
     qSnap.forEach(doc => batch.delete(doc.ref));
     TEST_QUESTIONS.forEach(q => {
@@ -124,14 +117,13 @@ window.initializeTestDB = async function() {
         batch.set(db.collection("logs").doc(), log);
     });
     
-    // 4. Received Votes 서브 컬렉션 삽입 (Rolling Window 테스트용)
+    // 4. Received Votes 서브 컬렉션 삽입
     TEST_ROLLING_VOTES.forEach(vote => {
           batch.set(db.collection("users").doc('user_friend_1').collection("received_votes").doc(), vote);
     });
     
     await batch.commit();
     
-    // 로컬 스토리지 클리어 (새 계정으로 시작하도록 강제)
     localStorage.clear();
 
     console.log("--- DB 초기화 성공! 🎉 ---");

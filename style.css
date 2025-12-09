@@ -1,7 +1,7 @@
-/* style.css (Patch v4.6 - 우승 화면 아바타 독립 정렬 최종 수정) */
+/* style.css (Full Code: Patch v5.2) */
 
 /* ========================================
-    기본 설정 (Patch v3.7 - 안정화 버전)
+    기본 설정
 ======================================== */
 :root {
     --primary: #6c5ce7;
@@ -18,7 +18,6 @@ body {
     display: flex;
     justify-content: center;
     
-    /* 100dvh와 fixed를 동시에 써서 화면을 꽉 채웁니다 */
     position: fixed;
     width: 100%;
     height: 100%;
@@ -64,21 +63,16 @@ body {
     display: none;
     flex-direction: column;
     
-    /* 남은 공간 다 쓰기 */
     flex: 1;
     width: 100%;
     
     padding: 15px;
-    
-    /* [핵심] 하단바 높이(60) + 여유(40) + 노치(env) = 넉넉하게! */
-    /* !important를 붙여서 다른 설정보다 무조건 우선시합니다 */
     padding-bottom: calc(100px + env(safe-area-inset-bottom)) !important;
     
     box-sizing: border-box;
     overflow-y: auto;
     overflow-x: hidden;
     
-    /* 모바일 터치감 개선 */
     -webkit-overflow-scrolling: touch; 
 }
 
@@ -87,10 +81,9 @@ body {
 }
 
 /* ========================================
-    하단 네비게이션 (Bottom Nav) - 다시 Fixed로 복귀
+    하단 네비게이션 (Bottom Nav)
 ======================================== */
 .bottom-nav {
-    /* [핵심] 다시 Fixed로 화면 맨 밑에 붙이고 */
     position: fixed !important;
     bottom: 0;
     left: 0;
@@ -101,17 +94,14 @@ body {
     width: 100%;
     height: var(--nav-height);
     
-    /* 배경을 확실하게 칠해서 뒤에 글자가 안 비치게 합니다 */
     background: rgba(255, 255, 255, 0.98); 
     border-top: 1px solid #eee;
     
     display: none;
     justify-content: space-around;
     align-items: center;
-    /* Z-Index는 50으로 유지 */
-    z-index: 50; /* 메뉴바는 팝업보다 낮게 */
+    z-index: 50; 
     
-    /* 높이 보정 */
     padding-bottom: env(safe-area-inset-bottom);
     height: calc(var(--nav-height) + env(safe-area-inset-bottom));
 }
@@ -133,9 +123,8 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: var(--nav-height); /* 높이 고정 */
+    height: var(--nav-height);
     
-    /* PC 커서 */
     cursor: pointer !important;
     user-select: none;
     -webkit-user-select: none;
@@ -146,7 +135,6 @@ body {
     font-weight: 800;
 }
 
-/* 아이콘 */
 .nav-icon {
     font-size: 24px !important;
     display: block;
@@ -159,7 +147,7 @@ body {
 }
 
 /* ========================================
-    기타 컴포넌트 (기존 유지)
+    기타 컴포넌트
 ======================================== */
 h1, h2, h3 { color: #2d3436; margin: 0 0 15px 0; text-align: center; }
 p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
@@ -193,10 +181,9 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .sub-content.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-/* 차트 복구 */
 .chart-wrapper { width: 100%; height: 280px; position: relative; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
 
-/* 업적 (Patch v3.7 CSS 수정) */
+/* 업적 */
 .achieve-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr); 
@@ -238,22 +225,19 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
     word-break: keep-all;
 }
 
-/* [🔥 v3.7 핵심 수정] 미획득 업적 스타일 */
 .achieve-item.locked {
-    opacity: 0.6; /* 전체 불투명도 조정 */
+    opacity: 0.6; 
     border-color: #f1f2f6;
 }
 
 .achieve-item.locked .achieve-icon {
-    /* 이모지 색상을 회색으로 보이게 하는 CSS 필터 */
     filter: grayscale(100%) brightness(120%); 
 }
 
 .achieve-item.locked .achieve-title {
-    color: #b2bec3; /* 제목도 회색으로 */
+    color: #b2bec3; 
     font-weight: 500;
 }
-/* [🔥 v3.7 핵심 수정 끝] */
 
 /* 토너먼트 */
 .vote-wrapper { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; padding: 10px 0; }
@@ -269,43 +253,46 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .vs-desc { font-size: 12px; color: #636e72; font-weight: 600; line-height: 1.3; word-break: keep-all; opacity: 0.8; }
 .vs-divider-text { font-size: 28px; font-weight: 900; font-style: italic; color: #dfe6e9; text-shadow: 1px 1px 0px #fff; z-index: 10; margin: 0 2px; flex-shrink: 0; align-self: center; }
 
-/* [🔥 v4.6 수정] 우승 화면 관련 스타일 (최종 정렬 및 간격) */
+/* [수정됨] 우승 화면 (Flexbox로 중앙 정렬) */
 .winner-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;     
+    justify-content: center; 
+    
     text-align: center;
-    /* [v4.6] 상단 여백을 줄여서 아바타를 위로 올립니다. */
-    padding: 10px 30px 30px 30px; 
-    width: 100%; 
+    padding: 10px 30px 30px 30px;
+    width: 100%;
+    box-sizing: border-box; 
 }
 
-/* 우승 아바타 스타일 */
 .winner-avatar {
     width: 80px; 
     height: 80px;
     background: #fff; 
     border-radius: 50%;
+    
     display: flex;
     justify-content: center;
     align-items: center;
+    
     font-size: 40px; 
     box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
-    /* [v4.6] 아바타 아래 마진 제거 (타이틀과 붙게) */
-    margin-bottom: 0px; 
+    
+    margin-bottom: 10px; 
     border: 5px solid var(--primary); 
 }
 
-/* "우승!" 타이틀과 이름 사이 간격 조정 */
 #winnerTitle {
-    /* [v4.6] 아바타와 '우승!' 타이틀 간 간격 최소화 (5px) */
     margin-top: 5px !important; 
     margin-bottom: 5px !important;
 }
 #winnerName {
-    word-break: break-all; /* 닉네임이 길어지면 강제 개행 */
+    word-break: break-all;
     line-height: 1.2;
     padding: 0 5px;
     margin-top: 0 !important; 
 }
-
 
 /* 랭킹 */
 .rank-header-area { margin-bottom: 15px; }
@@ -316,18 +303,15 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .stat-pill.active { background: white; border-color: var(--primary); color: var(--primary); box-shadow: 0 2px 4px rgba(108, 92, 231, 0.15); font-weight: 700; }
 .list-wrap { list-style: none; padding: 0; margin: 0; }
 
-/* [🔥 v3.3 수정: 랭킹 목록 스타일 보강 시작] */
 .list-item { 
-    display: flex; /* Flexbox 활성화 */
+    display: flex;
     align-items: center; 
     padding: 15px 0; 
     border-bottom: 1px solid #eee; 
     width: 100%; 
     box-sizing: border-box; 
-    /* 이전 스타일과 통합 및 보강 */
 }
 
-/* 랭킹 리스트 전용 스타일 */
 .list-item .rank-avatar {
     width: 40px;
     height: 40px;
@@ -339,7 +323,6 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
     font-size: 20px;
     margin-left: 10px;
 }
-/* [🔥 v3.3 수정 끝] */
 
 .list-item > div:first-child { text-align: center; margin-right: 10px; font-weight: 900; }
 .list-item > div:last-child { text-align: right; white-space: nowrap; }
@@ -367,10 +350,7 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .settings-menu { list-style: none; padding: 0; margin: 0 0 30px 0; }
 .st-menu-item { padding: 15px 0; border-bottom: 1px solid #f1f2f6; display: flex; justify-content: space-between; cursor: pointer; font-size: 15px; color: #2d3436; }
 
-
-/* ========================================
-    바텀 시트 (Patch v4.4 - 위치 및 Z-Index 강제 고정)
-======================================== */
+/* 바텀 시트 */
 .sheet-overlay {
     position: fixed !important; 
     top: 0;
@@ -385,7 +365,6 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 
 .sheet-overlay.open { display: block; }
 
-/* 하얀색 팝업창 (Sheet) */
 .bottom-sheet {
     position: fixed !important; 
     bottom: -100%; 
@@ -405,12 +384,10 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
     box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
 }
 
-/* 팝업 열릴 때 애니메이션 */
 .sheet-overlay.open .bottom-sheet { 
     bottom: 0 !important; 
 }
 
-/* 팝업 내부 요소는 그대로 유지 */
 .sheet-icon { font-size: 50px; margin-bottom: 15px; }
 .sheet-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: #2d3436; }
 .sheet-desc { font-size: 14px; color: #636e72; margin-bottom: 30px; line-height: 1.5; }
