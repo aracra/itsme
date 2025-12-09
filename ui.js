@@ -1,17 +1,14 @@
 // ui.js
-// Version: v18.64.0
-// Description: UI Controller, Inventory Tabs/Expiration, Exit Guard, Toast.
+// Version: v19.0.0
+// Description: UI Controller, Inventory, and Theme Management
 
-// ==========================================
 // 1. Global UI Variables
-// ==========================================
 let myMbti = "";
 let tempTestResult = [];
 let myChart = null;
+const THEME_CLASSES = ['bg-gold', 'bg-dark', 'bg-pink']; // 관리되는 테마 목록
 
-// ==========================================
-// 2. UI Update Functions (Data Binding)
-// ==========================================
+// 2. UI Update Functions
 function updateTicketUI() {
     const e = document.getElementById('ticketDisplay');
     if (e && window.myInfo) {
@@ -41,10 +38,7 @@ window.updateProfileUI = function() {
     if (document.getElementById('tab-prism')?.classList.contains('active') && window.drawChart) {
         window.drawChart();
     }
-
-    if (window.applyActiveEffects) {
-        window.applyActiveEffects();
-    }
+    if (window.applyActiveEffects) window.applyActiveEffects();
 };
 
 function setMyTypeUI(m) {
@@ -56,21 +50,15 @@ function setMyTypeUI(m) {
     document.getElementById('screen-mbti').classList.remove('active');
     document.getElementById('mainContainer').classList.add('logged-in');
 
-    if (window.goTab) {
-        window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
-    }
+    if (window.goTab) window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
 }
 
-// ==========================================
 // 3. Navigation & Routing (SPA)
-// ==========================================
 function goTab(s, n) {
-    // [🔥 v18.64.0] Exit Guard Logic
+    // [Exit Guard]
     const activeScreen = document.querySelector('.screen.active');
     if (activeScreen && activeScreen.id === 'screen-vote' && window.isGameRunning) {
-        if (!confirm("화면을 이탈하면 평가가 중단돼요.\n사용한 티켓은 복구되지 않습니다.\n그래도 그만할까요?")) {
-            return; 
-        }
+        if (!confirm("평가 중 이탈하면 티켓은 복구되지 않습니다.\n그래도 나가시겠습니까?")) return;
         window.isGameRunning = false;
     }
 
@@ -80,18 +68,12 @@ function goTab(s, n) {
     if (n) n.classList.add('active');
 
     if (s === 'screen-main') {
-        setTimeout(() => {
-            window.goSubTab('tab-prism', document.querySelector('.sub-tab:first-child'));
-        }, 0);
+        setTimeout(() => window.goSubTab('tab-prism', document.querySelector('.sub-tab:first-child')), 0);
     } else if (s === 'screen-rank') {
+        if (window.renderRankList) window.renderRankList(-1); // Default All
         const allPill = document.querySelector('#rankFilterContainer .stat-pill:first-child');
-        if (window.filterRank && allPill) {
-            window.filterRank(allPill, -1);
-        } else if (window.renderRankList) {
-            window.renderRankList(window.currentFilter);
-        }
+        if (window.filterRank && allPill) window.filterRank(allPill, -1);
     } else if (s === 'screen-vote') {
-        // [🔥 v18.64.0] Always go to Intro
         if(window.prepareVoteScreen) window.prepareVoteScreen();
     }
 
@@ -114,70 +96,58 @@ function goScreen(s) {
     document.getElementById(s).classList.add('active');
 }
 
-// ==========================================
-// 4. User Actions (Login, Test, Profile)
-// ==========================================
+// 4. User Actions
 function logout() {
     localStorage.clear();
     location.reload();
 }
-
-function loginWithServer() {
-    goScreen('screen-nickname');
-}
-
+function loginWithServer() { goScreen('screen-nickname'); }
 window.debugLogin = function(u) {
     if (!u) return;
     localStorage.setItem('my_uid', u);
     location.reload();
 }
-
-function nextTest(v, n) {
-    tempTestResult.push(v);
-    goScreen(n);
-}
-
+function nextTest(v, n) { tempTestResult.push(v); goScreen(n); }
 function finishTest(l) {
     tempTestResult.push(l);
     const c = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
     tempTestResult.forEach(v => c[v]++);
-    let m = (c['E'] >= c['I'] ? 'E' : 'I') +
-            (c['S'] >= c['N'] ? 'S' : 'N') +
-            (c['T'] >= c['F'] ? 'T' : 'F') +
-            (c['J'] >= c['P'] ? 'J' : 'P');
-
+    let m = (c['E'] >= c['I'] ? 'E' : 'I') + (c['S'] >= c['N'] ? 'S' : 'N') +
+            (c['T'] >= c['F'] ? 'T' : 'F') + (c['J'] >= c['P'] ? 'J' : 'P');
+    
     if (window.saveMbtiToServer) window.saveMbtiToServer(m);
     else setMyTypeUI(m);
     tempTestResult = [];
 }
+window.saveMbtiToServer = function(m) {
+    if(!window.db) { setMyTypeUI(m); return; }
+    window.myInfo.mbti = m;
+    window.db.collection("users").doc(localStorage.getItem('my_uid')).update({ mbti: m });
+    setMyTypeUI(m);
+}
 
 function saveNicknameAndNext() {
     const n = document.getElementById('inputNickname').value.trim();
-    if (!n) {
-        alert("닉네임 입력!");
-        return;
-    }
+    if (!n) { alert("닉네임을 입력해주세요!"); return; }
     if (!window.myInfo) window.myInfo = { nickname: "" };
     window.myInfo.nickname = n;
-    if (window.saveNicknameToDB) window.saveNicknameToDB(n);
+    
+    if (window.db) {
+        window.db.collection("users").doc(localStorage.getItem('my_uid')).update({ nickname: n });
+    }
     goScreen('screen-mbti');
 }
 
 window.editProfileMsg = async function() {
-    if (!window.myInfo) {
-        alert("로드 전");
-        return;
-    }
-    const m = prompt("한마디", window.myInfo.msg === '상태 메시지' ? '' : window.myInfo.msg);
+    if (!window.myInfo) return;
+    const m = prompt("상태 메시지 변경", window.myInfo.msg === '상태 메시지' ? '' : window.myInfo.msg);
     if (m === null) return;
     if (window.saveProfileMsgToDB && await window.saveProfileMsgToDB(m.trim().substring(0, 50))) {
-        window.openSheet('📝', '완료', '저장됨', m);
+        // Simple Toast or UI update
     }
 }
 
-// ==========================================
-// 5. Bottom Sheet & Modal System
-// ==========================================
+// 5. Bottom Sheet & Modal
 function openSheet(i, t, d, s = "") {
     const h = `
     <div class="sheet-header-area">
@@ -189,58 +159,41 @@ function openSheet(i, t, d, s = "") {
         ${s}
     </div>
     <div class="sheet-footer-area">
-        <button class="btn btn-primary" onclick="closeSheet()">확인</button>
+        <button class="btn btn-primary" onclick="closeSheet()">닫기</button>
     </div>`;
     document.querySelector('.bottom-sheet').innerHTML = h;
     document.getElementById('bottomSheetOverlay').classList.add('open');
 }
-
 function closeSheet() {
     document.querySelectorAll('.sheet-overlay').forEach(x => x.classList.remove('open'));
 }
-
 function disableVoteScreen() {
-    const ids = ['voteWrapper', 'passBtn', 'winnerContainer', 'roundBadge'];
-    ids.forEach(i => {
-        const e = document.getElementById(i);
-        if (e) e.style.display = 'none';
+    ['voteWrapper', 'passBtn', 'winnerContainer', 'roundBadge'].forEach(i => {
+        const e = document.getElementById(i); if(e) e.style.display = 'none';
     });
     if (document.getElementById('noTicketMsg')) return;
-
     const s = document.getElementById('screen-vote');
     if (s) {
         const d = document.createElement('div');
         d.id = 'noTicketMsg';
-        d.style.cssText = 'flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:18px;color:#636e72;padding:20px;';
-        d.innerHTML = `
-            <div style="font-size:60px;margin-bottom:15px;">😴</div>
-            <h2>티켓 소진!</h2>
-            <p>내일 만나요.</p>
-            <button class="btn btn-primary" onclick="goTab('screen-main',document.querySelector('.nav-item:first-child'))">메인으로</button>
-        `;
+        d.style.cssText = 'flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:18px;color:var(--text-secondary);padding:20px;';
+        d.innerHTML = `<div style="font-size:60px;margin-bottom:15px;">😴</div><h2>티켓 소진!</h2><p>내일 다시 충전돼요.</p><button class="btn btn-primary" onclick="goTab('screen-main',document.querySelector('.nav-item:first-child'))">메인으로</button>`;
         s.appendChild(d);
     }
 }
 
-// ==========================================
-// 6. Comment System & Toast
-// ==========================================
+// 6. Comment & Toast
 let currentWinnerId = null;
 window.openCommentPopup = function(id, n) {
     currentWinnerId = id;
-    document.getElementById('commentTargetName').innerText = `${n}님에게`;
+    document.getElementById('commentTargetName').innerText = `${n}님에게 한마디`;
     document.getElementById('commentInput').value = '';
     document.getElementById('commentOverlay').classList.add('open');
 }
-window.closeCommentPopup = function() {
-    document.getElementById('commentOverlay').classList.remove('open');
-}
+window.closeCommentPopup = function() { document.getElementById('commentOverlay').classList.remove('open'); }
 window.submitComment = function() {
     const t = document.getElementById('commentInput').value.trim();
-    if (!t) {
-        alert("내용 입력!");
-        return;
-    }
+    if (!t) { alert("내용을 입력해주세요."); return; }
     if (window.sendCommentToDB) window.sendCommentToDB(currentWinnerId, t);
     closeCommentPopup();
 }
@@ -248,12 +201,10 @@ window.submitComment = function() {
 window.showToast = function(msg) {
     const existing = document.querySelector('.toast-msg');
     if(existing) existing.remove();
-
     const div = document.createElement('div');
     div.className = 'toast-msg';
     div.innerText = msg;
     document.body.appendChild(div);
-
     setTimeout(() => {
         div.style.opacity = '0';
         div.style.transition = 'opacity 0.5s';
@@ -261,31 +212,25 @@ window.showToast = function(msg) {
     }, 2000);
 }
 
-// ==========================================
-// 7. Inventory & Effect System (Refactored)
-// ==========================================
+// 7. Inventory
 window.openInventory = function() {
     const h = `
     <div class="sheet-header-area">
         <div class="sheet-header-icon-frame">🎒</div>
-        <div class="sheet-title">내 아이템 보관함</div>
+        <div class="sheet-title">보관함</div>
     </div>
     <div style="padding: 0 20px;">
-        <div class="inv-tab-bar">
-            <div class="inv-tab active" onclick="updateInventoryList('all', this)">전체</div>
-            <div class="inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
-            <div class="inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
+        <div class="sub-tab-bar">
+            <div class="sub-tab active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
+            <div class="sub-tab inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
+            <div class="sub-tab inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
         </div>
     </div>
-    <div class="sheet-body-area" id="inventoryListArea" style="min-height:200px;">
-        </div>
-    <div class="sheet-footer-area">
-        <button class="btn btn-primary" onclick="closeSheet()">닫기</button>
-    </div>`;
+    <div class="sheet-body-area" id="inventoryListArea" style="min-height:200px;"></div>
+    <div class="sheet-footer-area"><button class="btn btn-primary" onclick="closeSheet()">닫기</button></div>`;
 
     document.querySelector('.bottom-sheet').innerHTML = h;
     document.getElementById('bottomSheetOverlay').classList.add('open');
-    
     window.updateInventoryList('all');
 }
 
@@ -294,93 +239,55 @@ window.updateInventoryList = function(filter, tabEl) {
         document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active'));
         tabEl.classList.add('active');
     }
-
     const container = document.getElementById('inventoryListArea');
     if(!container) return;
 
     const l = window.myInfo.inventory || [];
     const def = { id: 'def', type: 'avatar', value: '👤', name: '기본' };
-    
-    let all = [];
-    if(filter === 'effect') {
-        all = l.filter(i => i.type === 'effect');
-    } else if(filter === 'avatar') {
-        all = [def, ...l.filter(i => i.type === 'avatar')];
-    } else {
-        all = [def, ...l];
-    }
+    let all = (filter === 'effect') ? l.filter(i => i.type === 'effect') :
+              (filter === 'avatar') ? [def, ...l.filter(i => i.type === 'avatar')] : [def, ...l];
 
     let listHtml = '';
-    if (all.length === 0) {
-        listHtml = `<p style="margin-top:20px;">비어있음</p>`;
-    } else {
+    if (all.length === 0) listHtml = `<p style="margin-top:40px;">아이템이 없습니다.</p>`;
+    else {
         all.forEach(i => {
-            const eq = (i.type === 'avatar' && i.value === window.myInfo.avatar);
-            const ac = i.isActive;
+            const isEquipped = (i.type === 'avatar' && i.value === window.myInfo.avatar);
+            const isActive = i.isActive;
             
-            // Subtext Calculation (Expiration & Warning)
-            let subText = i.type === 'avatar' ? '소장' : '효과';
-            let subStyle = 'color:#aaa;';
+            let subText = i.type === 'avatar' ? '영구 소장' : '기간제';
+            let subStyle = 'color:var(--text-secondary);';
 
             if (i.expiresAt) {
-                const exp = new Date(i.expiresAt);
-                const now = new Date();
-                const diff = exp - now;
-
-                if (diff <= 0) {
-                    subText = '만료됨';
-                } else {
-                    const m = (exp.getMonth()+1).toString().padStart(2, '0');
-                    const d = exp.getDate().toString().padStart(2, '0');
-                    const h = exp.getHours().toString().padStart(2, '0');
-
-                    // If less than 24 hours (86400000 ms), use Red
-                    if (diff < 86400000) {
-                        subStyle = 'color:#ff4757; font-weight:bold;';
-                        subText = `기간제 (~${m}.${d} ${h}시)`;
-                    } else {
-                        subText = `기간제 (~${m}.${d})`;
-                    }
+                const diff = new Date(i.expiresAt) - new Date();
+                if (diff <= 0) subText = '만료됨';
+                else {
+                    const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                    subText = `${days}일 남음`;
+                    if(diff < 86400000) { subStyle = 'color:#ff7675; font-weight:bold;'; subText = '곧 만료!'; }
                 }
             }
 
-            // Button Naming Logic
-            let bt = '';
-            let bc = 'btn-outline';
-            let fn = '';
+            // Buttons
+            let btnLabel = '사용';
+            let btnClass = 'btn-outline';
+            let btnAction = '';
 
             if (i.type === 'avatar') {
-                if (eq) {
-                    bt = '사용 중';
-                    bc = 'btn-secondary'; 
-                    fn = ''; 
-                } else {
-                    bt = '사용하기';
-                    bc = 'btn-outline'; 
-                    fn = `onclick="equipAvatar('${i.value}')"`;
-                }
+                if (isEquipped) { btnLabel = '사용 중'; btnClass = 'btn-secondary'; }
+                else { btnAction = `onclick="equipAvatar('${i.value}')"`; }
             } else { // Effect
-                if (ac) {
-                    bt = '해제하기';
-                    bc = 'btn-secondary';
-                    fn = `onclick="toggleEffect('${i.id}')"`;
-                } else {
-                    bt = '적용하기';
-                    bc = 'btn-outline';
-                    fn = `onclick="toggleEffect('${i.id}')"`;
-                }
+                if (isActive) { btnLabel = '해제'; btnClass = 'btn-secondary'; btnAction = `onclick="toggleEffect('${i.id}')"`; }
+                else { btnAction = `onclick="toggleEffect('${i.id}')"`; }
             }
 
             listHtml += `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #eee;">
-                <div style="display:flex;align-items:center; flex:1; min-width:0; margin-right:10px;">
-                    <div class="common-circle-frame">${i.value.startsWith('bg')?'✨':i.value}</div>
-                    <div style="flex:1; min-width:0;">
-                        <div style="font-weight:bold;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${i.name}</div>
-                        <div style="font-size:12px;${subStyle}">${subText}</div>
-                    </div>
+            <div class="list-item">
+                <div class="common-circle-frame">${i.value.startsWith('bg')?'✨':i.value}</div>
+                <div class="list-item-text">
+                    <div style="font-weight:bold;font-size:14px;">${i.name}</div>
+                    <div style="font-size:12px;${subStyle}">${subText}</div>
                 </div>
-                <button class="btn ${bc} inv-btn" ${fn}>${bt}</button>
+                <button class="btn ${btnClass}" style="width:80px; padding:8px 0; font-size:12px; margin:0;" ${btnAction}>${btnLabel}</button>
             </div>`;
         });
     }
@@ -389,17 +296,18 @@ window.updateInventoryList = function(filter, tabEl) {
 
 window.applyActiveEffects = function() {
     const b = document.body;
-    b.classList.remove('bg-gold', 'bg-dark', 'bg-pink');
+    // Remove all managed theme classes
+    b.classList.remove(...THEME_CLASSES);
 
     if (!window.myInfo?.inventory) return;
-    const e = window.myInfo.inventory.find(i => i.type === 'effect' && i.isActive);
+    const activeEffect = window.myInfo.inventory.find(i => i.type === 'effect' && i.isActive);
 
-    if (e) b.classList.add(e.value);
+    if (activeEffect && THEME_CLASSES.includes(activeEffect.value)) {
+        b.classList.add(activeEffect.value);
+    }
 }
 
-// ==========================================
-// 8. Global Exposures
-// ==========================================
+// Exports
 window.updateTicketUI = updateTicketUI;
 window.setMyTypeUI = setMyTypeUI;
 window.goTab = goTab;
@@ -415,3 +323,4 @@ window.closeSheet = closeSheet;
 window.disableVoteScreen = disableVoteScreen;
 window.showToast = showToast;
 window.updateInventoryList = updateInventoryList;
+window.applyActiveEffects = applyActiveEffects;
