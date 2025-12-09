@@ -1,4 +1,4 @@
-// ui.js (Full Code: Patch v19.0)
+// ui.js (Full Code: Patch v22.0)
 
 let myMbti="",tempTestResult=[],myChart=null;
 function updateTicketUI(){const e=document.getElementById('ticketDisplay');if(e&&window.myInfo)e.innerText=`🎫 남은 티켓: ${window.myInfo.tickets||0}/5`;}
@@ -15,7 +15,7 @@ function finishTest(l){tempTestResult.push(l);const c={E:0,I:0,S:0,N:0,T:0,F:0,J
 function saveNicknameAndNext(){const n=document.getElementById('inputNickname').value.trim();if(!n){alert("닉네임 입력!");return;}if(!window.myInfo)window.myInfo={nickname:""};window.myInfo.nickname=n;if(window.saveNicknameToDB)window.saveNicknameToDB(n);goScreen('screen-mbti');}
 window.editProfileMsg=async function(){if(!window.myInfo){alert("로드 전");return;}const m=prompt("한마디",window.myInfo.msg==='상태 메시지'?'':window.myInfo.msg);if(m===null)return;if(window.saveProfileMsgToDB&&await window.saveProfileMsgToDB(m.trim().substring(0,50)))window.openSheet('📝','완료','저장됨',m);}
 
-// [🔥 v19.0] 팝업 생성 시 아이콘 프레임 적용
+// [🔥 v22.0] 팝업 헤더 아이콘 둥근 프레임 적용
 function openSheet(i,t,d,s=""){
     const h=`
     <div class="sheet-header-area">
@@ -40,7 +40,7 @@ window.openCommentPopup=function(id,n){currentWinnerId=id;document.getElementByI
 window.closeCommentPopup=function(){document.getElementById('commentOverlay').classList.remove('open');}
 window.submitComment=function(){const t=document.getElementById('commentInput').value.trim();if(!t){alert("내용 입력!");return;}if(window.sendCommentToDB)window.sendCommentToDB(currentWinnerId,t);closeCommentPopup();}
 
-// [🔥 v19.0] 인벤토리 아이콘 프레임 적용
+// [🔥 v22.0] 인벤토리 아이콘 프레임 적용
 window.openInventory=function(){
     const l=window.myInfo.inventory||[], def={id:'def',type:'avatar',value:'👤',name:'기본'};
     const all=[def,...l];

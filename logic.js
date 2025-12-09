@@ -1,4 +1,4 @@
-// logic.js (Full Code: v20.0)
+// logic.js (Full Code: v22.0)
 
 // 1. Firebase
 window.firebaseConfig = { apiKey: "AIzaSyCZJB72jkS2rMgM213Wu9fEuW4Q4jN1scc", authDomain: "it-s-me-96d66.firebaseapp.com", projectId: "it-s-me-96d66", storageBucket: "it-s-me-96d66.firebasestorage.app", messagingSenderId: "950221311348", appId: "1:950221311348:web:43c851b6a4d7446966f021", measurementId: "G-J3SYEX4SYW" };
@@ -62,7 +62,7 @@ window.initGame = async function() {
         }
         if(window.updateProfileUI) window.updateProfileUI();
         
-        // [🔥 v19.0] 강제 초록불 (로딩 완료)
+        // [🔥 v22.0] DB 상태 강제 초록불 (UI 안심용)
         setTimeout(() => updateStatus("● DB OK", 'ok'), 500);
 
     } catch(e){console.error(e);updateStatus("● 로딩 실패",'error');}
@@ -230,7 +230,6 @@ window.renderRankList=function(f){
             rt=i<3?`🥇🥈🥉`.charAt(i):i+1;
         li.onclick=()=>window.openSheet(u.avatar,u.nickname,`"${u.desc||''}"`,`MBTI: #${u.mbti}`);
         
-        // [🔥 v19.0] 랭킹에도 동그라미 프레임 적용 (rank-avatar)
         li.innerHTML=`
             <div class="list-item-icon-area ${rcClass}" style="width:30px;font-size:18px;color:${rcStyle};font-weight:bold;">${rt}</div>
             <div class="list-item-icon-area">
@@ -241,8 +240,6 @@ window.renderRankList=function(f){
         c.appendChild(li);
     });
 }
-
-// [🔥 v19.0] 리스트 생성 로직 (아이콘 프레임 적용)
 window.renderHistoryList=async function(){
     const c=document.getElementById('tab-history').querySelector('.list-wrap');if(!c||!window.db)return;c.innerHTML='';
     try{
@@ -275,10 +272,9 @@ window.renderHistoryList=async function(){
                     </div>`;
                 window.openSheet(i, sT, sM, meta);
             };
-            // [🔥] 동그라미 프레임 적용
             li.innerHTML=`
                 <div class="list-item-icon-area">
-                    <div class="list-icon-frame">${i}</div>
+                    <div class="common-circle-frame" style="width:40px;height:40px;font-size:24px;">${i}</div>
                 </div>
                 <div class="list-item-text"><div class="history-title">${lT}</div><div class="history-date">${d}</div></div>
                 <div class="list-item-score ${ss}">${sc}</div>`;
@@ -299,6 +295,7 @@ window.renderAchievementsList=async function(ids){
                     <span>${u?(d||'오늘'):'-'}</span>
                     ${rb}
                 </div>`;
+            // [🔥 v22.0] 업적 팝업 아이콘도 둥근 프레임 적용
             window.openSheet(a.icon, a.title, a.desc, meta);
         };
         el.innerHTML=`<div class="achieve-icon">${a.icon}</div><div class="achieve-title">${a.title}</div>`; c.appendChild(el);

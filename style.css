@@ -1,4 +1,4 @@
-/* style.css (v20.0 - CLEAN INSTALL FINAL) */
+/* style.css (v22.0 - Final Scroll & DB Fix) */
 
 /* 1. 기본 설정 */
 :root { --primary: #6c5ce7; --bg: #f0f2f5; --card: #ffffff; --nav-height: 60px; }
@@ -17,18 +17,41 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
 /* 3. 고정 헤더 그룹 */
 .sticky-header-group { position: sticky; top: 0; z-index: 20; background-color: var(--card); margin: 0; padding: 20px 20px 10px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.3s; text-align: center; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; width: 100%; }
 
-/* [Fix] 평가 헤더: 배경색 강제 지정 */
+/* 평가 헤더 */
 .vote-header { background-color: var(--card); padding: 15px 20px 10px 20px; width: 100%; text-align: center; border-bottom: none; z-index: 21; }
 
 /* 4. 컨텐츠 패딩 */
 .content-padding { padding: 0 20px; width: 100%; box-sizing: border-box; }
 
-/* 5. 아이콘 프레임 (동그라미) */
+/* 5. [Core Fix] 랭킹 필터 스크롤 확장 */
+.rank-header-area { margin-bottom: 0; width: 100%; text-align: center; }
+.rank-filter-row { 
+    display: flex; align-items: center; width: 100%; 
+    overflow: hidden; padding-bottom: 10px; 
+    justify-content: flex-start; /* 왼쪽 정렬 */
+}
+
+.stat-pills { 
+    flex: 1; display: flex; gap: 6px; 
+    overflow-x: auto; 
+    /* [Fix] 오른쪽 패딩을 아주 넉넉하게 줘서 잘림 방지 */
+    padding-left: 5px; padding-right: 50px; padding-bottom: 5px; 
+    -ms-overflow-style: none; scrollbar-width: none; 
+    box-sizing: border-box;
+}
+.stat-pills::-webkit-scrollbar { display: none; }
+/* 스크롤 끝부분 안전장치 */
+.stat-pills::after { content: ''; display: block; min-width: 20px; height: 100%; }
+
+.stat-pill { flex: 0 0 auto; white-space: nowrap; padding: 6px 12px; border-radius: 12px; background: #f1f2f6; color: #636e72; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+.stat-pill.active { background: white; border-color: var(--primary); color: var(--primary); box-shadow: 0 2px 4px rgba(108, 92, 231, 0.15); font-weight: 700; }
+
+/* 6. 아이콘 프레임 (동그라미) */
 .list-icon-frame { width: 40px; height: 40px; background: #f1f2f6; border-radius: 50% !important; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0; margin-right: 15px; }
 .sheet-header-icon-frame { width: 80px; height: 80px; background: #f1f2f6; border-radius: 50% !important; display: flex; justify-content: center; align-items: center; font-size: 40px; margin: 0 auto 15px auto; }
 .common-circle-frame { width: 46px; height: 46px; background: #f1f2f6; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; margin-right: 12px; flex-shrink: 0; }
 
-/* 6. 리스트 스타일 */
+/* 7. 리스트 스타일 */
 .list-wrap { list-style: none; padding: 0; margin: 0; width: 100%; }
 .list-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 1px solid #eee; width: 100%; box-sizing: border-box; overflow: hidden; height: 74px; cursor: pointer; transition: background 0.2s; background: transparent; }
 .list-item:active { background-color: rgba(0,0,0,0.05); }
@@ -36,14 +59,12 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
 .history-title { font-weight: bold; font-size: 14px; color: #2d3436; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
 .history-date { font-size: 12px; color: #b2bec3; margin-top: 4px; line-height: 1; }
 .list-item-score { flex-shrink: 0; display: inline-flex; justify-content: center; align-items: center; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 30px; min-width: 60px; background: #f1f2f6; color: #636e72; }
-
-/* 뱃지 컬러 */
 .score-red { background: #fff0f6 !important; color: #e74c3c !important; }
 .score-gold { background: #fff9db !important; color: #f39c12 !important; }
 .score-blue { background: #f3f0ff !important; color: #6c5ce7 !important; }
 .score-gray { background: #f1f2f6 !important; color: #636e72 !important; }
 
-/* 7. 업적 그리드 (깨짐 방지) */
+/* 8. 업적 그리드 */
 .achieve-grid { display: grid; grid-template-columns: repeat(4, 1fr) !important; gap: 10px; padding: 10px 20px; width: 100%; box-sizing: border-box; }
 .achieve-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 10px; padding-bottom: 10px; position: relative; overflow: hidden; background: var(--card); border: 1px solid #eee; border-radius: 12px; cursor: pointer; transition: 0.2s; aspect-ratio: 1/1.2; }
 .achieve-item:active { transform: scale(0.98); }
@@ -52,15 +73,7 @@ body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: v
 .achieve-item.locked { opacity: 0.6; border-color: #f1f2f6; }
 .achieve-item.locked .achieve-icon { filter: grayscale(100%) brightness(120%); }
 
-/* 8. 랭킹 필터 (잘림 해결) */
-.rank-header-area { margin-bottom: 0; width: 100%; text-align: center; }
-.rank-filter-row { display: flex; align-items: center; width: 100%; overflow: hidden; padding-bottom: 10px; justify-content: flex-start; }
-.stat-pills { flex: 1; display: flex; gap: 6px; overflow-x: auto; padding-left: 5px; padding-right: 30px; padding-bottom: 5px; -ms-overflow-style: none; scrollbar-width: none; }
-.stat-pills::-webkit-scrollbar { display: none; }
-.stat-pill { flex: 0 0 auto; white-space: nowrap; padding: 6px 12px; border-radius: 12px; background: #f1f2f6; color: #636e72; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-.stat-pill.active { background: white; border-color: var(--primary); color: var(--primary); box-shadow: 0 2px 4px rgba(108, 92, 231, 0.15); font-weight: 700; }
-
-/* 9. 바텀 시트 (구조 안정화) */
+/* 9. 바텀 시트 */
 .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 10000; touch-action: none; }
 .sheet-overlay.open { display: block; }
 .bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; margin: 0 auto; max-width: 420px; width: 100%; background: white; border-radius: 24px 24px 0 0; box-sizing: border-box; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10001; max-height: 80vh; height: auto; display: flex; flex-direction: column; }
@@ -133,6 +146,7 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .modal-btn-row { display: flex; gap: 10px; width: 100%; }
 .modal-btn-row .btn { flex: 1; margin-bottom: 0; padding: 12px; font-size: 14px; }
 .db-status { position: absolute; top: 10px; right: 10px; font-size: 10px; font-weight: bold; background: #fff8e1; border: 1px solid #ffeaa7; color: #e1b12c; padding: 2px 8px; border-radius: 8px; display: block; z-index: 1000; }
+.db-status.on { background: #e6fffa; border-color: #00b894; color: #00b894; } /* 초록불 강제 스타일 */
 .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; height: var(--nav-height); background: rgba(255, 255, 255, 0.98); border-top: 1px solid #eee; display: none; justify-content: space-around; align-items: center; z-index: 50; backdrop-filter: blur(10px); }
 .app-container.logged-in .bottom-nav { display: flex !important; }
 .nav-item { cursor: pointer !important; }
@@ -150,46 +164,21 @@ body.bg-dark .sticky-header-group { background-color: #2d3436; border-bottom: 1p
 /* [Fix] 평가 헤더 배경색 확실하게 */
 body.bg-dark .vote-header { background-color: #2d3436 !important; border-bottom: none !important; }
 
-/* 텍스트 컬러 */
-body.bg-dark h1, body.bg-dark h2, body.bg-dark h3, body.bg-dark p, 
-body.bg-dark .st-name, body.bg-dark .history-title, body.bg-dark .rank-nickname, 
-body.bg-dark .vs-name, body.bg-dark .shop-title, body.bg-dark .shop-item-name,
-body.bg-dark .sheet-title, body.bg-dark .sheet-message-box, body.bg-dark .st-msg-text, 
-body.bg-dark .mbti-btn, body.bg-dark .st-menu-item, body.bg-dark .st-menu-item span,
-body.bg-dark .header-title, body.bg-dark #myNicknameDisplay, body.bg-dark #voteTitle
+body.bg-dark h1, body.bg-dark h2, body.bg-dark h3, body.bg-dark p, body.bg-dark .st-name, body.bg-dark .history-title, body.bg-dark .rank-nickname, body.bg-dark .vs-name, body.bg-dark .shop-title, body.bg-dark .shop-item-name, body.bg-dark .sheet-title, body.bg-dark .sheet-message-box, body.bg-dark .st-msg-text, body.bg-dark .mbti-btn, body.bg-dark .st-menu-item, body.bg-dark .st-menu-item span, body.bg-dark .header-title, body.bg-dark #myNicknameDisplay, body.bg-dark #voteTitle
 { color: #ffffff !important; background: transparent !important; }
 
-/* 랭킹 숫자 */
 body.bg-dark .list-item-icon-area { color: #fff; }
 body.bg-dark .rank-gold { color: #ffc107 !important; }
 body.bg-dark .rank-silver { color: #adb5bd !important; }
 body.bg-dark .rank-bronze { color: #cd7f32 !important; }
+body.bg-dark #shopTokenDisplay, body.bg-dark .shop-item-price, body.bg-dark .header-badge { color: #00b894 !important; }
 
-/* 포인트 컬러 */
-body.bg-dark #shopTokenDisplay, body.bg-dark .shop-item-price, body.bg-dark .header-badge 
-{ color: #00b894 !important; }
-
-/* 배경 */
-body.bg-dark .bottom-nav, body.bg-dark .shop-item, body.bg-dark .settings-msg-box,
-body.bg-dark .sheet-meta-box, body.bg-dark .sheet-message-box, 
-body.bg-dark .vs-card, body.bg-dark .mbti-btn, body.bg-dark .btn-outline, body.bg-dark input,
-body.bg-dark .list-item:active, body.bg-dark .vote-header,
-/* [Fix] 아이콘 프레임 배경 (다크모드) */
-body.bg-dark .list-icon-frame, body.bg-dark .sheet-header-icon-frame, body.bg-dark .common-circle-frame
+body.bg-dark .bottom-nav, body.bg-dark .shop-item, body.bg-dark .settings-msg-box, body.bg-dark .sheet-meta-box, body.bg-dark .sheet-message-box, body.bg-dark .vs-card, body.bg-dark .mbti-btn, body.bg-dark .btn-outline, body.bg-dark input, body.bg-dark .list-item:active, body.bg-dark .vote-header, body.bg-dark .inv-icon-circle, body.bg-dark .list-icon-frame, body.bg-dark .sheet-header-icon-frame, body.bg-dark .common-circle-frame
 { background: #353b48 !important; color: white !important; border-color: #4b6584 !important; }
 
 body.bg-dark .bottom-sheet, body.bg-dark .comment-modal { background: #2f3640 !important; }
-
-/* 아바타 배경 */
-body.bg-dark .avatar-circle, body.bg-dark .rank-avatar, body.bg-dark .vs-avatar, 
-body.bg-dark .winner-avatar, body.bg-dark .st-avatar, body.bg-dark .sheet-icon
-{ background-color: #4b6584 !important; border-color: #7f8fa6 !important; }
-
-/* 서브 텍스트 */
-body.bg-dark .st-account, body.bg-dark .history-date, body.bg-dark .rank-mbti, 
-body.bg-dark .vs-desc, body.bg-dark .sheet-desc, body.bg-dark .meta-label
-{ color: #b2bec3 !important; }
-
+body.bg-dark .avatar-circle, body.bg-dark .list-item-icon-area div, body.bg-dark .rank-avatar, body.bg-dark .vs-avatar, body.bg-dark .winner-avatar, body.bg-dark .st-avatar, body.bg-dark .sheet-icon { background-color: #4b6584 !important; border-color: #7f8fa6 !important; }
+body.bg-dark .st-account, body.bg-dark .history-date, body.bg-dark .rank-mbti, body.bg-dark .vs-desc, body.bg-dark .sheet-desc, body.bg-dark .meta-label { color: #b2bec3 !important; }
 body.bg-dark .sheet-message-box { color: #dcdde1 !important; }
 body.bg-dark .sub-tab-bar { background: #353b48 !important; }
 body.bg-dark .sub-tab { color: #b2bec3 !important; }
