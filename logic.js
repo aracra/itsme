@@ -1,10 +1,23 @@
-// logic.js (Full Code: v22.0)
+// logic.js (Full Code: v31.0)
 
 // 1. Firebase
 window.firebaseConfig = { apiKey: "AIzaSyCZJB72jkS2rMgM213Wu9fEuW4Q4jN1scc", authDomain: "it-s-me-96d66.firebaseapp.com", projectId: "it-s-me-96d66", storageBucket: "it-s-me-96d66.firebasestorage.app", messagingSenderId: "950221311348", appId: "1:950221311348:web:43c851b6a4d7446966f021", measurementId: "G-J3SYEX4SYW" };
 window.db=null; window.FieldValue=null;
-function updateStatus(m,t='wait'){const e=document.getElementById('dbStatus');if(e){e.innerText=m;e.className='db-status';if(t==='error')e.classList.add('error');if(t==='ok')e.classList.add('on');if(t==='error'){e.onclick=()=>location.reload();e.style.cursor='pointer';}}console.log(`[Sys] ${m}`);}
+function updateStatus(m,t='wait'){
+    const e=document.getElementById('dbStatus');
+    if(e){
+        e.innerText=m;
+        e.classList.remove('on', 'error');
+        if(t==='ok') e.classList.add('on');
+        if(t==='error') { e.classList.add('error'); e.onclick=()=>location.reload(); e.style.cursor='pointer'; }
+    }
+    console.log(`[Sys] ${m}`);
+}
 function initFirebase(){if(typeof firebase!=='undefined'){if(!firebase.apps.length)firebase.initializeApp(window.firebaseConfig);window.db=firebase.firestore();window.FieldValue=firebase.firestore.FieldValue;return true;}return false;}
+window.toggleDevMenu = function() {
+    const el = document.getElementById('devMenuExpanded');
+    if(el) el.style.display = (el.style.display === 'none') ? 'flex' : 'none';
+}
 
 // 2. Data
 window.ACHIEVEMENTS_MASTER_DATA = [
@@ -62,7 +75,7 @@ window.initGame = async function() {
         }
         if(window.updateProfileUI) window.updateProfileUI();
         
-        // [🔥 v22.0] DB 상태 강제 초록불 (UI 안심용)
+        // [🔥 v31.0] DB 상태 강제 초록불 (확실하게)
         setTimeout(() => updateStatus("● DB OK", 'ok'), 500);
 
     } catch(e){console.error(e);updateStatus("● 로딩 실패",'error');}
@@ -217,7 +230,18 @@ window.toggleEffect=async function(id){
 }
 
 // 7. Render
-window.filterRank=function(el,t){document.querySelectorAll('.stat-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');window.currentFilter=t;if(window.renderRankList)window.renderRankList(t);}
+window.filterRank=function(el,t){
+    document.querySelectorAll('.stat-pill').forEach(p => {
+        p.classList.remove('active');
+        const text = p.querySelector('.pill-text');
+        if(text) text.style.display = 'none'; 
+    });
+    el.classList.add('active');
+    const activeText = el.querySelector('.pill-text');
+    if(activeText) activeText.style.display = 'inline-block';
+    window.currentFilter=t;
+    if(window.renderRankList) window.renderRankList(t);
+}
 window.renderRankList=function(f){
     const c=document.getElementById('rankListContainer');if(!c)return;c.innerHTML='';
     let d=window.candidates.map(u=>({...u,s:f===-1?u.stats.reduce((a,b)=>a+b,0):u.stats[f]}));
@@ -229,12 +253,9 @@ window.renderRankList=function(f){
             rcStyle = i===0?'#ffc107':(i===1?'#adb5bd':(i===2?'#cd7f32':'#636e72')),
             rt=i<3?`🥇🥈🥉`.charAt(i):i+1;
         li.onclick=()=>window.openSheet(u.avatar,u.nickname,`"${u.desc||''}"`,`MBTI: #${u.mbti}`);
-        
         li.innerHTML=`
             <div class="list-item-icon-area ${rcClass}" style="width:30px;font-size:18px;color:${rcStyle};font-weight:bold;">${rt}</div>
-            <div class="list-item-icon-area">
-                <div class="rank-avatar">${u.avatar}</div>
-            </div>
+            <div class="list-item-icon-area"><div class="rank-avatar">${u.avatar}</div></div>
             <div class="list-item-text"><div class="history-title">${u.nickname}</div><div class="history-date">#${u.mbti}</div></div>
             <div class="list-item-score" style="background:none;color:#2d3436;">${sc}</div>`;
         c.appendChild(li);
@@ -295,7 +316,6 @@ window.renderAchievementsList=async function(ids){
                     <span>${u?(d||'오늘'):'-'}</span>
                     ${rb}
                 </div>`;
-            // [🔥 v22.0] 업적 팝업 아이콘도 둥근 프레임 적용
             window.openSheet(a.icon, a.title, a.desc, meta);
         };
         el.innerHTML=`<div class="achieve-icon">${a.icon}</div><div class="achieve-title">${a.title}</div>`; c.appendChild(el);
