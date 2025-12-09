@@ -1,7 +1,7 @@
-// init_test.js (Full Code: Patch v12.0 - Inventory System)
+// init_test.js (Full Code: Patch v13.2 - Default Avatar Reset)
 
 console.log("======================================");
-console.log("🚀 DB 초기화 스크립트 (v12.0)");
+console.log("🚀 DB 초기화 스크립트 (v13.2)");
 console.log("======================================");
 
 if (typeof firebase !== 'undefined' && !firebase.apps.length) {
@@ -10,20 +10,32 @@ if (typeof firebase !== 'undefined' && !firebase.apps.length) {
     }
 } 
 
-// [🔥 v12.0] 기본 아바타 변경 및 inventory 필드 추가
+// [🔥 v13.2] 모든 유저의 아바타를 '👤'로 초기화하여 상점 기능 테스트 유도
 const TEST_USERS = [
     { 
         id: 'user_test_a', nickname: '테스트 A (나)', avatar: '👤', mbti: 'ENTP', 
         desc: '이 구역의 실험 대상 A입니다.', stats: [50, 50, 50, 50, 50, 50], 
-        tokens: 1000, // 테스트용 부자
-        achievedIds: [], login_count: 1, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(),
-        inventory: [] // 인벤토리 초기화
+        tokens: 100, achievedIds: [], login_count: 1, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(), inventory: []
     },
     { 
         id: 'user_test_b', nickname: '테스트 B (너)', avatar: '👤', mbti: 'INFJ', 
-        desc: '조용하지만 강한 B입니다.', stats: [30, 30, 30, 30, 30, 30], 
-        tokens: 0, achievedIds: [], login_count: 1, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(),
-        inventory: []
+        desc: '조용하지만 강한 B입니다.', stats: [30, 90, 80, 70, 30, 30], 
+        tokens: 0, achievedIds: [], login_count: 1, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(), inventory: []
+    },
+    { 
+        id: 'user_test_c', nickname: '판교 불주먹', avatar: '👤', mbti: 'ESTP', 
+        desc: '말보다 행동이 앞서는 리더!', stats: [80, 80, 60, 50, 90, 40], 
+        tokens: 50, achievedIds: [], login_count: 0, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(), inventory: []
+    },
+    { 
+        id: 'user_test_d', nickname: 'AI 개발자', avatar: '👤', mbti: 'INTP', 
+        desc: '감정 없는 논리 기계입니다.', stats: [95, 40, 90, 20, 20, 80], 
+        tokens: 200, achievedIds: [], login_count: 0, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(), inventory: []
+    },
+    { 
+        id: 'user_test_e', nickname: '디자인 요정', avatar: '👤', mbti: 'ISFP', 
+        desc: '세상을 아름답게 만들고 싶어요.', stats: [40, 95, 30, 80, 50, 60], 
+        tokens: 10, achievedIds: [], login_count: 0, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(), inventory: []
     }
 ];
 
@@ -41,11 +53,11 @@ window.initializeTestDB = async function() {
     const FieldValue = window.FieldValue;
 
     if (!db || !FieldValue || typeof firebase === 'undefined' || !firebase.firestore) {
-        alert("Firebase SDK 로딩 실패.");
+        alert("Firebase SDK 로딩 실패. 잠시 후 다시 시도하세요.");
         return;
     }
 
-    if (!confirm("🚨 DB 초기화: [계정 A, B]가 '👤' 아바타로 재생성됩니다.")) {
+    if (!confirm("🚨 DB 초기화: 모든 유저를 '👤 기본 아바타' 상태로 리셋합니다.")) {
         return;
     }
     
@@ -68,6 +80,6 @@ window.initializeTestDB = async function() {
     localStorage.clear();
 
     console.log("--- DB 초기화 성공! ---");
-    alert("초기화 완료! 기본 아바타가 👤로 변경되었습니다.");
+    alert("초기화 완료! 모든 아바타가 기본형(👤)으로 변경되었습니다.");
     location.reload();
 }

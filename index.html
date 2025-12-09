@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v12.1 (Full)</title>
-    <link rel="stylesheet" href="style.css?v=12.0">
+    <title>It's me! v13.0 (Rich Mode)</title>
+    <link rel="stylesheet" href="style.css?v=12.2">
 </head>
 <body>
 
@@ -13,10 +13,13 @@
 
     <div style="position: absolute; top: 10px; left: 10px; z-index: 1000; display:flex; gap:5px;">
         <button onclick="if(window.initializeTestDB) { initializeTestDB(); } else { alert('로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #ffeaa7; border: 1px solid #fdcb6e; border-radius: 5px; cursor:pointer;">
-            ⚙️ DB 초기화
+            ⚙️ 리셋
         </button>
-        <button onclick="if(window.refillTickets) { window.refillTickets(); } else { alert('로직 로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #74b9ff; border: 1px solid #0984e3; color:white; border-radius: 5px; cursor:pointer;">
-            🎫 티켓 충전
+        <button onclick="if(window.refillTickets) { window.refillTickets(); } else { alert('로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #74b9ff; border: 1px solid #0984e3; color:white; border-radius: 5px; cursor:pointer;">
+            🎫 티켓
+        </button>
+        <button onclick="if(window.addRichTokens) { window.addRichTokens(); } else { alert('로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #55efc4; border: 1px solid #00b894; color:#2d3436; border-radius: 5px; cursor:pointer;">
+            💰 돈복사
         </button>
     </div>
 
@@ -143,7 +146,7 @@
                 <h2 id="winnerTitle" style="font-size:30px; margin-bottom: 5px; color:#2d3436;">우승!</h2> 
                 <h1 id="winnerName" style="font-size:36px; color:var(--primary); margin:0; line-height: 1;">...</h1>
                 <p id="winnerText" style="font-size: 14px; color: #636e72; margin: 15px 0 30px 0;">이 친구에게 점수가 전달되었습니다.</p>
-            </div>
+                </div>
         </div>
         <button class="btn" style="background: #f1f2f6; color: #a4b0be; font-size: 14px; margin-top: 20px;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요 (새로고침)</button>
     </div>
@@ -237,8 +240,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<script src="logic.js?v=12.1"></script>
-<script src="ui.js?v=12.1"></script>
+<script src="logic.js?v=13.0"></script>
+<script src="ui.js?v=13.0"></script>
 <script src="init_test.js"></script>   
 </body>
 </html>
