@@ -1,4 +1,4 @@
-// ui.js 파일 (Patch v3.1)
+// ui.js 파일 (Full Code: Patch v3.8 - 나의 한마디 수정 로직 추가)
 
 // ========================================
 // 전역 변수 초기화 (UI용)
@@ -29,8 +29,11 @@ function updateProfileUI() {
 
     if(!window.myInfo) return;
 
-    if(mainMsg) mainMsg.innerText = `"${window.myInfo.msg}"`;
-    if(settingMsg) settingMsg.innerText = `"${window.myInfo.msg}"`;
+    // [🔥 v3.8 수정] 따옴표는 UI에서 붙입니다.
+    const displayMsg = window.myInfo.msg || "상태 메시지를 입력해주세요";
+    if(mainMsg) mainMsg.innerText = `"${displayMsg}"`;
+    if(settingMsg) settingMsg.innerText = `"${displayMsg}"`;
+    
     if(tokenDisplay) tokenDisplay.innerText = window.myInfo.tokens;
     
     if(window.myInfo.avatar) {
@@ -44,7 +47,7 @@ function updateProfileUI() {
     }
     
     if (myMbtiBadge && window.myInfo.mbti) {
-         myMbtiBadge.innerText = `#${window.myInfo.mbti}`;
+        myMbtiBadge.innerText = `#${window.myInfo.mbti}`;
     }
 
     if (document.getElementById('tab-prism') && document.getElementById('tab-prism').classList.contains('active')) {
@@ -87,7 +90,7 @@ function goTab(screenId, navEl) {
 
     if(screenId === 'screen-main') {
         if (typeof goSubTab === 'function') {
-             goSubTab('tab-prism', document.querySelector('.sub-tab:first-child'));
+            goSubTab('tab-prism', document.querySelector('.sub-tab:first-child'));
         }
     } else if (screenId === 'screen-rank' && typeof window.renderRankList === 'function') {
         window.renderRankList(window.currentFilter);
@@ -139,11 +142,23 @@ function nextTest(val, nextScreenId) {
     goScreen(nextScreenId);
 }
 
+// [🔥 v3.2 수정: MBTI 테스트 결과 계산 로직 추가]
 function finishTest(lastVal) {
     tempTestResult.push(lastVal);
-    let finalMbti = "ENFP"; 
-    // [MBTI 계산 로직 생략]
     
+    // 1. 결과 카운팅: E/I, S/N, T/F, J/P 순서
+    const counts = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 };
+    tempTestResult.forEach(val => {
+        counts[val]++;
+    });
+
+    let finalMbti = "";
+    finalMbti += counts['E'] >= counts['I'] ? 'E' : 'I';
+    finalMbti += counts['S'] >= counts['N'] ? 'S' : 'N';
+    finalMbti += counts['T'] >= counts['F'] ? 'T' : 'F';
+    finalMbti += counts['J'] >= counts['P'] ? 'J' : 'P';
+    
+    // 2. 결과 처리
     if(typeof window.saveMbtiToServer === 'function') {
         window.saveMbtiToServer(finalMbti);
     } else {
@@ -174,6 +189,38 @@ function saveNicknameAndNext() {
     goScreen('screen-mbti');
 }
 
+// [🔥 v3.8 추가] 나의 한마디(상태 메시지) 수정 시작
+window.editProfileMsg = async function() {
+    if (!window.myInfo) {
+        alert("사용자 정보 로드 전입니다.");
+        return;
+    }
+    
+    const currentMsg = window.myInfo.msg === "상태 메시지를 입력해주세요" ? "" : window.myInfo.msg;
+    
+    const newMsg = prompt("새로운 '나의 한마디'를 입력해주세요. (최대 50자)", currentMsg);
+    
+    if (newMsg === null) {
+        // 취소
+        return;
+    }
+    
+    const trimmedMsg = newMsg.trim().substring(0, 50);
+
+    if (typeof window.saveProfileMsgToDB === 'function') {
+        const success = await window.saveProfileMsgToDB(trimmedMsg);
+        if (success) {
+            window.openSheet('📝', '수정 완료', '나의 한마디가 성공적으로 저장되었습니다.', trimmedMsg || '메시지 삭제됨');
+        } else {
+            window.openSheet('🚨', '수정 실패', '메시지 저장 중 오류가 발생했습니다.', 'DB 연결 상태를 확인해주세요.');
+        }
+    } else {
+        alert("오류: DB 저장 함수를 찾을 수 없습니다.");
+    }
+}
+// [🔥 v3.8 추가 끝]
+
+
 function openSheet(icon, title, desc, sub="") {
     document.getElementById('sheetIcon').innerText = icon;
     document.getElementById('sheetTitle').innerText = title;
@@ -203,6 +250,7 @@ window.finishTest = finishTest;
 window.saveNicknameAndNext = saveNicknameAndNext;
 window.openSheet = openSheet;
 window.closeSheet = closeSheet;
+window.editProfileMsg = editProfileMsg; // [🔥 v3.8 추가]
 
 function init() {
     if (typeof window.loadDataFromServer === 'function') {

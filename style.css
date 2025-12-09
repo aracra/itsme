@@ -1,7 +1,7 @@
-/* style.css (Patch v3.3) */
+/* style.css (Patch v3.9 - 우승 아바타 스타일 추가) */
 
 /* ========================================
-   기본 설정 (Patch v3.7 - 안정화 버전)
+    기본 설정 (Patch v3.7 - 안정화 버전)
 ======================================== */
 :root {
     --primary: #6c5ce7;
@@ -39,7 +39,7 @@ body {
 }
 
 /* ========================================
-   DB 상태 표시
+    DB 상태 표시
 ======================================== */
 .db-status {
     position: absolute;
@@ -58,7 +58,7 @@ body {
 .db-status.on { display: block; }
 
 /* ========================================
-   화면 (Screen) - 스크롤 영역
+    화면 (Screen) - 스크롤 영역
 ======================================== */
 .screen {
     display: none;
@@ -87,7 +87,7 @@ body {
 }
 
 /* ========================================
-   하단 네비게이션 (Bottom Nav) - 다시 Fixed로 복귀
+    하단 네비게이션 (Bottom Nav) - 다시 Fixed로 복귀
 ======================================== */
 .bottom-nav {
     /* [핵심] 다시 Fixed로 화면 맨 밑에 붙이고 */
@@ -159,7 +159,7 @@ body {
 }
 
 /* ========================================
-   기타 컴포넌트 (기존 유지)
+    기타 컴포넌트 (기존 유지)
 ======================================== */
 h1, h2, h3 { color: #2d3436; margin: 0 0 15px 0; text-align: center; }
 p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
@@ -196,7 +196,7 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 /* 차트 복구 */
 .chart-wrapper { width: 100%; height: 280px; position: relative; margin-bottom: 10px; display: flex; justify-content: center; align-items: center; }
 
-/* 업적 (Patch v2.12 CSS 추가) */
+/* 업적 (Patch v3.7 CSS 수정) */
 .achieve-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr); 
@@ -238,9 +238,22 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
     word-break: keep-all;
 }
 
+/* [🔥 v3.7 핵심 수정] 미획득 업적 스타일 */
 .achieve-item.locked {
-    opacity: 0.5;
+    opacity: 0.6; /* 전체 불투명도 조정 */
+    border-color: #f1f2f6;
 }
+
+.achieve-item.locked .achieve-icon {
+    /* 이모지 색상을 회색으로 보이게 하는 CSS 필터 */
+    filter: grayscale(100%) brightness(120%); 
+}
+
+.achieve-item.locked .achieve-title {
+    color: #b2bec3; /* 제목도 회색으로 */
+    font-weight: 500;
+}
+/* [🔥 v3.7 핵심 수정 끝] */
 
 /* 토너먼트 */
 .vote-wrapper { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; padding: 10px 0; }
@@ -255,6 +268,29 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .vs-name { font-size: 18px; font-weight: 800; margin-bottom: 5px; color: #2d3436; }
 .vs-desc { font-size: 12px; color: #636e72; font-weight: 600; line-height: 1.3; word-break: keep-all; opacity: 0.8; }
 .vs-divider-text { font-size: 28px; font-weight: 900; font-style: italic; color: #dfe6e9; text-shadow: 1px 1px 0px #fff; z-index: 10; margin: 0 2px; flex-shrink: 0; align-self: center; }
+
+/* [🔥 v3.9 핵심 수정] 우승 화면 아바타 스타일 추가 */
+.winner-avatar {
+    /* 기존 vs-avatar보다 크고 중앙에 위치하도록 재정의 */
+    width: 100px;
+    height: 100px;
+    background: var(--primary); /* 우승이므로 primary 색상 사용 */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
+    margin-bottom: 15px;
+    /* 폭죽을 위해 z-index 조정 */
+    z-index: 10;
+    /* 우승 박스 크기에 맞게 조정 */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.winner-box {
+    text-align: center;
+    padding: 30px;
+}
 
 /* 랭킹 */
 .rank-header-area { margin-bottom: 15px; }
@@ -318,7 +354,7 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 
 
 /* ========================================
-   바텀 시트 (Patch v4.4 - 위치 및 Z-Index 강제 고정)
+    바텀 시트 (Patch v4.4 - 위치 및 Z-Index 강제 고정)
 ======================================== */
 .sheet-overlay {
     position: fixed !important; 

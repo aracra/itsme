@@ -1,4 +1,4 @@
-// logic.js 파일 (Patch v3.4)
+// logic.js 파일 (Full Code: Patch v3.8 - 상태 메시지 저장 로직 추가)
 
 // ========================================
 // Firebase 초기화 (고전 방식 - Compat)
@@ -72,6 +72,7 @@ window.myInfo = {
 };
 
 window.achievementsList = []; 
+window.achievedDateMap = {}; // [🔥 v3.7 추가] 획득 업적 ID와 획득 날짜를 저장할 맵
 const STAT_MAP = ['지성', '센스', '멘탈', '인성', '텐션', '광기']; 
 
 
@@ -109,13 +110,35 @@ window.saveNicknameToDB = function(nickname) {
     }, { merge: true });
 }
 
+// [🔥 v3.8 추가] 나의 한마디(상태 메시지) 저장 함수
+window.saveProfileMsgToDB = async function(msg) {
+    if (!db || !window.myInfo) return false;
+    const uid = getUserId();
+    const cleanMsg = (msg || "").trim().substring(0, 50); // 50자 제한
+    
+    try {
+        await db.collection("users").doc(uid).set({ msg: cleanMsg }, { merge: true });
+        window.myInfo.msg = cleanMsg || "상태 메시지를 입력해주세요";
+        
+        if (typeof window.updateProfileUI === 'function') {
+            window.updateProfileUI(); // UI 업데이트
+        }
+        return true;
+    } catch (e) {
+        console.error("상태 메시지 저장 실패:", e);
+        return false;
+    }
+}
+
+
 // ========================================
 // 🏆 업적 체크 함수 
 // ========================================
 async function checkAchievements(userStats, achievedIds = []) {
     if (!db || window.achievementsList.length === 0) return []; 
     const newlyAchieved = [];
-    
+    const uid = getUserId(); // 현재 사용자 UID
+
     window.achievementsList.forEach(achievement => {
         if (achievedIds.includes(achievement.id)) return;
         
@@ -134,24 +157,41 @@ async function checkAchievements(userStats, achievedIds = []) {
             if (avg >= val) isAchieved = true;
         } 
         else if (key === 'stats_mentality') {
-             if (userStats.stats[2] >= val) isAchieved = true;
+            if (userStats.stats[2] >= val) isAchieved = true;
         }
         else if (key === 'stats_mania_ratio') {
-             const mania = userStats.stats[5];
-             const otherAvg = (userStats.stats.reduce((sum, v, i) => sum + (i === 5 ? 0 : v), 0) / 5) || 1;
-             if (mania >= otherAvg * val) isAchieved = true;
+            const mania = userStats.stats[5];
+            const otherAvg = (userStats.stats.reduce((sum, v, i) => sum + (i === 5 ? 0 : v), 0) / 5) || 1;
+            if (mania >= otherAvg * val) isAchieved = true;
         }
         
         if (isAchieved) {
             newlyAchieved.push(achievement.id);
             console.log(`[업적 달성]: ${achievement.title}, 보상: ${achievement.reward}💎`);
             window.myInfo.tokens += achievement.reward; 
+            
+            // [🔥 v3.7 수정: 업적 달성 로그 기록 시 ID 포함]
+            db.collection("logs").add({
+                target_uid: uid,
+                sender_uid: 'system',
+                action_type: 'ACHIEVE',
+                stat_type: -1, 
+                score_change: achievement.reward,
+                message: `업적 [${achievement.title}]을(를) 달성했습니다. 토큰 ${achievement.reward}개 획득!`,
+                ach_id: achievement.id, // 업적 ID 기록
+                is_read: false, 
+                timestamp: FieldValue.serverTimestamp() 
+            });
+            // [🔥 v3.7 수정 끝]
         }
     });
 
     if (newlyAchieved.length > 0) {
-        const updatedAchievements = [...achievedIds, ...newlyAchieved];
-        await db.collection("users").doc(userStats.uid).update({ achievedIds: updatedAchievements, tokens: window.myInfo.tokens });
+        const updatedAchievements = [...(achievedIds || []), ...newlyAchieved];
+        await db.collection("users").doc(uid).update({ achievedIds: updatedAchievements, tokens: window.myInfo.tokens });
+        
+        // [🔥 v3.7 추가] 업적 목록 다시 렌더링 시, 획득 날짜를 알기 위해 로그를 다시 로드해야 함
+        await loadAchievementDates(uid); 
         
         if (typeof window.renderAchievementsList === 'function') {
             window.renderAchievementsList(updatedAchievements);
@@ -159,6 +199,37 @@ async function checkAchievements(userStats, achievedIds = []) {
         return newlyAchieved;
     }
     return [];
+}
+
+
+// [🔥 v3.7 추가] 업적 달성 날짜를 로그에서 로드하는 함수
+async function loadAchievementDates(uid) {
+    if (!db) return;
+
+    try {
+        const logSnap = await db.collection("logs")
+            .where("target_uid", "==", uid)
+            .where("action_type", "==", "ACHIEVE")
+            .orderBy("timestamp", "asc") // 가장 먼저 달성한 기록을 찾기 위해 오름차순 정렬
+            .get();
+
+        window.achievedDateMap = {};
+        const tempAchievedIds = [];
+
+        logSnap.forEach(doc => {
+            const log = doc.data();
+            // ach_id가 있고, 아직 해당 업적의 날짜가 기록되지 않았다면 (가장 빠른 날짜)
+            if (log.ach_id && !tempAchievedIds.includes(log.ach_id)) {
+                 // Firestore Timestamp를 'YYYY.MM.DD' 형식으로 변환 (ex: 2025.12.06)
+                const date = log.timestamp.toDate().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\./g, '').replace(/(\d{4})(\d{2})(\d{2})/, '$1.$2.$3').slice(0, 10);
+                window.achievedDateMap[log.ach_id] = date;
+                tempAchievedIds.push(log.ach_id); // 중복 기록 방지
+            }
+        });
+        console.log("업적 획득 날짜 로드 완료:", window.achievedDateMap);
+    } catch (e) {
+        console.error("업적 날짜 로드 실패:", e);
+    }
 }
 
 
@@ -252,34 +323,47 @@ window.vote = function(idx) {
     window.nextRound.push(winner);
     
     const uid = getUserId();
-    db.collection("users").doc(uid).set({ vote_count: FieldValue.increment(1) }, { merge: true });
+    // [🔥 v3.5 수정: vote_count는 initGame 시 로드되므로 myInfo에 반영, DB에 업데이트]
+    const userUpdate = { 
+        vote_count: FieldValue.increment(1), 
+        tickets: FieldValue.increment(-1),
+        tokens: FieldValue.increment(10) // 투표 승자 보상 10 토큰
+    };
+    db.collection("users").doc(uid).set(userUpdate, { merge: true });
+    
+    // 로컬 데이터도 업데이트
+    window.myInfo.tickets = Math.max(0, (window.myInfo.tickets || 0) - 1); 
+    window.myInfo.tokens = (window.myInfo.tokens || 0) + 10;
+    if (typeof window.updateTicketUI === 'function') window.updateTicketUI();
+    if (typeof window.updateProfileUI === 'function') window.updateProfileUI();
 
     showMatch();
 }
 
 function showWinner(winner) {
-    window.myInfo.tickets--;
-    window.myInfo.tokens += 10;
-    
-    if (typeof window.updateTicketUI === 'function') window.updateTicketUI();
-    if (typeof window.updateProfileUI === 'function') window.updateProfileUI();
-    saveMyInfoToDB(); 
+    // 티켓/토큰 차감/지급 로직은 vote 함수에서 처리되었거나, initGame에서 로드됨
     
     saveScore(winner, 20);
     
     (async () => {
-        const myStatsDoc = await db.collection("users").doc(getUserId()).get();
+        const uid = getUserId();
+        const myStatsDoc = await db.collection("users").doc(uid).get();
         if (myStatsDoc.exists) {
-            await checkAchievements(myStatsDoc.data(), myStatsDoc.data().achievedIds);
+            // [🔥 v3.5 수정: 업적 체크 시 uid 포함하여 전달]
+            const statsData = myStatsDoc.data();
+            statsData.uid = uid;
+            await checkAchievements(statsData, statsData.achievedIds);
         }
         
+        // [🔥 v3.5 수정: 로그 메시지에 닉네임 추가]
+        const senderName = window.myInfo.nickname || '익명';
         db.collection("logs").add({
             target_uid: winner.id,
             sender_uid: getUserId(),
             action_type: 'VOTE',
             stat_type: window.currentQ.type !== undefined ? window.currentQ.type : 0,
             score_change: 20,
-            message: `${window.myInfo.nickname}님이 투표하여 [${STAT_MAP[window.currentQ.type] || '스탯'}] 점수를 받았습니다.`,
+            message: `${senderName}님이 투표하여 [${STAT_MAP[window.currentQ.type] || '스탯'}] 점수를 받았습니다.`,
             is_read: false,
             timestamp: FieldValue.serverTimestamp() 
         });
@@ -291,12 +375,22 @@ function showWinner(winner) {
     document.getElementById('winnerName').innerText = winner.nickname;
     document.getElementById('winnerAvatar').innerText = winner.avatar;
     document.getElementById('winnerText').innerText = `이 친구에게 점수가 전달되었습니다.`;
+    
+    // 우승 화면에서 폭죽 터뜨리기!
+    if (typeof confetti === 'function') {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    }
 }
 
 async function saveScore(winner, score) {
     if (!winner.stats) winner.stats = [50,50,50,50,50,50];
     const statIdx = window.currentQ.type !== undefined ? window.currentQ.type : 0;
     
+    // 점수 업데이트 (100점 상한)
     winner.stats[statIdx] = Math.min(100, winner.stats[statIdx] + score); 
     
     const candidateIndex = window.candidates.findIndex(c => c.id === winner.id);
@@ -375,7 +469,7 @@ window.initGame = async function() {
             d.stats = d.stats || [50,50,50,50,50,50];
             d.id = doc.id;
             if (d.id !== getUserId() && d.nickname && d.avatar) {
-                 window.candidates.push(d);
+                window.candidates.push(d);
             }
         });
 
@@ -389,19 +483,24 @@ window.initGame = async function() {
             stats.achievedIds = stats.achievedIds || [];
             stats.login_count = (stats.login_count || 0) + 1; 
             
+            // 로그인 카운트 업데이트는 checkAchievements 전에 수행 (업적 조건이 될 수 있음)
+            await db.collection("users").doc(getUserId()).set({ login_count: stats.login_count }, { merge: true });
+
+            // [🔥 v3.7 추가] 업적 날짜 로드
+            await loadAchievementDates(stats.uid);
+
             await checkAchievements(stats, stats.achievedIds);
             
-            await db.collection("users").doc(getUserId()).set({ login_count: stats.login_count }, { merge: true });
         }
 
         // [핵심 수정]: MBTI가 있을 경우에만 setMyTypeUI를 호출하여 화면 전환을 시도합니다.
         if (window.myInfo.mbti && typeof window.setMyTypeUI === 'function') {
-             window.setMyTypeUI(window.myInfo.mbti);
+            window.setMyTypeUI(window.myInfo.mbti);
         } else if (document.getElementById('screen-login').classList.contains('active')) {
-             // 로그인 화면이면 토너먼트 시작 안 함
+            // 로그인 화면이면 토너먼트 시작 안 함
         } else if (window.questions.length > 0 && window.candidates.length >= 2) {
-             if (typeof window.renderRankList === 'function') { window.renderRankList(window.currentFilter); }
-             window.startTournament(); // [🔥 v3.4 수정: startTournament()는 데이터 로드 후 한번 더 실행되어야 합니다.]
+            if (typeof window.renderRankList === 'function') { window.renderRankList(window.currentFilter); }
+            window.startTournament(); // [🔥 v3.4 수정: startTournament()는 데이터 로드 후 한번 더 실행되어야 합니다.]
         }
         
         // [핵심 수정]: 모든 데이터 로드 완료 후, UI 요소만 업데이트합니다.
@@ -474,7 +573,7 @@ window.checkAndResetTickets = async function() {
 
 
 // ========================================
-// 랭킹 리스트 렌더링 (유지)
+// 랭킹 리스트 렌더링 (🔥 v3.6 수정: 클릭 이벤트 추가)
 // ========================================
 window.filterRank = function(el, typeIndex) {
     document.querySelectorAll('.stat-pill').forEach(p => p.classList.remove('active'));
@@ -501,8 +600,7 @@ window.renderRankList = function(filterIndex = -1) {
     // 2. 정렬
     rankData.sort((a, b) => b.score - a.score);
 
-    // [🔥 v3.3 수정: 랭킹 목록 HTML 렌더링 추가]
-    // 3. 렌더링
+    // 3. 렌더링 및 클릭 이벤트 추가
     rankData.forEach((user, index) => {
         const rankEl = document.createElement('li'); // list-item을 사용하므로 <li>로 변경
         rankEl.classList.add('list-item'); // style.css에 정의된 list-item 클래스 사용
@@ -515,6 +613,22 @@ window.renderRankList = function(filterIndex = -1) {
         let rankText = index < 3 ? `🥇🥈🥉`.charAt(index) : index + 1;
         let rankColor = index === 0 ? '#ffc107' : (index === 1 ? '#adb5bd' : (index === 2 ? '#cd7f32' : '#636e72'));
 
+        // [🔥 v3.6 핵심 수정: 클릭 이벤트 추가]
+        rankEl.addEventListener('click', () => {
+            const statDetails = user.stats.map((s, i) => 
+                `<li style="margin-left: 20px; font-size: 14px; color: #636e72;">${STAT_MAP[i]}: <span style="font-weight: bold; color:#2d3436;">${s}점</span></li>`
+            ).join('');
+
+            window.openSheet(
+                user.avatar || '❓', 
+                user.nickname || '익명 친구', 
+                `<p style="text-align:center; font-style: italic; margin-top: 0; margin-bottom: 20px;">"${user.desc || '상태 메시지가 없습니다.'}"</p>` +
+                `<h3 style="text-align:left; margin-bottom: 5px; font-size: 16px;">📊 스탯 상세</h3>` +
+                `<ul style="list-style-type: none; padding: 0; margin-top: 0; margin-bottom: 30px;">${statDetails}</ul>`, 
+                `MBTI: #${user.mbti || '???'}`
+            );
+        });
+
         rankEl.innerHTML = `
             <div style="font-size: 18px; color: ${rankColor}; width: 25px; text-align: center;">${rankText}</div>
             <div class="rank-avatar">${user.avatar || '❓'}</div>
@@ -526,13 +640,129 @@ window.renderRankList = function(filterIndex = -1) {
         `;
         container.appendChild(rankEl);
     });
-    // [🔥 v3.3 수정 끝]
 }
 
-// ... (renderAchievementsList, renderHistoryList 유지) ...
+// ========================================
+// 🏆 업적 목록 렌더링 (🔥 v3.7 수정: 날짜 및 비활성화 처리)
+// ========================================
+window.renderAchievementsList = async function(achievedIds) {
+    const container = document.getElementById('tab-trophy');
+    if (!container) return;
+    
+    // 이미 있는 그리드를 찾거나 새로 만듭니다.
+    let achieveGrid = container.querySelector('.achieve-grid');
+    if (!achieveGrid) {
+        achieveGrid = document.createElement('div');
+        achieveGrid.classList.add('achieve-grid');
+        container.innerHTML = '';
+        container.appendChild(achieveGrid);
+    }
+    achieveGrid.innerHTML = '';
+    
+    const myAchievedIds = achievedIds || (window.myInfo.achievedIds || []);
+    const masterData = window.achievementsList; 
 
-window.renderAchievementsList = async function(achievedIds) { /* ... */ }
-window.renderHistoryList = async function() { /* ... */ }
+    masterData.forEach(ach => {
+        const isUnlocked = myAchievedIds.includes(ach.id);
+        const achEl = document.createElement('div');
+        
+        achEl.classList.add('achieve-item');
+        
+        let subText = `🔓 ${ach.type} 타입 업적`;
+        if (!isUnlocked) {
+            achEl.classList.add('locked'); // 비활성화 스타일 적용
+            subText = '🔒 아직 달성하지 못했습니다.';
+        } else if (window.achievedDateMap[ach.id]) {
+            subText = `🎉 ${window.achievedDateMap[ach.id]} 달성!`; // 획득 날짜 표시
+        } else {
+             subText = '🎉 달성 완료 (날짜 정보 없음)';
+        }
+        
+        achEl.onclick = () => window.openSheet(
+            ach.icon, 
+            ach.title, 
+            `💰 보상: ${ach.reward}💎<br> ${ach.desc}`, 
+            subText
+        );
+        
+        achEl.innerHTML = `
+            <div class="achieve-icon">${ach.icon}</div>
+            <div class="achieve-title">${ach.title}</div>
+        `;
+        achieveGrid.appendChild(achEl);
+    });
+}
+
+
+// ========================================
+// 📜 히스토리 목록 렌더링 (v3.5 유지)
+// ========================================
+window.renderHistoryList = async function() {
+    const container = document.getElementById('tab-history');
+    const ulList = container.querySelector('.list-wrap');
+    if (!ulList) return;
+    ulList.innerHTML = '';
+
+    try {
+        const uid = getUserId();
+        // 최신 로그 20개 로드
+        const logSnap = await db.collection("logs")
+            .where("target_uid", "==", uid)
+            .orderBy("timestamp", "desc")
+            .limit(20)
+            .get();
+
+        if (logSnap.empty) {
+            ulList.innerHTML = `<li style="text-align:center; padding: 30px 0; color: #b2bec3;">아직 받은 발자취가 없어요.</li>`;
+            return;
+        }
+
+        logSnap.forEach(doc => {
+            const log = doc.data();
+            const li = document.createElement('li');
+            li.classList.add('list-item');
+            
+            let icon, title, scoreText = '';
+            let dateText = log.timestamp && log.timestamp.toDate ? log.timestamp.toDate().toLocaleDateString('ko-KR') : '방금 전';
+            let scoreColor = '#636e72';
+
+            if (log.action_type === 'VOTE') {
+                icon = '📈';
+                title = `[${STAT_MAP[log.stat_type] || '스탯'}] 점수 상승!`;
+                scoreText = `+${log.score_change}`;
+                scoreColor = '#e74c3c';
+            } else if (log.action_type === 'COMMENT') {
+                icon = '💬';
+                title = `[한마디]를 받았습니다!`;
+            } else if (log.action_type === 'ACHIEVE') {
+                icon = '🎁';
+                title = log.message.split(']을')[0] + '] 달성!';
+                scoreText = `+${log.score_change}💎`;
+                scoreColor = '#f39c12';
+            } else {
+                icon = '📋';
+                title = '새로운 활동';
+            }
+            
+            li.innerHTML = `
+                <div style="font-size: 24px; margin-right: 15px; background: #f0f3ff; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 50%;">
+                    ${icon}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight:bold;">${title}</div>
+                    <div style="font-size: 12px; color: #b2bec3; margin-top: 4px;">${dateText}</div>
+                </div>
+                <div style="color:${scoreColor}; font-weight:bold;">${scoreText}</div>
+            `;
+            ulList.appendChild(li);
+        });
+
+    } catch (e) {
+        console.error("히스토리 로드 실패:", e);
+        ulList.innerHTML = `<li style="text-align:center; padding: 30px 0; color: #b2bec3;">데이터 로드 중 오류 발생.</li>`;
+    }
+}
+
 
 window.saveMbtiToServer = async function(mbti) {
     const uid = getUserId();
@@ -558,10 +788,84 @@ window.loadDataFromServer = async function() {
     } catch (e) { console.error("DB Load Fail", e); window.initGame(); }
 }
 
-window.purchaseItem = function(cost, itemType, itemValue) { /* ... */ }
+// ========================================
+// 🛍️ 상점 아이템 구매 로직 (v3.6 유지)
+// ========================================
+window.purchaseItem = async function(cost, itemType, itemValue) {
+    if (!db) {
+        alert("DB 연결 오류: 잠시 후 다시 시도해주세요.");
+        return;
+    }
+    
+    if (!window.myInfo || window.myInfo.tokens < cost) {
+        window.openSheet('❌', '토큰 부족', `현재 보유 토큰: ${window.myInfo.tokens}💎<br>구매 비용: ${cost}💎`, `토큰을 충전하거나 다른 아이템을 선택해주세요.`);
+        return;
+    }
+
+    if (!confirm(`${cost}💎를 사용하여 ${itemValue}를 구매하시겠습니까?`)) {
+        return;
+    }
+
+    const uid = getUserId();
+    const batch = db.batch();
+    const userRef = db.collection("users").doc(uid);
+    const logRef = db.collection("logs").doc();
+    
+    try {
+        // 1. 토큰 차감
+        batch.update(userRef, {
+            tokens: FieldValue.increment(-cost),
+            purchase_count: FieldValue.increment(1) // 업적 카운트
+        });
+
+        // 2. 아이템 적용 (간단한 로직)
+        let message = '';
+        if (itemType === 'Avatar') {
+            batch.update(userRef, { avatar: itemValue });
+            window.myInfo.avatar = itemValue;
+            message = `새 아바타(${itemValue})를 구매하고 적용했습니다!`;
+        } else if (itemType === 'Banner' || itemType === 'Skin') {
+            // 인벤토리/스킨 필드 추가 필요. 현재는 로그만 남김
+            message = `${itemValue} 아이템을 구매했습니다! 인벤토리에 추가되었습니다.`;
+        }
+        
+        // 3. 로그 기록
+        batch.set(logRef, {
+            target_uid: uid,
+            sender_uid: 'system_shop',
+            action_type: 'PURCHASE',
+            score_change: -cost,
+            message: `${itemValue} 구매 완료 (토큰 ${cost} 사용)`,
+            is_read: false,
+            timestamp: FieldValue.serverTimestamp()
+        });
+
+        await batch.commit();
+
+        // 4. UI 업데이트 및 업적 체크
+        window.myInfo.tokens -= cost;
+        if (typeof window.updateProfileUI === 'function') window.updateProfileUI();
+        
+        // 구매 후 다시 업적 체크 (purchase_count 업데이트되었으므로)
+        const myStatsDoc = await userRef.get();
+        if (myStatsDoc.exists) {
+            const statsData = myStatsDoc.data();
+            statsData.uid = uid;
+            statsData.purchase_count = (statsData.purchase_count || 0) + 1;
+            await checkAchievements(statsData, statsData.achievedIds);
+        }
+
+        window.openSheet('🎉', '구매 성공', message, `남은 토큰: ${window.myInfo.tokens}💎`);
+
+    } catch(e) {
+        console.error("구매 실패:", e);
+        window.openSheet('🚨', '구매 실패', '알 수 없는 오류로 구매에 실패했습니다.', '콘솔을 확인해주세요.');
+    }
+}
+
 
 // ========================================
-// 🚨 v3.4 핵심 수정: 육각 차트 구현
+// 🚨 v3.4 핵심 수정: 육각 차트 구현 (유지)
 // ========================================
 window.drawChart = async function() {
     const ctx = document.getElementById('myRadarChart');
@@ -608,7 +912,6 @@ window.drawChart = async function() {
         }
     });
 };
-
 
 // 앱 시작
 // window.loadDataFromServer(); // [v3.0 수정: 이 줄을 삭제하여 무한 루프를 방지합니다]
