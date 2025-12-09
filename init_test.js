@@ -1,18 +1,18 @@
-// init_test.js (Full Code: v18.57 - Cleaned Firebase Init)
+// init_test.js
+// Version: v18.64.0
+// Description: Database initialization and test data management.
 
 console.log("======================================");
-console.log("🚀 DB 초기화 스크립트 (v47.0)");
+console.log("🚀 DB 초기화 스크립트 (v18.64.0)");
 console.log("======================================");
-
-// [🔥 v35.0] Firebase 초기화 로직을 제거하여 logic.js의 initGame 함수만 실행하도록 보장
 
 const TEST_USERS = [
     { 
         id: 'user_test_a', nickname: '테스트 A (나)', avatar: '👤', mbti: 'ENTP', 
         desc: '이 구역의 실험 대상 A입니다.', stats: [50, 50, 50, 50, 50, 50], 
-        tokens: 1000, // 테스트용 부자
+        tokens: 1000, 
         achievedIds: [], login_count: 1, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(),
-        inventory: [] // 인벤토리 초기화
+        inventory: [] 
     },
     { 
         id: 'user_test_b', nickname: '테스트 B (너)', avatar: '👤', mbti: 'INFJ', 

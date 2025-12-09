@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v18.57 (End Game)</title>
-    <link rel="stylesheet" href="style.css?v=57.0">
+    <title>It's me! v18.64.0</title>
+    <link rel="stylesheet" href="style.css?v=64.0">
 </head>
 <body>
 
@@ -105,18 +105,30 @@
         <div id="voteHeader" class="sticky-header-group vote-header">
             <div style="text-align:center;">
                 <span class="ticket-badge" id="ticketDisplay">🎫 남은 티켓: 5/5</span><br>
-                <span class="round-badge" id="roundBadge">토너먼트 시작</span>
+                <span class="round-badge" id="roundBadge" style="display:none;">토너먼트 시작</span>
                 <h3 id="voteTitle" style="margin-top:10px;">...</h3>
             </div>
         </div>
         <div class="scroll-body no-scrollbar" style="display:flex; flex-direction:column; justify-content:center;">
-            <div class="vote-wrapper" id="voteWrapper">
+            
+            <div id="voteIntro" class="vote-intro-container">
+                <div style="font-size: 60px; margin-bottom: 20px;">🏆</div>
+                <h2>이상형 월드컵</h2>
+                <p id="introDesc" style="margin-bottom:30px;">
+                    위 주제로 토너먼트를 시작합니다.<br>
+                    <span style="font-size:12px; color:#aaa;">(시작 시 티켓 1장이 소모됩니다)</span>
+                </p>
+                <button class="btn btn-primary" onclick="window.realStartGame()">게임 시작하기</button>
+            </div>
+
+            <div class="vote-wrapper" id="voteWrapper" style="display:none;">
                 <div class="vs-container" id="vsContainer">
                     <div class="vs-card" onclick="vote(0)"><div class="vs-avatar" id="avatarA">❓</div><div class="vs-name" id="nameA">...</div><div class="vs-desc" id="descA">...</div></div>
                     <div class="vs-divider-text">VS</div>
                     <div class="vs-card" onclick="vote(1)"><div class="vs-avatar" id="avatarB">❓</div><div class="vs-name" id="nameB">...</div><div class="vs-desc" id="descB">...</div></div>
                 </div>
             </div>
+            
             <div id="winnerContainer" style="display:none; text-align:center;">
                 <div class="winner-box">
                     <div class="winner-avatar" id="winnerAvatar">🏆</div> 
@@ -125,7 +137,7 @@
                     <p id="winnerText">점수 전달 완료!</p>
                 </div>
             </div>
-            <button class="btn" style="background:#f1f2f6; color:#a4b0be; margin-top:20px;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요</button>
+            <button class="btn" style="background:#f1f2f6; color:#a4b0be; margin-top:20px; display:none;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요</button>
         </div>
     </div>
     
@@ -134,7 +146,7 @@
             <div class="rank-header-area">
                 <h2 style="margin-bottom:15px;">주변미터 랭킹</h2>
                 <div class="rank-filter-row">
-                    <div class="stat-pills">
+                    <div class="stat-pills" id="rankFilterContainer">
                         <div class="stat-pill active" onclick="filterRank(this, -1)">📊 <span class="pill-text">종합</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 0)">🧠 <span class="pill-text">지성</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 1)">⚡ <span class="pill-text">센스</span></div>
@@ -226,17 +238,16 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=57.0" defer></script>
-<script src="ui.js?v=57.0" defer></script>
-<script src="init_test.js?v=57.0" defer></script> 
+<script src="logic.js?v=64.0" defer></script>
+<script src="ui.js?v=64.0" defer></script>
+<script src="init_test.js?v=64.0" defer></script> 
 
 <script>
     window.addEventListener('DOMContentLoaded', function() {
         if (window.loadDataFromServer) {
             window.loadDataFromServer();
         } else {
-            // logic.js 로드 실패 시의 폴백 처리 (극히 드물지만 안전 보장)
-            console.error("logic.js가 로드되지 않았습니다. 앱 초기화 실패.");
+            console.error("logic.js가 로드되지 않았습니다.");
             document.getElementById('dbStatus').innerText = "● 로드 오류";
             document.getElementById('dbStatus').classList.add('error');
         }
