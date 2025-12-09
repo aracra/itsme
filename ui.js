@@ -1,4 +1,4 @@
-// ui.js (Full Code: Patch v52.0)
+// ui.js (Full Code: v56.0)
 
 let myMbti="",tempTestResult=[],myChart=null;
 function updateTicketUI(){const e=document.getElementById('ticketDisplay');if(e&&window.myInfo)e.innerText=`🎫 남은 티켓: ${window.myInfo.tickets||0}/5`;}
@@ -15,8 +15,15 @@ function goTab(s,n){
         setTimeout(() => {
              window.goSubTab('tab-prism',document.querySelector('.sub-tab:first-child'));
         }, 0); 
-    } else if(s==='screen-rank'&&window.renderRankList) {
-        window.renderRankList(window.currentFilter);
+    } else if(s==='screen-rank') {
+        // [🔥 v56.0] 랭킹 화면 로드 시, 필터 초기화 및 랭킹 목록 렌더링 (아코디언 버그 및 빈 화면 버그 수정)
+        const allPill = document.querySelector('#rankFilterContainer .stat-pill:first-child');
+        if (window.filterRank && allPill) {
+             window.filterRank(allPill, -1);
+        } else if(window.renderRankList) {
+             // Fallback for rendering if filterRank is not found or pill is missing
+             window.renderRankList(window.currentFilter);
+        }
     } else if(s==='screen-vote'&&window.startTournament) {
         window.startTournament();
     }

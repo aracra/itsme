@@ -1,4 +1,7 @@
-/* style.css (v53.0 - Final Achieve Grid Rollback & Saturation Fix) */
+/* style.css (v57.0 - Layout Stabilization Update) */
+
+/* [🔥 v57.0] 전역 레이아웃 안정화: 패딩이 너비를 넘치게 하는 현상 원천 차단 */
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 /* 1. 기본 설정 */
 :root { 
@@ -6,19 +9,19 @@
     --bg: #f0f2f5; 
     --card: #ffffff; 
     --nav-height: 60px; 
-    /* [🔥 v40.0] New Theme Variables for extensibility */
+    /* Theme Variables */
     --color-gray-dark: #636e72;
-    --color-gray-light: #dfe6e9; /* 기존 border-light */
-    --color-chart-grid: #dfe6e9; /* 차트/그리드 기본 회색 */
-    --color-chart-label: #636e72; /* 차트 라벨 기본 색상 */
+    --color-gray-light: #dfe6e9; 
+    --color-chart-grid: #dfe6e9; 
+    --color-chart-label: #636e72; 
 
-    /* [🔥 v32.0] Theme Base Colors */
+    /* Theme Base Colors */
     --text-primary: #2d3436; 
     --text-secondary: var(--color-gray-dark);
     --border-light: var(--color-gray-light);
     --list-separator: #eee;
     
-    /* [🔥 v32.0] DARK THEME VARIABLES (Default / Light) */
+    /* DARK THEME VARIABLES (Default / Light) */
     --dark-bg: var(--bg);
     --dark-card: var(--card);
     --dark-text-primary: var(--text-primary);
@@ -26,21 +29,46 @@
     --dark-border: var(--border-light);
 }
 
-body { font-family: 'Pretendard', -apple-system, sans-serif; background-color: var(--dark-bg); margin: 0; padding: 0; display: flex; justify-content: center; position: fixed; width: 100%; height: 100%; overflow: hidden; transition: background 0.5s ease; }
-.app-container { width: 100%; max-width: 420px; background: var(--dark-card); height: 100%; display: flex; flex-direction: column; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.1); transition: background 0.3s, color 0.3s; }
+body { 
+    font-family: 'Pretendard', -apple-system, sans-serif; 
+    background-color: var(--dark-bg); 
+    margin: 0; 
+    padding: 0; 
+    display: flex; 
+    justify-content: center; 
+    position: fixed; 
+    width: 100%; 
+    height: 100%; 
+    overflow: hidden; /* 전체 화면 스크롤 방지 */
+    transition: background 0.5s ease; 
+}
+
+.app-container { 
+    width: 100%; 
+    max-width: 420px; 
+    background: var(--dark-card); 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    position: relative; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.1); 
+    transition: background 0.3s, color 0.3s;
+    overflow: hidden; /* 내부 요소가 튀어나가는 것 방지 */
+}
+
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* 2. 화면 구조 */
-.screen { display: none; flex-direction: column; width: 100%; height: 100%; padding-bottom: var(--nav-height); box-sizing: border-box; overflow: hidden; }
+.screen { display: none; flex-direction: column; width: 100%; height: 100%; padding-bottom: var(--nav-height); overflow: hidden; }
 .screen.active { display: flex; }
 .screen.full-center { justify-content: center; overflow-y: auto; }
 
-.fixed-header { flex: 0 0 auto; background-color: var(--dark-card); padding: 20px 20px 0 20px; z-index: 20; width: 100%; box-sizing: border-box; border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.3s; }
-.scroll-body { flex: 1; overflow-y: auto; padding: 0 20px 20px 20px; width: 100%; box-sizing: border-box; -ms-overflow-style: none; scrollbar-width: none; }
+.fixed-header { flex: 0 0 auto; background-color: var(--dark-card); padding: 20px 20px 0 20px; z-index: 20; width: 100%; border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.3s; }
+.scroll-body { flex: 1; overflow-y: auto; padding: 0 20px 20px 20px; width: 100%; }
 
 /* 3. 고정 헤더 */
-.sticky-header-group { position: sticky; top: 0; z-index: 20; background-color: var(--dark-card); margin: 0; padding: 20px 20px 10px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.3s; text-align: center; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; width: 100%; }
+.sticky-header-group { position: sticky; top: 0; z-index: 20; background-color: var(--dark-card); margin: 0; padding: 20px 20px 10px 20px; border-bottom: 1px solid rgba(0,0,0,0.05); transition: background 0.3s; text-align: center; display: flex; flex-direction: column; align-items: center; width: 100%; }
 .vote-header { background-color: var(--dark-card); padding: 15px 20px 10px 20px; width: 100%; text-align: center; border-bottom: none; z-index: 21; }
 
 /* 4. 공통 요소 */
@@ -55,47 +83,40 @@ p { color: var(--dark-text-secondary); font-size: 15px; margin-bottom: 25px; tex
 .header-title { font-size: 22px; font-weight: 800; color: var(--dark-text-primary); margin: 0; }
 .header-badge { display: inline-block; background: #eee; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; color: #f39c12; margin-top: 5px; }
 
+/* [🔥 v57.0] 로그인 버튼 영역 안전 스타일 추가 */
+.login-btn-area {
+    width: 100%; 
+    padding: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+}
+
 /* 랭킹 필터 */
 .rank-header-area { width: 100%; text-align: center; }
 .rank-filter-row { display: flex; align-items: center; width: 100%; overflow: hidden; padding-bottom: 10px; justify-content: flex-start; }
-.stat-pills { 
-    flex: 1; display: flex; gap: 6px; overflow-x: auto; 
-    padding-left: 5px; padding-bottom: 5px; 
-    -ms-overflow-style: none; scrollbar-width: none; 
-}
+.stat-pills { flex: 1; display: flex; gap: 6px; overflow-x: auto; padding-left: 5px; padding-bottom: 5px; -ms-overflow-style: none; scrollbar-width: none; }
 .stat-pills::-webkit-scrollbar { display: none; }
-.stat-pill { flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; border-radius: 20px; background: #f1f2f6; color: #636e72; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; }
-.stat-pill.active { background: var(--card); border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2); font-weight: 800; padding-right: 15px; }
+.stat-pill { flex: 0 0 auto; white-space: nowrap; padding: 8px 12px; border-radius: 20px; background: #f1f2f6; color: #636e72; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); display: flex; align-items: center; justify-content: center; min-width: 40px; }
+.stat-pill .pill-text { display: none; opacity: 0; width: 0; margin-left: 0; transition: all 0.2s ease-in; overflow: hidden; }
+.stat-pill.active { background: var(--card); border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2); font-weight: 800; padding-right: 15px; min-width: auto; }
+.stat-pill.active .pill-text { display: inline-block; width: auto; opacity: 1; margin-left: 6px; }
 
-/* 업적 그리드 [Fix] 4열 강제 */
-.achieve-grid { display: grid; grid-template-columns: repeat(4, 1fr) !important; gap: 10px; padding: 10px 0; width: 100%; box-sizing: border-box; }
+/* 랭킹 리스트 순위 번호 */
+.rank-number-circle { width: 25px; height: 25px; line-height: 25px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 14px; font-weight: bold; flex-shrink: 0; }
+
+/* 업적 그리드 */
+.achieve-grid { display: grid; grid-template-columns: repeat(4, 1fr) !important; gap: 10px; padding: 10px 0; width: 100%; }
 .achieve-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 10px; padding-bottom: 10px; position: relative; overflow: hidden; background: var(--dark-card); border: 1px solid var(--list-separator); border-radius: 12px; cursor: pointer; transition: 0.2s; aspect-ratio: 1/1.2; }
 .achieve-item:active { transform: scale(0.98); }
 .achieve-icon { font-size: 28px; margin-bottom: 5px; display: block; }
 .achieve-title { font-size: 10px; font-weight: 600; color: var(--dark-text-secondary); text-align: center; word-break: keep-all; }
-
-/* [🔥 v53.0] 미달성 업적 스타일 롤백 (자물쇠 제거 및 투명도/흑백 필터 복원) */
-.achieve-item.locked { 
-    opacity: 0.6; /* 투명도 복원 */
-    border-color: #f1f2f6; /* 연한 테두리 복원 */
-    background: var(--dark-card); /* 카드 배경 복원 */
-    position: relative; 
-}
-.achieve-item.locked .achieve-icon { 
-    filter: grayscale(100%) brightness(120%); /* 흑백 필터 복원 */
-    opacity: 1; /* 아이콘 투명도 복원 (locked 전체 투명도가 적용됨) */
-}
-.achieve-item.locked .achieve-title {
-    color: #636e72; /* 기본 폰트 색상 복원 */
-}
-/* [🔥 v53.0] 자물쇠 아이콘 제거 (v49.0/v50.0/v51.0 롤백) */
-.achieve-item.locked::after {
-    content: none;
-}
-
+.achieve-item.locked { opacity: 0.6; background: var(--dark-card); border-color: var(--border-light); position: relative; }
+.achieve-item.locked .achieve-icon { filter: grayscale(100%) brightness(120%); opacity: 1; }
+.achieve-item.locked .achieve-title { color: #636e72; }
 
 /* 바텀 시트 */
-.bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; margin: 0 auto; max-width: 420px; width: 100%; background: var(--dark-card); border-radius: 24px 24px 0 0; box-sizing: border-box; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10001; max-height: 80vh; display: flex; flex-direction: column; }
+.bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; margin: 0 auto; max-width: 420px; width: 100%; background: var(--dark-card); border-radius: 24px 24px 0 0; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10001; max-height: 80vh; display: flex; flex-direction: column; }
 .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 10000; touch-action: none; }
 .sheet-overlay.open { display: block; }
 .sheet-overlay.open .bottom-sheet { bottom: 0; }
@@ -105,15 +126,15 @@ p { color: var(--dark-text-secondary); font-size: 15px; margin-bottom: 25px; tex
 .sheet-footer-area { padding: 20px; flex-shrink: 0; }
 .sheet-title { font-size: 20px; font-weight: 800; margin: 0; color: var(--dark-text-primary); }
 .sheet-header-icon-frame { width: 80px; height: 80px; background: #f1f2f6; border-radius: 50% !important; display: flex; justify-content: center; align-items: center; font-size: 40px; margin: 0 auto 15px auto; }
-.sheet-message-box { width: 100%; background: #f8f9fa; border-radius: 16px; padding: 15px; margin-bottom: 20px; font-size: 15px; color: var(--dark-text-secondary); line-height: 1.6; text-align: center; word-break: keep-all; border: 1px solid var(--list-separator); box-sizing: border-box; }
+.sheet-message-box { width: 100%; background: #f8f9fa; border-radius: 16px; padding: 15px; margin-bottom: 20px; font-size: 15px; color: var(--dark-text-secondary); line-height: 1.6; text-align: center; word-break: keep-all; border: 1px solid var(--list-separator); }
 .sheet-meta-row { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; color: #b2bec3; width: 100%; }
 
-/* ... (기타 유지) ... */
+/* 기타 UI 요소 */
 .avatar-area { display: flex; justify-content: center; margin-bottom: 15px; width: 100%; }
 .avatar-circle { width: 80px; height: 80px; background: #fff0f6; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 3px solid var(--card); box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
 .avatar-badge { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: bold; }
 .msg-bubble { background: #f1f2f6; padding: 8px 16px; border-radius: 20px; margin-top: 10px; font-size: 13px; color: var(--dark-text-secondary); position: relative; max-width: 80%; text-align: center; margin-left: auto; margin-right: auto; }
-.sub-tab-bar { display: flex; margin-bottom: 10px; background: #f1f2f6; border-radius: 12px; padding: 4px; width: 100%; box-sizing: border-box; }
+.sub-tab-bar { display: flex; margin-bottom: 10px; background: #f1f2f6; border-radius: 12px; padding: 4px; width: 100%; }
 .sub-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; color: var(--dark-text-secondary); border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 500; }
 .sub-tab.active { background: var(--card); color: var(--primary); font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 .sub-content { display: none; animation: fadeIn 0.3s ease; width: 100%; }
@@ -127,6 +148,8 @@ p { color: var(--dark-text-secondary); font-size: 15px; margin-bottom: 25px; tex
 .list-item .rank-avatar { width: 100%; height: 100%; border-radius: 50%; background: #f0f2f6; display: flex; justify-content: center; align-items: center; font-size: 20px; }
 .list-item-score { flex-shrink: 0; display: inline-flex; justify-content: center; align-items: center; font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 30px; min-width: 60px; background: #f1f2f6; color: var(--dark-text-secondary); }
 .common-circle-frame, .list-icon-frame { width: 40px; height: 40px; background: #f1f2f6; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0; margin-right: 15px; }
+
+/* Shop */
 .shop-section { margin-bottom: 30px; width: 100%; }
 .shop-title { font-size: 16px; font-weight: bold; color: var(--dark-text-primary); margin-bottom: 10px; border-left: 4px solid var(--primary); padding-left: 10px; }
 .shop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -136,39 +159,36 @@ p { color: var(--dark-text-secondary); font-size: 15px; margin-bottom: 25px; tex
 .shop-item-name { font-size: 14px; font-weight: bold; margin-bottom: 5px; }
 .shop-item-price { font-size: 12px; color: var(--primary); font-weight: bold; }
 .cash-price { color: #00b894; }
+
+/* Settings */
 .settings-profile { display: flex; align-items: center; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #f1f2f6; width: 100%; justify-content: center; }
 .st-avatar { width: 60px; height: 60px; border-radius: 50%; background: #fff0f6; display: flex; justify-content: center; align-items: center; font-size: 30px; margin-right: 15px; }
 .st-info { flex: 1; max-width: 200px; text-align: left; }
 .st-name { font-size: 18px; font-weight: 800; color: var(--dark-text-primary); }
 .st-account { font-size: 12px; color: #b2bec3; margin-top: 4px; }
-.settings-msg-box { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; position: relative; width: 100%; box-sizing: border-box; }
+.settings-msg-box { background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px; position: relative; width: 100%; }
 .st-msg-label { font-size: 12px; color: var(--primary); font-weight: bold; margin-bottom: 5px; display: block; text-align: left; }
 .st-msg-text { font-size: 14px; color: var(--dark-text-primary); line-height: 1.4; text-align: left; }
 .st-msg-edit { position: absolute; top: 15px; right: 15px; color: #b2bec3; cursor: pointer; }
 .settings-menu { list-style: none; padding: 0; margin: 0 0 30px 0; width: 100%; }
 .st-menu-item { padding: 15px 0; border-bottom: 1px solid #f1f2f6; display: flex; justify-content: space-between; cursor: pointer; font-size: 15px; color: var(--dark-text-primary); }
+
+/* Vote */
 .vote-wrapper { flex: 1; display: flex; flex-direction: column; justify-content: center; width: 100%; height: 100%; }
-.vs-container { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; width: 100%; position: relative; }
+.vs-container { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px; width: 100%; position: relative; padding-left: 20px; padding-right: 20px; }
 .vs-card { flex: 1; height: 220px; padding: 10px 5px; border: 2px solid var(--border-light); border-radius: 20px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; background: var(--card); }
 .vs-card:active { border-color: var(--primary); background-color: #f0f3ff; transform: scale(0.96); }
-.vs-avatar { width: 70px; height: 70px; background: #f1f2f6; display: flex; justify-content: center; align-items: center; font-size: 35px; margin-bottom: 10px; }
+.vs-avatar { width: 70px; height: 70px; background: var(--bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; margin-bottom: 10px; box-shadow: 0 0 0 3px var(--card); }
 .vs-name { font-size: 16px; font-weight: 800; margin-bottom: 5px; color: var(--dark-text-primary); }
 .vs-desc { font-size: 12px; color: var(--dark-text-secondary); font-weight: 600; line-height: 1.3; opacity: 0.8; word-break: keep-all; }
 .vs-divider-text { font-size: 24px; font-weight: 900; font-style: italic; color: #dfe6e9; z-index: 10; margin: 0 5px; }
 .ticket-badge { font-size: 13px; font-weight: bold; color: #6c5ce7; background: #f0f3ff; padding: 5px 12px; border-radius: 20px; display: inline-block; margin-bottom: 15px; }
-
-/* [🔥 v40.0] '잘 모르는 사람들이에요' 버튼 스타일 오버라이드 및 UI 요소 수정 */
-/* (기본) 회색 버튼 배경/폰트 조정 */
-#passBtn {
-    background: #f1f2f6;
-    color: var(--color-gray-dark); 
-    border: 1px solid var(--color-gray-light);
-}
-
+.round-badge { background: #2d3436; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+#passBtn { background: #f1f2f6; color: var(--color-gray-dark); border: 1px solid var(--color-gray-light); }
 .winner-box { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 10px 30px; }
 .winner-avatar { width: 80px; height: 80px; background: var(--card); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); margin-bottom: 10px; border: 5px solid var(--primary); }
 .comment-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 320px; background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 10002; display: flex; flex-direction: column; align-items: center; }
-.comment-modal textarea { width: 100%; height: 80px; border: 2px solid var(--border-light); border-radius: 12px; padding: 12px; font-family: inherit; font-size: 14px; resize: none; margin-bottom: 20px; box-sizing: border-box; }
+.comment-modal textarea { width: 100%; height: 80px; border: 2px solid var(--border-light); border-radius: 12px; padding: 12px; font-family: inherit; font-size: 14px; resize: none; margin-bottom: 20px; }
 .comment-modal textarea:focus { outline: none; border-color: var(--primary); }
 .modal-btn-row { display: flex; gap: 10px; width: 100%; }
 .modal-btn-row .btn { flex: 1; margin-bottom: 0; padding: 12px; font-size: 14px; }
@@ -180,38 +200,23 @@ p { color: var(--dark-text-secondary); font-size: 15px; margin-bottom: 25px; tex
 .btn-dev-toggle { padding: 4px 8px; font-size: 11px; background: #2d3436; color: white; border: none; border-radius: 5px; cursor: pointer; }
 .btn-dev-item { padding: 8px; font-size: 11px; color: #2d3436; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 2px; }
 
-/* [테마 모드] */
-body.bg-gold { 
-    --color-chart-grid: #f7d794; 
-    --color-chart-label: #f38181;
-    background: linear-gradient(135deg, #fce38a 0%, #f38181 100%); 
-}
+/* THEMES */
+body.bg-gold { --color-chart-grid: #f7d794; --color-chart-label: #f38181; background: linear-gradient(135deg, #fce38a 0%, #f38181 100%); }
 body.bg-gold .app-container { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(5px); }
 
-/* 다크 모드 (bg-dark) */
 body.bg-dark { 
-    --dark-bg: #2d3436;
-    --dark-card: #2f3640;
-    --dark-text-primary: #ffffff; 
-    --dark-text-secondary: #b2bec3;
-    --dark-border: #4b6584;
-    --list-separator: #4b6584;
-    --color-chart-grid: #4b6584; 
-    --color-chart-label: #b2bec3;
+    --dark-bg: #2d3436; --dark-card: #2f3640; --dark-text-primary: #ffffff; --dark-text-secondary: #b2bec3; --dark-border: #4b6584; --list-separator: #4b6584; --color-chart-grid: #4b6584; --color-chart-label: #b2bec3;
 }
 body.bg-dark .app-container { color: var(--dark-text-primary); }
-
 body.bg-dark .sticky-header-group { background-color: var(--dark-card); border-bottom: 1px solid rgba(255,255,255,0.05); }
 body.bg-dark #voteHeader { background-color: var(--dark-card) !important; border-bottom: none !important; box-shadow: none !important; }
-body.bg-dark h1, body.bg-dark h2, body.bg-dark h3, body.bg-dark p, body.bg-dark .st-name, body.bg-dark .history-title, body.bg-dark .rank-nickname, body.bg-dark .vs-name, body.bg-dark .shop-title, body.bg-dark .shop-item-name, body.bg-dark .sheet-title, body.bg-dark .sheet-message-box, body.bg-dark .st-msg-text, body.bg-dark .mbti-btn, body.bg-dark .st-menu-item, body.bg-dark .st-menu-item span, body.bg-dark .header-title, body.bg-dark #myNicknameDisplay, body.bg-dark #voteTitle
-{ color: var(--dark-text-primary) !important; background: transparent !important; }
+body.bg-dark h1, body.bg-dark h2, body.bg-dark h3, body.bg-dark p, body.bg-dark .st-name, body.bg-dark .history-title, body.bg-dark .rank-nickname, body.bg-dark .vs-name, body.bg-dark .shop-title, body.bg-dark .shop-item-name, body.bg-dark .sheet-title, body.bg-dark .sheet-message-box, body.bg-dark .st-msg-text, body.bg-dark .mbti-btn, body.bg-dark .st-menu-item, body.bg-dark .st-menu-item span, body.bg-dark .header-title, body.bg-dark #myNicknameDisplay, body.bg-dark #voteTitle { color: var(--dark-text-primary) !important; background: transparent !important; }
 body.bg-dark .list-item-icon-area { color: var(--dark-text-primary); }
 body.bg-dark .rank-gold { color: #ffc107 !important; }
 body.bg-dark .rank-silver { color: #adb5bd !important; }
 body.bg-dark .rank-bronze { color: #cd7f32 !important; }
 body.bg-dark #shopTokenDisplay, body.bg-dark .shop-item-price { color: #00b894 !important; }
-body.bg-dark .bottom-nav, body.bg-dark .shop-item, body.bg-dark .settings-msg-box, body.bg-dark .sheet-meta-box, body.bg-dark .sheet-message-box, body.bg-dark .vs-card, body.bg-dark .mbti-btn, body.bg-dark .btn-outline, body.bg-dark input, body.bg-dark .list-item:active, body.bg-dark .vote-header, body.bg-dark .inv-icon-circle, body.bg-dark .list-icon-frame, body.bg-dark .sheet-header-icon-frame, body.bg-dark .common-circle-frame, body.bg-dark .stat-pill
-{ background: #353b48 !important; color: white !important; border-color: var(--dark-border) !important; }
+body.bg-dark .bottom-nav, body.bg-dark .shop-item, body.bg-dark .settings-msg-box, body.bg-dark .sheet-meta-box, body.bg-dark .sheet-message-box, body.bg-dark .vs-card, body.bg-dark .mbti-btn, body.bg-dark .btn-outline, body.bg-dark input, body.bg-dark .list-item:active, body.bg-dark .vote-header, body.bg-dark .inv-icon-circle, body.bg-dark .list-icon-frame, body.bg-dark .sheet-header-icon-frame, body.bg-dark .common-circle-frame, body.bg-dark .stat-pill { background: #353b48 !important; color: white !important; border-color: var(--dark-border) !important; }
 body.bg-dark .stat-pill.active { background: var(--card) !important; color: var(--primary) !important; }
 body.bg-dark .bottom-sheet, body.bg-dark .comment-modal, body.bg-dark #devMenuExpanded { background: var(--dark-card) !important; }
 body.bg-dark .avatar-circle, body.bg-dark .rank-avatar, body.bg-dark .vs-avatar, body.bg-dark .winner-avatar, body.bg-dark .st-avatar, body.bg-dark .sheet-icon { background-color: var(--dark-border) !important; border-color: #7f8fa6 !important; }
@@ -223,72 +228,27 @@ body.bg-dark .sub-tab.active { background: var(--dark-card) !important; color: #
 body.bg-dark .sheet-content, body.bg-dark .sheet-body-area, body.bg-dark .inventory-item-name { color: var(--dark-text-primary) !important; }
 body.bg-dark .bottom-sheet div { color: inherit; } 
 
-
-/* 핑크 모드 (bg-pink) */
 body.bg-pink {
     --primary: #ff7675; 
-    
-    /* [v45.0 UPDATE 1] 메인 배경: 아주 연한 핑크로 조정 */
     --dark-bg: #FEF6F6; 
-    /* [v45.0 UPDATE 2] 카드/컨테이너 배경: 흰색으로 변경하여 배경과의 명확한 입체감(대비) 부여 */
     --dark-card: #FFFFFF; 
-    
     --dark-text-primary: #2d3436; 
     --dark-text-secondary: #ff7675; 
-    
-    /* [🔥 v53.0] 테두리 채도 조정 (핑크 테두리가 덜 도드라지도록) */
-    --dark-border: #f7b7b7; /* 이전 #fa7972 보다 연한 핑크색 (낮은 채도) */
-    --list-separator: #f7b7b7; /* 리스트 구분선도 연하게 */
-
-    /* 차트 색상 오버라이드: #BEBEBE */
+    --dark-border: #fa7972; 
+    --list-separator: #fa7972; 
     --color-chart-grid: #BEBEBE;
     --color-chart-label: #535c68;
-
-    /* 디테일 요소 색상 조정 */
     --btn-outline-bg: #fff5f5; 
-    --btn-outline-border: #f7b7b7; /* 아웃라인 버튼 테두리도 연하게 */
+    --btn-outline-border: #fa7972; 
     --avatar-bg: #ffeded; 
-    --msg-bubble-bg: #fbe6e6; /* 메시지 버블 및 아웃라인 버튼 배경용 */
+    --msg-bubble-bg: #fbe6e6; 
 }
-
-/* 핑크 모드 공통 오버라이드 */
-body.bg-pink {
-    background-color: var(--dark-bg);
-}
+body.bg-pink { background-color: var(--dark-bg); }
 body.bg-pink .app-container { background: var(--dark-card); } 
-body.bg-pink .bottom-nav { background: var(--dark-card); } /* 하단 메뉴바 통일 */
-
-/* [🔥 v46.0] '잘 모르는 사람들이에요' 버튼 색상 오버라이드 - 짙은 핑크로 대비 극대화 */
-body.bg-pink #passBtn {
-    background: var(--primary); /* 짙은 핑크 배경 */
-    color: white; /* 흰색 폰트 */
-    border: none; /* 테두리 제거 */
-}
-body.bg-pink #passBtn:active {
-    background: #e74c3c; 
-}
-/* [🔥 v53.0] 아웃라인 버튼 스타일 적용 (연해진 테두리 반영) */
-body.bg-pink .btn-outline { 
-    background: var(--btn-outline-bg); 
-    border-color: var(--btn-outline-border); 
-    color: var(--dark-text-secondary); 
-}
-
-/* [🔥 v53.0] 미달성 업적 자물쇠 아이콘 제거 및 스타일 롤백 */
-body.bg-pink .achieve-item.locked { 
-    opacity: 0.6; 
-    border-color: var(--border-light); /* 기본 테두리 색상 사용 */
-    background: var(--dark-card); 
-}
-body.bg-pink .achieve-item.locked::after {
-    content: none;
-}
-body.bg-pink .achieve-item.locked .achieve-icon { 
-    filter: grayscale(100%) brightness(120%); 
-    opacity: 1; 
-}
-
-
+body.bg-pink .bottom-nav { background: var(--dark-card); } 
+body.bg-pink #passBtn { background: var(--primary); color: white; border: none; }
+body.bg-pink #passBtn:active { background: #e74c3c; }
+body.bg-pink .btn-outline { background: var(--btn-outline-bg); border-color: var(--btn-outline-border); color: var(--dark-text-secondary); }
 body.bg-pink .avatar-circle { border: 3px solid var(--primary); background: var(--avatar-bg); } 
 body.bg-pink .btn-primary { background-color: var(--primary); }
 body.bg-pink .stat-pill.active { border-color: var(--primary) !important; color: var(--primary) !important; }
@@ -302,3 +262,8 @@ body.bg-pink .sheet-header-icon-frame { background: var(--avatar-bg); }
 body.bg-pink .db-status { background: #ffe1e1; border-color: var(--primary); color: var(--primary); }
 body.bg-pink .db-status.on { background: #e0fbfb; border-color: #00b894; color: #00b894; }
 body.bg-pink .ticket-badge { background: #ffeded; color: var(--primary); }
+body.bg-pink .achieve-item.locked::after { color: var(--dark-text-secondary); }
+body.bg-pink .achieve-item.locked { opacity: 0.6; border-color: var(--border-light); background: var(--dark-card); }
+body.bg-pink .achieve-item.locked::after { content: none; }
+body.bg-pink .achieve-item.locked .achieve-icon { filter: grayscale(100%) brightness(120%); opacity: 1; }
+body.bg-pink .vs-avatar { box-shadow: 0 0 0 3px var(--primary); background: var(--avatar-bg); }

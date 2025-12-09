@@ -1,4 +1,4 @@
-// logic.js (Full Code: v52.0)
+// logic.js (Full Code: v56.0)
 
 // 1. Firebase
 window.firebaseConfig = { apiKey: "AIzaSyCZJB72jkS2rMgM213Wu9fEuW4Q4jN1scc", authDomain: "it-s-me-96d66.firebaseapp.com", projectId: "it-s-me-96d66", storageBucket: "it-s-me-96d66.firebasestorage.app", messagingSenderId: "950221311348", appId: "1:950221311348:web:43c851b6a4d7446966f021", measurementId: "G-J3SYEX4SYW" };
@@ -29,7 +29,6 @@ window.ACHIEVEMENTS_MASTER_DATA = [
     {id:'ach_06',icon:'🎤',title:'확신의 센터상',desc:'친구 랭킹에서 1위를 달성했습니다.',type:'Stat',condition_key:'rank',condition_value:1,reward:150},
     {id:'ach_07',icon:'🤪',title:'이 구역의 미친X',desc:'[광기] 스탯이 압도적으로 높습니다.',type:'Stat',condition_key:'stats_mania_ratio',condition_value:2,reward:50},
     {id:'ach_08',icon:'🧊',title:'시베리아 벌판',desc:'[멘탈] 점수가 높아 냉철해 보입니다.',type:'Stat',condition_key:'stats_mentality',condition_value:80,reward:40},
-    {id:'ach_09',icon:'💬',title:'투머치 토커',desc:'코멘트 10개 이상 받았습니다.',type:'Comment',condition_key:'comment_count',condition_value:10,reward:20},
     {id:'ach_10',icon:'💰',title:'자본주의의 맛',desc:'상점에서 아이템을 1회 구매했습니다.',type:'Shop',condition_key:'purchase_count',condition_value:1,reward:10}
 ];
 window.questions=[]; window.candidates=[]; window.tournamentRound=[]; window.nextRound=[];
@@ -83,7 +82,8 @@ window.initGame = async function() {
             if(window.myInfo.mbti && document.getElementById('screen-login').classList.contains('active')){
                 if(window.setMyTypeUI) window.setMyTypeUI(window.myInfo.mbti);
             } else if(window.candidates.length>=2 && window.renderRankList) {
-                window.renderRankList(window.currentFilter);
+                // 초기 로드 시 랭킹이 바로 보인다면 렌더링 (필터 로직은 ui.js/goTab에서 처리됨)
+                window.renderRankList(window.currentFilter); 
             }
             if(window.updateProfileUI) window.updateProfileUI();
         } catch (uiError) {
@@ -261,15 +261,24 @@ window.renderRankList=function(f){
     const c=document.getElementById('rankListContainer');if(!c)return;c.innerHTML='';
     let d=window.candidates.map(u=>({...u,s:f===-1?u.stats.reduce((a,b)=>a+b,0):u.stats[f]}));
     d.sort((a,b)=>b.s-a.s);
+    
+    // [🔥 v56.0] 랭킹 순위표 디자인 개선 (노란색 물음표/깨진 뱃지 버그 수정)
     d.forEach((u,i)=>{
         const li=document.createElement('li');li.className='list-item';
-        let sc=f===-1?`${u.s}점`:`${u.s}점`, 
-            rcClass = i===0?'rank-gold':(i===1?'rank-silver':(i===2?'rank-bronze':'')),
-            rcStyle = i===0?'#ffc107':(i===1?'#adb5bd':(i===2?'#cd7f32':'#636e72')),
-            rt=i<3?`🥇🥈🥉`.charAt(i):i+1;
+        
+        let rank = i + 1;
+        let rcStyle = '#636e72'; // Default dark gray for 4th+
+        if (rank === 1) rcStyle = '#FFD700'; // Gold
+        else if (rank === 2) rcStyle = '#C0C0C0'; // Silver
+        else if (rank === 3) rcStyle = '#CD7F32'; // Bronze
+        
+        const rtContent = `<div class="rank-number-circle" style="background:${rcStyle}; color:white;">${rank}</div>`;
+        
+        let sc=f===-1?`${u.s}점`:`${u.s}점`; 
+        
         li.onclick=()=>window.openSheet(u.avatar,u.nickname,`"${u.desc||''}"`,`MBTI: #${u.mbti}`);
         li.innerHTML=`
-            <div class="list-item-icon-area ${rcClass}" style="width:30px;font-size:18px;color:${rcStyle};font-weight:bold;">${rt}</div>
+            <div class="list-item-icon-area" style="width:30px;font-size:18px;font-weight:bold;margin-right:10px;">${rtContent}</div>
             <div class="list-item-icon-area"><div class="rank-avatar">${u.avatar}</div></div>
             <div class="list-item-text"><div class="history-title">${u.nickname}</div><div class="history-date">#${u.mbti}</div></div>
             <div class="list-item-score" style="background:none;color:#2d3436;">${sc}</div>`;
@@ -444,7 +453,7 @@ document.getElementById('vsContainer').style.display='none';document.getElementB
 const wb=document.querySelector('.winner-box');wb.querySelectorAll('.btn-action').forEach(b=>b.remove());const bc=document.createElement('div');bc.className='btn-action';bc.style.marginTop='20px';bc.style.width='100%';
 const cb=document.createElement('button');cb.className='btn btn-outline';cb.innerText="💬 한줄평 남기기";cb.onclick=()=>window.openCommentPopup(w.id,w.nickname);bc.appendChild(cb);
 const nb=document.createElement('button');nb.className='btn btn-primary';
-if(window.myInfo.tickets<=0){document.getElementById('winnerText').innerHTML=`점수 전달 완료!<br><span style="color:#e74c3c;font-weight:bold;">🎫 티켓 소진!</span>`;nb.innerText="메인으로 돌아가기";nb.onclick=()=>{if(window.disableVoteScreen)window.disableVoteScreen();window.goTab('screen-main',document.querySelector('.nav-item'));};}else{document.getElementById('winnerText').innerText="이 친구에게 점수가 전달되었습니다.";nb.innerText="다음 토너먼트 시작하기";nb.onclick=window.startTournament;}bc.appendChild(nb);wb.appendChild(bc);if(typeof confetti==='function')confetti({particleCount:100,spread:70,origin:{y:0.6}});}
+if(window.myInfo.tickets<=0){document.getElementById('winnerText').innerHTML=`점수 전달 완료!<br><span style="color:#e74c3c;font-weight:bold;">🎫 티켓 소진!</span>`;nb.innerText="메인으로 돌아가기";nb.onclick=()=>{if(window.disableVoteScreen)window.disableVoteScreen();window.goTab('screen-main',document.querySelector('.nav-item'));};}else{document.getElementById('winnerText').innerText="이 친구에게 점수가 전달되었습니다.";nb.innerText="다음 토너먼트 시작하기";nb.onclick=window.startTournament();}bc.appendChild(nb);wb.appendChild(bc);if(typeof confetti==='function')confetti({particleCount:100,spread:70,origin:{y:0.6}});}
 async function saveScore(w,s){w.stats[window.currentQ?.type||0]=Math.min(100,w.stats[window.currentQ?.type||0]+s);const i=window.candidates.findIndex(c=>c.id===w.id);if(i!==-1)window.candidates[i].stats=w.stats;if(window.renderRankList)window.renderRankList(window.currentFilter);if(window.db){window.db.collection("users").doc(w.id).collection("received_votes").add({stat_type:window.currentQ?.type||0,score_change:s,timestamp:window.FieldValue.serverTimestamp()});window.db.collection("users").doc(w.id).update({stats:w.stats});}}
 
 // [🔥 v43.0] defer 적용 후, DOMContentLoaded 이벤트로 안전하게 initGame 호출
