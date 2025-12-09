@@ -1,4 +1,4 @@
-// ui.js (Full Code: Patch v29.0)
+// ui.js (Full Code: Patch v33.0)
 
 let myMbti="",tempTestResult=[],myChart=null;
 function updateTicketUI(){const e=document.getElementById('ticketDisplay');if(e&&window.myInfo)e.innerText=`🎫 남은 티켓: ${window.myInfo.tickets||0}/5`;}
@@ -76,8 +76,25 @@ window.openInventory=function(){
     document.getElementById('bottomSheetOverlay').classList.add('open');
 }
 
-window.applyActiveEffects=function(){const b=document.body;b.classList.remove('bg-gold','bg-dark');if(!window.myInfo?.inventory)return;const e=window.myInfo.inventory.find(i=>i.type==='effect'&&i.isActive);if(e)b.classList.add(e.value);}
-const _ou=updateProfileUI;window.updateProfileUI=function(){if(_ou)_ou();applyActiveEffects();}
+window.applyActiveEffects=function(){
+    const b=document.body;
+    // 모든 테마 클래스를 제거
+    b.classList.remove('bg-gold','bg-dark', 'bg-pink'); // [🔥 v33.0] 핑크 모드 클래스 추가
+    
+    if(!window.myInfo?.inventory)return;
+    const e=window.myInfo.inventory.find(i=>i.type==='effect'&&i.isActive);
+    
+    // 활성화된 테마 클래스를 적용
+    if(e)b.classList.add(e.value);
+}
 
-window.updateTicketUI=updateTicketUI;window.updateProfileUI=updateProfileUI;window.setMyTypeUI=setMyTypeUI;window.goTab=goTab;window.goSubTab=goSubTab;window.goScreen=goScreen;window.logout=logout;window.loginWithServer=loginWithServer;window.nextTest=nextTest;window.finishTest=finishTest;window.saveNicknameAndNext=saveNicknameAndNext;window.openSheet=openSheet;window.closeSheet=closeSheet;window.editProfileMsg=editProfileMsg;window.disableVoteScreen=disableVoteScreen;window.debugLogin=debugLogin;
+// [🔥 v32.0] 업데이트 순서를 명시적으로 정리했습니다.
+const _ou=updateProfileUI;
+window.updateProfileUI=function(){
+    if(_ou)_ou();
+    // Profile UI가 업데이트된 후, 가장 마지막에 이펙트를 적용하여 덮어씌울 수 있도록 보장
+    applyActiveEffects();
+}
+
+window.updateTicketUI=updateTicketUI;window.updateProfileUI=window.updateProfileUI;window.setMyTypeUI=setMyTypeUI;window.goTab=goTab;window.goSubTab=goSubTab;window.goScreen=goScreen;window.logout=logout;window.loginWithServer=loginWithServer;window.nextTest=nextTest;window.finishTest=finishTest;window.saveNicknameAndNext=saveNicknameAndNext;window.openSheet=openSheet;window.closeSheet=closeSheet;window.editProfileMsg=editProfileMsg;window.disableVoteScreen=disableVoteScreen;window.debugLogin=debugLogin;
 function init(){if(typeof window.loadDataFromServer==='function')window.loadDataFromServer();else console.warn("logic.js fail");}window.addEventListener('DOMContentLoaded',init);

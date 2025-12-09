@@ -1,4 +1,4 @@
-// logic.js (Full Code: v31.0)
+// logic.js (Full Code: v33.0)
 
 // 1. Firebase
 window.firebaseConfig = { apiKey: "AIzaSyCZJB72jkS2rMgM213Wu9fEuW4Q4jN1scc", authDomain: "it-s-me-96d66.firebaseapp.com", projectId: "it-s-me-96d66", storageBucket: "it-s-me-96d66.firebasestorage.app", messagingSenderId: "950221311348", appId: "1:950221311348:web:43c851b6a4d7446966f021", measurementId: "G-J3SYEX4SYW" };
@@ -75,7 +75,7 @@ window.initGame = async function() {
         }
         if(window.updateProfileUI) window.updateProfileUI();
         
-        // [🔥 v31.0] DB 상태 강제 초록불 (확실하게)
+        // [🔥 v33.0] DB 상태 강제 초록불 (확실하게)
         setTimeout(() => updateStatus("● DB OK", 'ok'), 500);
 
     } catch(e){console.error(e);updateStatus("● 로딩 실패",'error');}
@@ -344,7 +344,43 @@ function updateRoundTitle(){const b=document.getElementById('roundBadge');if(b&&
 function showMatch(){if(window.tournamentRound.length<2){if(window.nextRound.length===1){showWinner(window.nextRound[0]);return;}window.tournamentRound=window.nextRound;window.nextRound=[];window.tournamentRound.sort(()=>Math.random()-0.5);window.currentRoundMax=window.tournamentRound.length;updateRoundTitle();fireRoundEffect(window.currentRoundMax);}if(window.tournamentRound.length<2)return;updateRoundTitle();updateCard('A',window.tournamentRound[0]);updateCard('B',window.tournamentRound[1]);}
 function fireRoundEffect(r){const b=document.getElementById('roundBadge');if(b){b.classList.remove('pulse-anim');void b.offsetWidth;b.classList.add('pulse-anim');}if(typeof confetti==='function')confetti({particleCount:100,spread:80,origin:{y:0.2},colors:r===2?['#ffd700','#ffa500']:['#6c5ce7','#00b894'],disableForReducedMotion:true});}
 function updateCard(p,u){if(!u)return;document.getElementById('name'+p).innerText=u.nickname;document.getElementById('desc'+p).innerText=u.desc||'';document.getElementById('avatar'+p).innerText=u.avatar;}
-window.vote=function(idx){if(window.isVoting)return;if(!window.tournamentRound||window.tournamentRound.length<2)return;if(!window.isGamePaid&&window.myInfo.tickets<=0){alert("티켓 소진");return;}window.isVoting=true;if(!window.isGamePaid){window.myInfo.tickets=Math.max(0,window.myInfo.tickets-1);window.isGamePaid=true;if(window.db)window.db.collection("users").doc(getUserId()).update({tickets:window.FieldValue.increment(-1)});}window.myInfo.tokens+=10;if(window.db)window.db.collection("users").doc(getUserId()).update({vote_count:window.FieldValue.increment(1),tokens:window.FieldValue.increment(10)});const w=idx===0?window.tournamentRound.shift():(window.tournamentRound.splice(0,1),window.tournamentRound.shift());window.tournamentRound.shift();window.nextRound.push(w);if(window.updateTicketUI)window.updateTicketUI();if(window.updateProfileUI)window.updateProfileUI();showMatch();setTimeout(()=>window.isVoting=false,500);}
+window.vote=function(idx){
+    if(window.isVoting)return;
+    if(!window.tournamentRound||window.tournamentRound.length<2)return;
+    if(!window.isGamePaid&&window.myInfo.tickets<=0){alert("티켓 소진");return;}
+
+    window.isVoting=true;
+    
+    // 현재 매치된 두 후보를 추출
+    const candidateA = window.tournamentRound[0];
+    const candidateB = window.tournamentRound[1];
+    
+    // 승자 결정
+    const winner = idx === 0 ? candidateA : candidateB;
+
+    // 현재 매치된 두 후보를 배열에서 제거 (가장 중요한 수정 부분)
+    window.tournamentRound.splice(0, 2); 
+    
+    // 승자를 다음 라운드에 추가
+    window.nextRound.push(winner);
+
+    // 티켓 처리
+    if(!window.isGamePaid){
+        window.myInfo.tickets=Math.max(0,window.myInfo.tickets-1);
+        window.isGamePaid=true;
+        if(window.db)window.db.collection("users").doc(getUserId()).update({tickets:window.FieldValue.increment(-1)});
+    }
+    
+    // 토큰, 투표 횟수 처리
+    window.myInfo.tokens+=10;
+    if(window.db)window.db.collection("users").doc(getUserId()).update({vote_count:window.FieldValue.increment(1),tokens:window.FieldValue.increment(10)});
+
+    if(window.updateTicketUI)window.updateTicketUI();
+    if(window.updateProfileUI)window.updateProfileUI();
+
+    showMatch();
+    setTimeout(()=>window.isVoting=false,500);
+}
 function showWinner(w){saveScore(w,20);(async()=>{const uid=getUserId();if(window.db){const d=await window.db.collection("users").doc(uid).get();if(d.exists)checkAchievements(d.data(),d.data().achievedIds);const s=window.myInfo.nickname||'익명',st=STAT_MAP[window.currentQ?.type||0];window.db.collection("logs").add({target_uid:w.id,sender_uid:uid,action_type:'VOTE',stat_type:window.currentQ?.type||0,score_change:20,message:`[${st}] ${s}님의 투표!`,is_read:false,timestamp:window.FieldValue.serverTimestamp()});}})();
 document.getElementById('vsContainer').style.display='none';document.getElementById('passBtn').style.display='none';if(document.getElementById('roundBadge'))document.getElementById('roundBadge').style.display='none';document.getElementById('winnerContainer').style.display='flex';document.getElementById('winnerName').innerText=w.nickname;document.getElementById('winnerAvatar').innerText=w.avatar;
 const wb=document.querySelector('.winner-box');wb.querySelectorAll('.btn-action').forEach(b=>b.remove());const bc=document.createElement('div');bc.className='btn-action';bc.style.marginTop='20px';bc.style.width='100%';
