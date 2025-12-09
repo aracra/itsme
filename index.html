@@ -3,24 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v13.0 (Rich Mode)</title>
-    <link rel="stylesheet" href="style.css?v=12.2">
+    <title>It's me! v20.0 (Clean Install)</title>
+    <link rel="stylesheet" href="style.css?v=20.0">
 </head>
 <body>
 
 <div class="app-container" id="mainContainer">
-    <div id="dbStatus" class="db-status">● 대기 중</div>
+    <div id="dbStatus" class="db-status">● 연결 대기</div>
 
     <div style="position: absolute; top: 10px; left: 10px; z-index: 1000; display:flex; gap:5px;">
-        <button onclick="if(window.initializeTestDB) { initializeTestDB(); } else { alert('로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #ffeaa7; border: 1px solid #fdcb6e; border-radius: 5px; cursor:pointer;">
-            ⚙️ 리셋
-        </button>
-        <button onclick="if(window.refillTickets) { window.refillTickets(); } else { alert('로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #74b9ff; border: 1px solid #0984e3; color:white; border-radius: 5px; cursor:pointer;">
-            🎫 티켓
-        </button>
-        <button onclick="if(window.addRichTokens) { window.addRichTokens(); } else { alert('로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #55efc4; border: 1px solid #00b894; color:#2d3436; border-radius: 5px; cursor:pointer;">
-            💰 돈복사
-        </button>
+        <button onclick="if(window.initializeTestDB) { initializeTestDB(); } else { alert('로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #ffeaa7; border: 1px solid #fdcb6e; border-radius: 5px; cursor:pointer;">⚙️ 리셋</button>
+        <button onclick="if(window.refillTickets) { window.refillTickets(); } else { alert('로직 로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #74b9ff; border: 1px solid #0984e3; color:white; border-radius: 5px; cursor:pointer;">🎫 티켓</button>
+        <button onclick="if(window.addRichTokens) { window.addRichTokens(); } else { alert('로직 로딩 중...'); }" style="padding: 5px 10px; font-size: 10px; background: #55efc4; border: 1px solid #00b894; color:#2d3436; border-radius: 5px; cursor:pointer;">💰 돈복사</button>
     </div>
 
     <div id="commentOverlay" class="sheet-overlay">
@@ -35,7 +29,7 @@
         </div>
     </div>
 
-    <div id="screen-login" class="screen active">
+    <div id="screen-login" class="screen active" style="padding: 0 20px;">
         <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center;">
             <div style="font-size: 60px; margin-bottom: 20px;">🧐</div>
             <h1>It's me!</h1>
@@ -45,88 +39,70 @@
         <button class="btn btn-outline" onclick="loginWithServer()">이메일로 시작하기</button>
         <div style="margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 20px; width: 100%; text-align: center;">
             <p style="font-size: 12px; margin-bottom: 10px;">🚧 개발자 테스트 모드</p>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" style="background: #2d3436; color: white; font-size: 13px; padding: 10px;" onclick="debugLogin('user_test_a')">🦊 User A (나)</button>
-                <button class="btn" style="background: #636e72; color: white; font-size: 13px; padding: 10px;" onclick="debugLogin('user_test_b')">🐰 User B (너)</button>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button class="btn" style="background: #2d3436; color: white; font-size: 13px; padding: 10px; width:auto;" onclick="debugLogin('user_test_a')">🦊 User A</button>
+                <button class="btn" style="background: #636e72; color: white; font-size: 13px; padding: 10px; width:auto;" onclick="debugLogin('user_test_b')">🐰 User B</button>
             </div>
         </div>
     </div>
 
-    <div id="screen-mbti" class="screen">
+    <div id="screen-mbti" class="screen" style="padding: 0 20px;">
         <div style="height: 20px;"></div>
         <h2>기초 데이터 입력</h2>
-        <p>초기 그래프 생성을 위해<br>본인의 MBTI를 선택해주세요.</p>
         <div class="mbti-grid">
-            <button class="mbti-btn" onclick="saveMbtiToServer('ENFP')">ENFP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ISTJ')">ISTJ</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ENTP')">ENTP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('INFJ')">INFJ</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ISTP')">ISTP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ISFP')">ISFP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('INFP')">INFP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('INTP')">INTP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ESTP')">ESTP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ESFP')">ESFP</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ESTJ')">ESTJ</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ESFJ')">ESFJ</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ENFJ')">ENFJ</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ENTJ')">ENTJ</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('INTJ')">INTJ</button>
-            <button class="mbti-btn" onclick="saveMbtiToServer('ISFJ')">ISFJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ENFP')">ENFP</button><button class="mbti-btn" onclick="saveMbtiToServer('ISTJ')">ISTJ</button><button class="mbti-btn" onclick="saveMbtiToServer('ENTP')">ENTP</button><button class="mbti-btn" onclick="saveMbtiToServer('INFJ')">INFJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ISTP')">ISTP</button><button class="mbti-btn" onclick="saveMbtiToServer('ISFP')">ISFP</button><button class="mbti-btn" onclick="saveMbtiToServer('INFP')">INFP</button><button class="mbti-btn" onclick="saveMbtiToServer('INTP')">INTP</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ESTP')">ESTP</button><button class="mbti-btn" onclick="saveMbtiToServer('ESFP')">ESFP</button><button class="mbti-btn" onclick="saveMbtiToServer('ESTJ')">ESTJ</button><button class="mbti-btn" onclick="saveMbtiToServer('ESFJ')">ESFJ</button>
+            <button class="mbti-btn" onclick="saveMbtiToServer('ENFJ')">ENFJ</button><button class="mbti-btn" onclick="saveMbtiToServer('ENTJ')">ENTJ</button><button class="mbti-btn" onclick="saveMbtiToServer('INTJ')">INTJ</button><button class="mbti-btn" onclick="saveMbtiToServer('ISFJ')">ISFJ</button>
         </div>
-        <button class="btn btn-primary" onclick="goScreen('screen-test-1')">🤔 잘 모르겠어요 (30초 테스트)</button>
+        <button class="btn btn-primary" onclick="goScreen('screen-test-1')">🤔 테스트 시작</button>
     </div>
 
-    <div id="screen-test-1" class="screen"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q1. 불금이다!<br>친구들이 부르면?</h3><button class="btn btn-outline" onclick="nextTest('E', 'screen-test-2')">오예! 당장 나간다! (E)</button><button class="btn btn-outline" onclick="nextTest('I', 'screen-test-2')">기 빨려... 집이 최고야. (I)</button></div></div>
-    <div id="screen-test-2" class="screen"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q2. 멍 때릴 때<br>무슨 생각해?</h3><button class="btn btn-outline" onclick="nextTest('S', 'screen-test-3')">배고파... 저녁 뭐 먹지? (S)</button><button class="btn btn-outline" onclick="nextTest('N', 'screen-test-3')">좀비가 나타나면 어떡하지? (N)</button></div></div>
-    <div id="screen-test-3" class="screen"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q3. 친구가 우울해서<br>화분 샀다고 하면?</h3><button class="btn btn-outline" onclick="nextTest('T', 'screen-test-4')">무슨 화분 샀어? 얼마야? (T)</button><button class="btn btn-outline" onclick="nextTest('F', 'screen-test-4')">헐... 무슨 일 있어? ㅠㅠ (F)</button></div></div>
-    <div id="screen-test-4" class="screen"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q4. 여행 갈 때<br>계획은?</h3><button class="btn btn-outline" onclick="finishTest('J')">엑셀 켜고 분 단위 일정표 (J)</button><button class="btn btn-outline" onclick="finishTest('P')">여권만 챙겨서 출발! (P)</button></div></div>
+    <div id="screen-test-1" class="screen" style="padding: 0 20px;"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q1. 불금이다!<br>친구들이 부르면?</h3><button class="btn btn-outline" onclick="nextTest('E', 'screen-test-2')">오예! 당장 나간다! (E)</button><button class="btn btn-outline" onclick="nextTest('I', 'screen-test-2')">기 빨려... 집이 최고야. (I)</button></div></div>
+    <div id="screen-test-2" class="screen" style="padding: 0 20px;"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q2. 멍 때릴 때<br>무슨 생각해?</h3><button class="btn btn-outline" onclick="nextTest('S', 'screen-test-3')">배고파... 저녁 뭐 먹지? (S)</button><button class="btn btn-outline" onclick="nextTest('N', 'screen-test-3')">좀비가 나타나면 어떡하지? (N)</button></div></div>
+    <div id="screen-test-3" class="screen" style="padding: 0 20px;"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q3. 친구가 우울해서<br>화분 샀다고 하면?</h3><button class="btn btn-outline" onclick="nextTest('T', 'screen-test-4')">무슨 화분 샀어? 얼마야? (T)</button><button class="btn btn-outline" onclick="nextTest('F', 'screen-test-4')">헐... 무슨 일 있어? ㅠㅠ (F)</button></div></div>
+    <div id="screen-test-4" class="screen" style="padding: 0 20px;"><div style="flex:1; display:flex; flex-direction:column; justify-content:center;"><h3>Q4. 여행 갈 때<br>계획은?</h3><button class="btn btn-outline" onclick="finishTest('J')">엑셀 켜고 분 단위 일정표 (J)</button><button class="btn btn-outline" onclick="finishTest('P')">여권만 챙겨서 출발! (P)</button></div></div>
 
-    <div id="screen-nickname" class="screen">
+    <div id="screen-nickname" class="screen" style="padding: 0 20px;">
         <div style="height: 40px;"></div>
         <h2>반가워요! 👋</h2>
-        <p>랭킹에 올라갈 멋진 이름을<br>지어주세요.</p>
         <div style="margin-bottom: 30px;">
-            <input type="text" id="inputNickname" placeholder="예: 판교불주먹" style="width: 100%; padding: 15px; border: 2px solid #dfe6e9; border-radius: 12px; font-size: 16px; text-align: center; box-sizing: border-box;">
+            <input type="text" id="inputNickname" placeholder="닉네임 입력" style="width: 100%; padding: 15px; border: 2px solid #dfe6e9; border-radius: 12px; font-size: 16px; text-align: center; box-sizing: border-box;">
         </div>
         <button class="btn btn-primary" onclick="saveNicknameAndNext()">다음으로</button>
     </div>
     
     <div id="screen-main" class="screen">
-        <div class="header-area">
-            <h2 class="header-title">나의 거울</h2>
-            <div class="header-badge">👑 상위 12% (종합)</div>
-        </div>
-        <div class="avatar-area" style="flex-direction:column; align-items:center;">
-            <div class="avatar-circle">
-                <span id="myAvatar">🦊</span>
-                <div class="avatar-badge" id="myMbtiBadge">#???</div>
+        <div class="sticky-header-group">
+            <div class="header-area">
+                <h2 class="header-title">나의 거울</h2>
+                <div class="header-badge">👑 상위 12% (종합)</div>
             </div>
-            <div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; margin-top: 10px; color: #2d3436;">닉네임</div>
-            <div class="msg-bubble"><span id="mainMsg">"상태 메시지"</span></div>
+            <div class="avatar-area" style="flex-direction:column; align-items:center;">
+                <div class="avatar-circle">
+                    <span id="myAvatar">👤</span>
+                    <div class="avatar-badge" id="myMbtiBadge">#???</div>
+                </div>
+                <div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; margin-top: 10px; color: #2d3436;">닉네임</div>
+                <div class="msg-bubble"><span id="mainMsg">"상태 메시지"</span></div>
+            </div>
+            <div class="sub-tab-bar">
+                <div class="sub-tab active" onclick="goSubTab('tab-prism', this)">프리즘</div>
+                <div class="sub-tab" onclick="goSubTab('tab-history', this)">발자취</div>
+                <div class="sub-tab" onclick="goSubTab('tab-trophy', this)">업적</div>
+            </div>
         </div>
-        <div class="sub-tab-bar">
-            <div class="sub-tab active" onclick="goSubTab('tab-prism', this)">프리즘</div>
-            <div class="sub-tab" onclick="goSubTab('tab-history', this)">발자취</div>
-            <div class="sub-tab" onclick="goSubTab('tab-trophy', this)">업적</div>
-        </div>
-        <div id="tab-prism" class="sub-content active">
-            <div class="chart-wrapper"><canvas id="myRadarChart"></canvas></div>
-        </div>
-        <div id="tab-history" class="sub-content">
-            <ul class="list-wrap"></ul>
-        </div>
-        <div id="tab-trophy" class="sub-content">
-            <div class="achieve-grid"></div>
-        </div>
+        <div id="tab-prism" class="sub-content active"><div class="chart-wrapper"><canvas id="myRadarChart"></canvas></div></div>
+        <div id="tab-history" class="sub-content"><ul class="list-wrap"></ul></div>
+        <div id="tab-trophy" class="sub-content"><div class="achieve-grid"></div></div>
     </div>
 
     <div id="screen-vote" class="screen">
         <div class="vote-wrapper" id="voteWrapper">
-            <div style="text-align:center;">
+            <div class="sticky-header-group vote-header">
                 <span class="ticket-badge" id="ticketDisplay">🎫 남은 티켓: 5/5</span><br>
                 <span class="round-badge" id="roundBadge">토너먼트 시작</span>
-                <h3 id="voteTitle">...</h3>
+                <h3 id="voteTitle" style="margin-top:10px;">...</h3>
             </div>
             <div class="vs-container" id="vsContainer">
                 <div class="vs-card" onclick="vote(0)">
@@ -146,23 +122,25 @@
                 <h2 id="winnerTitle" style="font-size:30px; margin-bottom: 5px; color:#2d3436;">우승!</h2> 
                 <h1 id="winnerName" style="font-size:36px; color:var(--primary); margin:0; line-height: 1;">...</h1>
                 <p id="winnerText" style="font-size: 14px; color: #636e72; margin: 15px 0 30px 0;">이 친구에게 점수가 전달되었습니다.</p>
-                </div>
+            </div>
         </div>
-        <button class="btn" style="background: #f1f2f6; color: #a4b0be; font-size: 14px; margin-top: 20px;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요 (새로고침)</button>
+        <button class="btn" style="background: #f1f2f6; color: #a4b0be; font-size: 14px; margin-top: 20px;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요</button>
     </div>
     
     <div id="screen-rank" class="screen">
-        <div class="rank-header-area">
-            <h2>주변미터 랭킹</h2>
-            <div class="rank-filter-row">
-                <div class="stat-pills">
-                    <div class="stat-pill active" onclick="filterRank(this, -1)">종합</div>
-                    <div class="stat-pill" onclick="filterRank(this, 0)">🧠 지성</div>
-                    <div class="stat-pill" onclick="filterRank(this, 1)">⚡ 센스</div>
-                    <div class="stat-pill" onclick="filterRank(this, 2)">🛡️ 멘탈</div>
-                    <div class="stat-pill" onclick="filterRank(this, 3)">💖 인성</div>
-                    <div class="stat-pill" onclick="filterRank(this, 4)">🎉 텐션</div>
-                    <div class="stat-pill" onclick="filterRank(this, 5)">🌀 광기</div>
+        <div class="sticky-header-group">
+            <div class="rank-header-area">
+                <h2 style="margin-bottom:15px;">주변미터 랭킹</h2>
+                <div class="rank-filter-row">
+                    <div class="stat-pills">
+                        <div class="stat-pill active" onclick="filterRank(this, -1)">종합</div>
+                        <div class="stat-pill" onclick="filterRank(this, 0)">🧠 지성</div>
+                        <div class="stat-pill" onclick="filterRank(this, 1)">⚡ 센스</div>
+                        <div class="stat-pill" onclick="filterRank(this, 2)">🛡️ 멘탈</div>
+                        <div class="stat-pill" onclick="filterRank(this, 3)">💖 인성</div>
+                        <div class="stat-pill" onclick="filterRank(this, 4)">🎉 텐션</div>
+                        <div class="stat-pill" onclick="filterRank(this, 5)">🌀 광기</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -170,60 +148,64 @@
     </div>
 
     <div id="screen-shop" class="screen">
-        <h2>상점</h2>
-        <div style="text-align:center; margin-bottom:20px; font-weight:bold; color:var(--primary);">내 보유 토큰: <span id="shopTokenDisplay">0</span> 💎</div>
-        
-        <div class="shop-section">
-            <div class="shop-title">💎 토큰 충전소</div>
-            <div class="shop-grid">
-                <div class="shop-item" onclick="alert('결제 API 연동 필요!')"><div class="shop-item-img">💰</div><div class="shop-item-name">토큰 100개</div><div class="shop-item-price cash-price">₩ 1,200</div></div>
-                <div class="shop-item" onclick="alert('결제 API 연동 필요!')"><div class="shop-item-img">💰</div><div class="shop-item-name">토큰 550개</div><div class="shop-item-price cash-price">₩ 5,900</div></div>
-            </div>
+        <div class="sticky-header-group" style="text-align:center;">
+            <h2>상점</h2>
+            <div style="font-weight:bold; color:var(--primary); margin-top:5px;">내 보유 토큰: <span id="shopTokenDisplay">0</span> 💎</div>
         </div>
-
-        <div class="shop-section">
-            <div class="shop-title">🦊 아바타 스킨 (영구)</div>
-            <div class="shop-grid">
-                <div class="shop-item" onclick="purchaseItem(50, 'avatar', '🐯', '호랑이')"><div class="shop-item-img">🐯</div><div class="shop-item-name">호랑이</div><div class="shop-item-price">💎 50</div></div>
-                <div class="shop-item" onclick="purchaseItem(50, 'avatar', '🐰', '토끼')"><div class="shop-item-img">🐰</div><div class="shop-item-name">토끼</div><div class="shop-item-price">💎 50</div></div>
-                <div class="shop-item" onclick="purchaseItem(100, 'avatar', '👽', '외계인')"><div class="shop-item-img">👽</div><div class="shop-item-name">외계인</div><div class="shop-item-price">💎 100</div></div>
-                <div class="shop-item" onclick="purchaseItem(100, 'avatar', '🤖', '로봇')"><div class="shop-item-img">🤖</div><div class="shop-item-name">로봇</div><div class="shop-item-price">💎 100</div></div>
+        <div style="height:20px;"></div>
+        <div class="content-padding">
+            <div class="shop-section">
+                <div class="shop-title">💎 토큰 충전소</div>
+                <div class="shop-grid">
+                    <div class="shop-item" onclick="alert('테스트용')"><div class="shop-item-img">💰</div><div class="shop-item-name">토큰 100개</div><div class="shop-item-price cash-price">₩ 1,200</div></div>
+                    <div class="shop-item" onclick="alert('테스트용')"><div class="shop-item-img">💰</div><div class="shop-item-name">토큰 550개</div><div class="shop-item-price cash-price">₩ 5,900</div></div>
+                </div>
             </div>
-        </div>
-        
-        <div class="shop-section">
-            <div class="shop-title">✨ 효과 아이템 (7일)</div>
-            <div class="shop-grid">
-                <div class="shop-item" onclick="purchaseItem(30, 'effect', 'bg-gold', '황금 배경')"><div class="shop-item-img">✨</div><div class="shop-item-name">황금 배경</div><div class="shop-item-price">💎 30</div></div>
-                <div class="shop-item" onclick="purchaseItem(30, 'effect', 'bg-dark', '다크 모드')"><div class="shop-item-img">🌑</div><div class="shop-item-name">다크 모드</div><div class="shop-item-price">💎 30</div></div>
+            <div class="shop-section">
+                <div class="shop-title">🦊 아바타 스킨 (영구)</div>
+                <div class="shop-grid">
+                    <div class="shop-item" onclick="purchaseItem(50, 'avatar', '🐯', '호랑이')"><div class="shop-item-img">🐯</div><div class="shop-item-name">호랑이</div><div class="shop-item-price">💎 50</div></div>
+                    <div class="shop-item" onclick="purchaseItem(50, 'avatar', '🐰', '토끼')"><div class="shop-item-img">🐰</div><div class="shop-item-name">토끼</div><div class="shop-item-price">💎 50</div></div>
+                    <div class="shop-item" onclick="purchaseItem(100, 'avatar', '👽', '외계인')"><div class="shop-item-img">👽</div><div class="shop-item-name">외계인</div><div class="shop-item-price">💎 100</div></div>
+                    <div class="shop-item" onclick="purchaseItem(100, 'avatar', '🤖', '로봇')"><div class="shop-item-img">🤖</div><div class="shop-item-name">로봇</div><div class="shop-item-price">💎 100</div></div>
+                </div>
+            </div>
+            <div class="shop-section">
+                <div class="shop-title">✨ 효과 아이템 (7일)</div>
+                <div class="shop-grid">
+                    <div class="shop-item" onclick="purchaseItem(30, 'effect', 'bg-gold', '황금 배경')"><div class="shop-item-img">✨</div><div class="shop-item-name">황금 배경</div><div class="shop-item-price">💎 30</div></div>
+                    <div class="shop-item" onclick="purchaseItem(30, 'effect', 'bg-dark', '다크 모드')"><div class="shop-item-img">🌑</div><div class="shop-item-name">다크 모드</div><div class="shop-item-price">💎 30</div></div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="screen-settings" class="screen">
-        <h2>설정</h2>
-        <div class="settings-profile">
-            <div class="st-avatar" id="settingsAvatar">👤</div>
-            <div class="st-info"><div class="st-name" id="settingsNickname">나</div><div class="st-account">kakao_u***</div></div>
+        <div class="sticky-header-group">
+            <h2 style="text-align:center; margin-bottom:20px;">설정</h2>
+            <div class="settings-profile">
+                <div class="st-avatar" id="settingsAvatar">👤</div>
+                <div class="st-info"><div class="st-name" id="settingsNickname">나</div><div class="st-account">kakao_u***</div></div>
+            </div>
         </div>
-        <div class="settings-msg-box">
-            <span class="st-msg-label">나의 한마디</span>
-            <div class="st-msg-text" id="settingMsg">"..."</div>
-            <div class="st-msg-edit" onclick="editProfileMsg()">✏️</div>
+        <div style="height:20px;"></div>
+        <div class="content-padding">
+            <div class="settings-msg-box">
+                <span class="st-msg-label">나의 한마디</span>
+                <div class="st-msg-text" id="settingMsg">"..."</div>
+                <div class="st-msg-edit" onclick="editProfileMsg()">✏️</div>
+            </div>
+            <ul class="settings-menu">
+                <li class="st-menu-item" onclick="openInventory()"><span>🎒 내 아이템 보관함</span><span style="color: var(--primary); font-weight:bold;">열기 ></span></li>
+                <li class="st-menu-item"><span>🔔 알림 설정</span><span style="color: #ccc;">></span></li>
+                <li class="st-menu-item"><span>📜 이용 약관</span><span style="color: #ccc;">></span></li>
+            </ul>
+            <button class="btn" style="background:#eee; color:#ff4757;" onclick="logout()">로그아웃</button>
         </div>
-        <ul class="settings-menu">
-            <li class="st-menu-item" onclick="openInventory()">
-                <span>🎒 내 아이템 보관함</span><span style="color: var(--primary); font-weight:bold;">열기 ></span>
-            </li>
-            <li class="st-menu-item"><span>🔔 알림 설정</span><span style="color: #ccc;">></span></li>
-            <li class="st-menu-item"><span>📜 이용 약관</span><span style="color: #ccc;">></span></li>
-        </ul>
-        <button class="btn" style="background:#eee; color:#ff4757;" onclick="logout()">로그아웃</button>
     </div>
 
     <div id="bottomSheetOverlay" class="sheet-overlay" onclick="closeSheet()">
-        <div class="bottom-sheet" onclick="event.stopPropagation()">
-            </div>
+        <div class="bottom-sheet" onclick="event.stopPropagation()"></div>
     </div>
     
     <div class="bottom-nav">
@@ -239,9 +221,8 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-<script src="logic.js?v=13.0"></script>
-<script src="ui.js?v=13.0"></script>
+<script src="logic.js?v=20.0"></script>
+<script src="ui.js?v=20.0"></script>
 <script src="init_test.js"></script>   
 </body>
 </html>

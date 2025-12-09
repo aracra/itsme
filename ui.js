@@ -1,4 +1,4 @@
-// ui.js (Full Code: Patch v12.3 - Safe UI)
+// ui.js (Full Code: Patch v19.0)
 
 let myMbti="",tempTestResult=[],myChart=null;
 function updateTicketUI(){const e=document.getElementById('ticketDisplay');if(e&&window.myInfo)e.innerText=`🎫 남은 티켓: ${window.myInfo.tickets||0}/5`;}
@@ -14,15 +14,70 @@ function nextTest(v,n){tempTestResult.push(v);goScreen(n);}
 function finishTest(l){tempTestResult.push(l);const c={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};tempTestResult.forEach(v=>c[v]++);let m=(c['E']>=c['I']?'E':'I')+(c['S']>=c['N']?'S':'N')+(c['T']>=c['F']?'T':'F')+(c['J']>=c['P']?'J':'P');if(window.saveMbtiToServer)window.saveMbtiToServer(m);else setMyTypeUI(m);tempTestResult=[];}
 function saveNicknameAndNext(){const n=document.getElementById('inputNickname').value.trim();if(!n){alert("닉네임 입력!");return;}if(!window.myInfo)window.myInfo={nickname:""};window.myInfo.nickname=n;if(window.saveNicknameToDB)window.saveNicknameToDB(n);goScreen('screen-mbti');}
 window.editProfileMsg=async function(){if(!window.myInfo){alert("로드 전");return;}const m=prompt("한마디",window.myInfo.msg==='상태 메시지'?'':window.myInfo.msg);if(m===null)return;if(window.saveProfileMsgToDB&&await window.saveProfileMsgToDB(m.trim().substring(0,50)))window.openSheet('📝','완료','저장됨',m);}
-function openSheet(i,t,d,s=""){const h=document.querySelector('.bottom-sheet');if(!document.getElementById('sheetIcon'))h.innerHTML=`<div class="sheet-content"><div class="sheet-icon" id="sheetIcon"></div><div class="sheet-title" id="sheetTitle"></div><div class="sheet-desc" id="sheetDesc"></div><div style="font-size:12px;color:#b2bec3;margin-bottom:20px;" id="sheetSub"></div><button class="btn btn-primary" onclick="closeSheet()">확인</button></div>`;document.getElementById('sheetIcon').innerHTML=i;document.getElementById('sheetTitle').innerText=t;document.getElementById('sheetDesc').innerHTML=d;if(document.getElementById('sheetSub'))document.getElementById('sheetSub').innerText=s;document.getElementById('bottomSheetOverlay').classList.add('open');}
+
+// [🔥 v19.0] 팝업 생성 시 아이콘 프레임 적용
+function openSheet(i,t,d,s=""){
+    const h=`
+    <div class="sheet-header-area">
+        <div class="sheet-header-icon-frame">${i}</div>
+        <div class="sheet-title">${t}</div>
+    </div>
+    <div class="sheet-body-area">
+        <div class="sheet-message-box">${d}</div>
+        ${s}
+    </div>
+    <div class="sheet-footer-area">
+        <button class="btn btn-primary" onclick="closeSheet()">확인</button>
+    </div>`;
+    document.querySelector('.bottom-sheet').innerHTML=h;
+    document.getElementById('bottomSheetOverlay').classList.add('open');
+}
+
 function closeSheet(){document.querySelectorAll('.sheet-overlay').forEach(x=>x.classList.remove('open'));}
 function disableVoteScreen(){const ids=['voteWrapper','passBtn','winnerContainer','roundBadge'];ids.forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});if(document.getElementById('noTicketMsg'))return;const s=document.getElementById('screen-vote');if(s){const d=document.createElement('div');d.id='noTicketMsg';d.style.cssText='flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;font-size:18px;color:#636e72;padding:20px;';d.innerHTML=`<div style="font-size:60px;margin-bottom:15px;">😴</div><h2>티켓 소진!</h2><p>내일 만나요.</p><button class="btn btn-primary" onclick="goTab('screen-main',document.querySelector('.nav-item:first-child'))">메인으로</button>`;s.appendChild(d);}}
 let currentWinnerId=null;
 window.openCommentPopup=function(id,n){currentWinnerId=id;document.getElementById('commentTargetName').innerText=`${n}님에게`;document.getElementById('commentInput').value='';document.getElementById('commentOverlay').classList.add('open');}
 window.closeCommentPopup=function(){document.getElementById('commentOverlay').classList.remove('open');}
 window.submitComment=function(){const t=document.getElementById('commentInput').value.trim();if(!t){alert("내용 입력!");return;}if(window.sendCommentToDB)window.sendCommentToDB(currentWinnerId,t);closeCommentPopup();}
-window.openInventory=function(){const l=window.myInfo.inventory||[], def={id:'def',type:'avatar',value:'👤',name:'기본'};const all=[def,...l];let h=`<div class="sheet-content"><div class="sheet-icon">🎒</div><div class="sheet-title">내 아이템</div><div style="width:100%;max-height:300px;overflow-y:auto;margin-bottom:20px;">`;if(all.length===0)h+=`<p>비어있음</p>`;else all.forEach(i=>{const eq=(i.type==='avatar'&&i.value===window.myInfo.avatar),ac=i.isActive,bt=i.type==='avatar'?(eq?'착용 중':'착용'):(ac?'OFF':'ON'),bc=(eq||ac)?'btn-secondary':'btn-outline',fn=i.type==='avatar'?(eq?'':`onclick="equipAvatar('${i.value}')"`):`onclick="toggleEffect('${i.id}')"`;h+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #eee;"><div style="display:flex;align-items:center;"><div style="font-size:24px;margin-right:10px;">${i.value.startsWith('bg')?'✨':i.value}</div><div><div style="font-weight:bold;font-size:14px;">${i.name}</div><div style="font-size:12px;color:#aaa;">${i.type==='avatar'?'소장':(i.expiresAt?'기간제':'효과')}</div></div></div><button class="btn ${bc}" style="width:auto;padding:6px 12px;font-size:12px;margin:0;" ${fn}>${bt}</button></div>`;});h+=`</div><button class="btn btn-primary" onclick="closeSheet()">닫기</button></div>`;document.querySelector('.bottom-sheet').innerHTML=h;document.getElementById('bottomSheetOverlay').classList.add('open');}
+
+// [🔥 v19.0] 인벤토리 아이콘 프레임 적용
+window.openInventory=function(){
+    const l=window.myInfo.inventory||[], def={id:'def',type:'avatar',value:'👤',name:'기본'};
+    const all=[def,...l];
+    let listHtml = '';
+    if(all.length===0) listHtml = `<p>비어있음</p>`;
+    else all.forEach(i=>{
+        const eq=(i.type==='avatar'&&i.value===window.myInfo.avatar),ac=i.isActive,bt=i.type==='avatar'?(eq?'착용 중':'착용'):(ac?'OFF':'ON'),bc=(eq||ac)?'btn-secondary':'btn-outline',fn=i.type==='avatar'?(eq?'':`onclick="equipAvatar('${i.value}')"`):`onclick="toggleEffect('${i.id}')"`;
+        listHtml+=`
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:1px solid #eee;">
+            <div style="display:flex;align-items:center;">
+                <div class="common-circle-frame">${i.value.startsWith('bg')?'✨':i.value}</div>
+                <div>
+                    <div style="font-weight:bold;font-size:14px;">${i.name}</div>
+                    <div style="font-size:12px;color:#aaa;">${i.type==='avatar'?'소장':(i.expiresAt?'기간제':'효과')}</div>
+                </div>
+            </div>
+            <button class="btn ${bc}" style="width:auto;padding:6px 12px;font-size:12px;margin:0;" ${fn}>${bt}</button>
+        </div>`;
+    });
+
+    const h=`
+    <div class="sheet-header-area">
+        <div class="sheet-header-icon-frame">🎒</div>
+        <div class="sheet-title">내 아이템 보관함</div>
+    </div>
+    <div class="sheet-body-area">
+        ${listHtml}
+    </div>
+    <div class="sheet-footer-area">
+        <button class="btn btn-primary" onclick="closeSheet()">닫기</button>
+    </div>`;
+    document.querySelector('.bottom-sheet').innerHTML=h;
+    document.getElementById('bottomSheetOverlay').classList.add('open');
+}
+
 window.applyActiveEffects=function(){const b=document.body;b.classList.remove('bg-gold','bg-dark');if(!window.myInfo?.inventory)return;const e=window.myInfo.inventory.find(i=>i.type==='effect'&&i.isActive);if(e)b.classList.add(e.value);}
+const _ou=updateProfileUI;window.updateProfileUI=function(){if(_ou)_ou();applyActiveEffects();}
 
 window.updateTicketUI=updateTicketUI;window.updateProfileUI=updateProfileUI;window.setMyTypeUI=setMyTypeUI;window.goTab=goTab;window.goSubTab=goSubTab;window.goScreen=goScreen;window.logout=logout;window.loginWithServer=loginWithServer;window.nextTest=nextTest;window.finishTest=finishTest;window.saveNicknameAndNext=saveNicknameAndNext;window.openSheet=openSheet;window.closeSheet=closeSheet;window.editProfileMsg=editProfileMsg;window.disableVoteScreen=disableVoteScreen;window.debugLogin=debugLogin;
 function init(){if(typeof window.loadDataFromServer==='function')window.loadDataFromServer();else console.warn("logic.js fail");}window.addEventListener('DOMContentLoaded',init);

@@ -1,4 +1,4 @@
-// logic.js (Full Code: Patch v13.4)
+// logic.js (Full Code: v20.0)
 
 // 1. Firebase
 window.firebaseConfig = { apiKey: "AIzaSyCZJB72jkS2rMgM213Wu9fEuW4Q4jN1scc", authDomain: "it-s-me-96d66.firebaseapp.com", projectId: "it-s-me-96d66", storageBucket: "it-s-me-96d66.firebasestorage.app", messagingSenderId: "950221311348", appId: "1:950221311348:web:43c851b6a4d7446966f021", measurementId: "G-J3SYEX4SYW" };
@@ -61,12 +61,15 @@ window.initGame = async function() {
             window.renderRankList(window.currentFilter);
         }
         if(window.updateProfileUI) window.updateProfileUI();
-        updateStatus("● DB OK",'ok');
+        
+        // [🔥 v19.0] 강제 초록불 (로딩 완료)
+        setTimeout(() => updateStatus("● DB OK", 'ok'), 500);
+
     } catch(e){console.error(e);updateStatus("● 로딩 실패",'error');}
 };
 window.loadDataFromServer = function(){window.initGame();}
 
-// 4. Ticket & User & Money
+// 4. Ticket
 window.checkAndResetTickets=async function(){
     const uid=getUserId(); if(!window.db)return;
     try{
@@ -101,6 +104,15 @@ window.addRichTokens=function(){
     if(window.updateProfileUI)window.updateProfileUI();
     alert("부자가 되었습니다! (+10,000💎)");
 }
+window.saveProfileMsgToDB = async function(msg) {
+    if(!window.db) return false;
+    try {
+        await window.db.collection("users").doc(getUserId()).update({ msg: msg });
+        window.myInfo.msg = msg;
+        if(window.updateProfileUI) window.updateProfileUI();
+        return true;
+    } catch(e) { console.error(e); return false; }
+}
 
 // 5. Achievement
 async function checkAchievements(stats,dbIds=[]){
@@ -128,9 +140,8 @@ async function checkAchievements(stats,dbIds=[]){
     if(newIds.length>0){
         const t=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\./g,'').slice(0,10);
         newIds.forEach(id=>window.achievedDateMap[id]=t);
-        window.myInfo.achievedIds.push(...newIds); // 즉시 반영
+        window.myInfo.achievedIds.push(...newIds);
         if(window.renderAchievementsList)window.renderAchievementsList(window.myInfo.achievedIds);
-
         await window.db.collection("users").doc(uid).update({achievedIds:window.FieldValue.arrayUnion(...newIds), tokens:window.myInfo.tokens});
     }
 }
@@ -153,7 +164,7 @@ window.sendCommentToDB=function(uid,txt){
     alert("전송 완료! 💌");
 }
 
-// 6. Shop & Inventory
+// 6. Shop
 window.purchaseItem=async function(cost,type,val,name){
     if(!window.db)return;
     if(!window.myInfo.inventory)window.myInfo.inventory=[];
@@ -213,12 +224,25 @@ window.renderRankList=function(f){
     d.sort((a,b)=>b.s-a.s);
     d.forEach((u,i)=>{
         const li=document.createElement('li');li.className='list-item';
-        let sc=f===-1?`${u.s}점`:`${u.s}점`, rc=i===0?'#ffc107':(i===1?'#adb5bd':(i===2?'#cd7f32':'#636e72')), rt=i<3?`🥇🥈🥉`.charAt(i):i+1;
+        let sc=f===-1?`${u.s}점`:`${u.s}점`, 
+            rcClass = i===0?'rank-gold':(i===1?'rank-silver':(i===2?'rank-bronze':'')),
+            rcStyle = i===0?'#ffc107':(i===1?'#adb5bd':(i===2?'#cd7f32':'#636e72')),
+            rt=i<3?`🥇🥈🥉`.charAt(i):i+1;
         li.onclick=()=>window.openSheet(u.avatar,u.nickname,`"${u.desc||''}"`,`MBTI: #${u.mbti}`);
-        li.innerHTML=`<div class="list-item-icon-area" style="width:30px;font-size:18px;color:${rc};font-weight:bold;">${rt}</div><div class="list-item-icon-area"><div class="rank-avatar">${u.avatar}</div></div><div class="list-item-text"><div class="history-title">${u.nickname}</div><div class="history-date">#${u.mbti}</div></div><div class="list-item-score" style="background:none;color:#2d3436;">${sc}</div>`;
+        
+        // [🔥 v19.0] 랭킹에도 동그라미 프레임 적용 (rank-avatar)
+        li.innerHTML=`
+            <div class="list-item-icon-area ${rcClass}" style="width:30px;font-size:18px;color:${rcStyle};font-weight:bold;">${rt}</div>
+            <div class="list-item-icon-area">
+                <div class="rank-avatar">${u.avatar}</div>
+            </div>
+            <div class="list-item-text"><div class="history-title">${u.nickname}</div><div class="history-date">#${u.mbti}</div></div>
+            <div class="list-item-score" style="background:none;color:#2d3436;">${sc}</div>`;
         c.appendChild(li);
     });
 }
+
+// [🔥 v19.0] 리스트 생성 로직 (아이콘 프레임 적용)
 window.renderHistoryList=async function(){
     const c=document.getElementById('tab-history').querySelector('.list-wrap');if(!c||!window.db)return;c.innerHTML='';
     try{
@@ -231,11 +255,9 @@ window.renderHistoryList=async function(){
             const li=document.createElement('li');li.className='list-item';
             let i,lT,sT,sM,sc='',ss='',d=l.timestamp?l.timestamp.toDate().toLocaleDateString('ko-KR').slice(0,11):'방금';
             
-            // [🔥 v13.4] 업적 타이틀/설명 제대로 매핑
             if(l.action_type==='VOTE'){i='📈';lT=l.message;sT="스탯 점수 획득!";sM=l.message;sc=`+${l.score_change}점`;ss='score-red';}
             else if(l.action_type==='ACHIEVE'){
                 i='🎁';
-                // ID로 마스터 데이터에서 진짜 정보 찾기
                 const achData = window.achievementsList.find(a=>a.id === l.ach_id);
                 const title = achData ? achData.title : '업적 달성';
                 const desc = achData ? achData.desc : l.message;
@@ -245,8 +267,21 @@ window.renderHistoryList=async function(){
             else if(l.action_type==='COMMENT'){i='💬';const p=l.message.split(': ');lT=`${p[0]} "${p.slice(1).join(': ')}"`;sT=`${p[0]}님의 한마디`;sM=`"${p.slice(1).join(': ')}"`;sc='New';ss='score-gray';}
             else{i='📋';lT='알림';sT='알림';sM=l.message;}
             
-            li.onclick=()=>{document.querySelector('.bottom-sheet').innerHTML=`<div class="sheet-content"><div class="sheet-icon">${i}</div><div class="sheet-title">${sT}</div><div class="sheet-message-box">${sM}</div><div class="sheet-meta-row"><span>${d}</span>${sc?`<span class="info-badge" style="${ss?ss.replace('background','background'):''}">${sc}</span>`:''}</div><button class="btn btn-primary" onclick="closeSheet()">확인</button></div>`;document.getElementById('bottomSheetOverlay').classList.add('open');};
-            li.innerHTML=`<div class="list-item-icon-area"><div style="font-size:24px;background:#f0f3ff;width:40px;height:40px;display:flex;justify-content:center;align-items:center;border-radius:50%;">${i}</div></div><div class="list-item-text"><div class="history-title">${lT}</div><div class="history-date">${d}</div></div><div class="list-item-score ${ss}">${sc}</div>`;
+            li.onclick=()=>{
+                const meta = `
+                    <div class="sheet-meta-row">
+                        <span>${d}</span>
+                        ${sc?`<span class="info-badge" style="${ss?ss.replace('background','background'):''}">${sc}</span>`:''}
+                    </div>`;
+                window.openSheet(i, sT, sM, meta);
+            };
+            // [🔥] 동그라미 프레임 적용
+            li.innerHTML=`
+                <div class="list-item-icon-area">
+                    <div class="list-icon-frame">${i}</div>
+                </div>
+                <div class="list-item-text"><div class="history-title">${lT}</div><div class="history-date">${d}</div></div>
+                <div class="list-item-score ${ss}">${sc}</div>`;
             c.appendChild(li);
         });
     }catch(e){}
@@ -257,7 +292,15 @@ window.renderAchievementsList=async function(ids){
     window.achievementsList.forEach(a=>{
         const u=my.includes(a.id), el=document.createElement('div'); el.className=`achieve-item ${u?'':'locked'}`;
         const d=window.achievedDateMap[a.id], rb=`<span class="info-badge score-gold" style="margin:0;">+${a.reward}💎</span>`;
-        el.onclick=()=>{document.querySelector('.bottom-sheet').innerHTML=`<div class="sheet-content"><div class="sheet-icon">${a.icon}</div><div class="sheet-title">${a.title}</div><div class="sheet-message-box">${a.desc}</div><div class="sheet-meta-row"><span>${u?(d||'오늘'):'-'}</span>${rb}</div><button class="btn btn-primary" onclick="closeSheet()">확인</button></div>`;document.getElementById('bottomSheetOverlay').classList.add('open');};
+        
+        el.onclick=()=>{
+            const meta = `
+                <div class="sheet-meta-row">
+                    <span>${u?(d||'오늘'):'-'}</span>
+                    ${rb}
+                </div>`;
+            window.openSheet(a.icon, a.title, a.desc, meta);
+        };
         el.innerHTML=`<div class="achieve-icon">${a.icon}</div><div class="achieve-title">${a.title}</div>`; c.appendChild(el);
     });
 }
