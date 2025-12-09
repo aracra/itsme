@@ -1,4 +1,4 @@
-/* style.css (Patch v3.9 - 우승 아바타 스타일 추가) */
+/* style.css (Patch v4.6 - 우승 화면 아바타 독립 정렬 최종 수정) */
 
 /* ========================================
     기본 설정 (Patch v3.7 - 안정화 버전)
@@ -269,28 +269,43 @@ p { color: #636e72; font-size: 15px; margin-bottom: 25px; text-align: center; }
 .vs-desc { font-size: 12px; color: #636e72; font-weight: 600; line-height: 1.3; word-break: keep-all; opacity: 0.8; }
 .vs-divider-text { font-size: 28px; font-weight: 900; font-style: italic; color: #dfe6e9; text-shadow: 1px 1px 0px #fff; z-index: 10; margin: 0 2px; flex-shrink: 0; align-self: center; }
 
-/* [🔥 v3.9 핵심 수정] 우승 화면 아바타 스타일 추가 */
+/* [🔥 v4.6 수정] 우승 화면 관련 스타일 (최종 정렬 및 간격) */
+.winner-box {
+    text-align: center;
+    /* [v4.6] 상단 여백을 줄여서 아바타를 위로 올립니다. */
+    padding: 10px 30px 30px 30px; 
+    width: 100%; 
+}
+
+/* 우승 아바타 스타일 */
 .winner-avatar {
-    /* 기존 vs-avatar보다 크고 중앙에 위치하도록 재정의 */
-    width: 100px;
-    height: 100px;
-    background: var(--primary); /* 우승이므로 primary 색상 사용 */
+    width: 80px; 
+    height: 80px;
+    background: #fff; 
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 50px;
-    margin-bottom: 15px;
-    /* 폭죽을 위해 z-index 조정 */
-    z-index: 10;
-    /* 우승 박스 크기에 맞게 조정 */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-size: 40px; 
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+    /* [v4.6] 아바타 아래 마진 제거 (타이틀과 붙게) */
+    margin-bottom: 0px; 
+    border: 5px solid var(--primary); 
 }
 
-.winner-box {
-    text-align: center;
-    padding: 30px;
+/* "우승!" 타이틀과 이름 사이 간격 조정 */
+#winnerTitle {
+    /* [v4.6] 아바타와 '우승!' 타이틀 간 간격 최소화 (5px) */
+    margin-top: 5px !important; 
+    margin-bottom: 5px !important;
 }
+#winnerName {
+    word-break: break-all; /* 닉네임이 길어지면 강제 개행 */
+    line-height: 1.2;
+    padding: 0 5px;
+    margin-top: 0 !important; 
+}
+
 
 /* 랭킹 */
 .rank-header-area { margin-bottom: 15px; }

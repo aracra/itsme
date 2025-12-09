@@ -156,48 +156,51 @@
     </div>
 
 <div id="screen-vote" class="screen">
-        
-        <div class="vote-wrapper" id="voteWrapper">
-            <div style="text-align:center;">
-                <span class="ticket-badge" id="ticketDisplay">🎫 남은 티켓: 5/5</span>
-                <br>
-                <span class="round-badge" id="roundBadge">토너먼트 시작</span>
-                <h3 id="voteTitle">질문을 불러오는 중...</h3>
-            </div>
+    
+    <div class="vote-wrapper" id="voteWrapper">
+        <div style="text-align:center;">
+            <span class="ticket-badge" id="ticketDisplay">🎫 남은 티켓: 5/5</span>
+            <br>
+            <span class="round-badge" id="roundBadge">토너먼트 시작</span>
+            <h3 id="voteTitle">질문을 불러오는 중...</h3>
+        </div>
 
-            <div class="vs-container" id="vsContainer">
-                <div class="vs-card" onclick="vote(0)">
-                    <div class="vs-avatar" id="avatarA">❓</div>
-                    <div class="vs-text-area">
-                        <div class="vs-name" id="nameA">...</div>
-                        <div class="vs-desc" id="descA">...</div>
-                    </div>
+        <div class="vs-container" id="vsContainer">
+            <div class="vs-card" onclick="vote(0)">
+                <div class="vs-avatar" id="avatarA">❓</div>
+                <div class="vs-text-area">
+                    <div class="vs-name" id="nameA">...</div>
+                    <div class="vs-desc" id="descA">...</div>
                 </div>
-                
-                <div class="vs-divider-text">VS</div>
-                
-                <div class="vs-card" onclick="vote(1)">
-                    <div class="vs-avatar" id="avatarB">❓</div>
-                    <div class="vs-text-area">
-                        <div class="vs-name" id="nameB">...</div>
-                        <div class="vs-desc" id="descB">...</div>
-                    </div>
+            </div>
+            
+            <div class="vs-divider-text">VS</div>
+            
+            <div class="vs-card" onclick="vote(1)">
+                <div class="vs-avatar" id="avatarB">❓</div>
+                <div class="vs-text-area">
+                    <div class="vs-name" id="nameB">...</div>
+                    <div class="vs-desc" id="descB">...</div>
                 </div>
             </div>
         </div>
-
-        <div id="winnerContainer" style="display:none; flex:1; flex-direction:column; justify-content:center; align-items:center;">
-            <div class="winner-box">
-                <div class="winner-avatar" id="winnerAvatar">🏆</div>
-                <h2 style="margin-bottom:5px;">우승!</h2>
-                <h1 id="winnerName" style="font-size:30px; color:var(--primary);">...</h1>
-                <p id="winnerText">이 친구에게 점수가 전달되었습니다.</p>
-                <button class="btn btn-primary" onclick="startTournament()">다음 토너먼트 시작하기</button>
-            </div>
-        </div>
-
-        <button class="btn" style="background: #f1f2f6; color: #a4b0be; font-size: 14px; margin-top: 20px;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요 (새로고침)</button>
     </div>
+
+    <div id="winnerContainer" style="display:none; flex:1; flex-direction:column; justify-content:center; align-items:center;">
+        <div class="winner-box">
+            <div class="winner-avatar" id="winnerAvatar">🏆</div> 
+            
+            <h2 id="winnerTitle" style="font-size:30px; margin-bottom: 5px; color:#2d3436;">우승!</h2> 
+            
+            <h1 id="winnerName" style="font-size:36px; color:var(--primary); margin:0; line-height: 1;">...</h1>
+            
+            <p id="winnerText" style="font-size: 14px; color: #636e72; margin: 15px 0 30px 0;">이 친구에게 점수가 전달되었습니다.</p>
+            <button class="btn btn-primary" onclick="startTournament()">다음 토너먼트 시작하기</button>
+        </div>
+    </div>
+
+    <button class="btn" style="background: #f1f2f6; color: #a4b0be; font-size: 14px; margin-top: 20px;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요 (새로고침)</button>
+</div>
 	
 	<div id="screen-rank" class="screen">
         <div class="rank-header-area">
@@ -343,9 +346,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-<script src="logic.js?v=5.2"></script>
-<script src="ui.js?v=5.2"></script>
-<script src="init_test.js"></script> 
-	
+<script src="logic.js?v=5."></script>
+<script src="ui.js?v=5.0"></script>
+<script src="init_test.js"></script>	
 </body>
 </html>

@@ -1,4 +1,4 @@
-// init_test.js 파일 (Full Code: Patch v3.5)
+// init_test.js 파일 (Full Code: Patch v4.2 - Users 컬렉션 전체 삭제 추가)
 
 console.log("======================================");
 console.log("🚀 DB 초기화 스크립트 로드 중... (자체 초기화)");
@@ -59,7 +59,7 @@ window.initializeTestDB = async function() {
         return;
     }
 
-    if (!confirm("🚨 경고: Firestore에 테스트 데이터를 덮어쓰시겠습니까?")) {
+    if (!confirm("🚨 경고: Firestore의 모든 **사용자(users)**, **질문**, **로그** 데이터를 덮어쓰시겠습니까?")) {
         console.log("테스트 DB 초기화 취소.");
         return;
     }
@@ -84,17 +84,26 @@ window.initializeTestDB = async function() {
     ];
 
     const TEST_ROLLING_VOTES = [
-         { stat_type: 4, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:00:00')) },
-         { stat_type: 0, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:05:00')) },
-         { stat_type: 5, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-05T10:00:00')) },
-         { stat_type: 1, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-04T10:00:00')) },
-         { stat_type: 4, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-03T10:00:00')) }
+          { stat_type: 4, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:00:00')) },
+          { stat_type: 0, score_change: 20, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-06T14:05:00')) },
+          { stat_type: 5, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-05T10:00:00')) },
+          { stat_type: 1, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-04T10:00:00')) },
+          { stat_type: 4, score_change: 10, timestamp: firebase.firestore.Timestamp.fromDate(new Date('2025-12-03T10:00:00')) }
     ];
     // [🔥 v3.2 수정 끝]
 
 
     console.log("--- DB 초기화 시작 ---");
     const batch = db.batch();
+
+    // 0. Users 컬렉션 전체 삭제 (🔥 v4.2 추가)
+    // 현재 로그인 계정을 포함하여 모든 쓰레기 유저를 삭제합니다.
+    const uSnap = await db.collection("users").get();
+    uSnap.forEach(doc => {
+        // 서브 컬렉션(received_votes)이 있는 경우 수동 삭제가 필요하지만, 테스트 환경이므로 일단 메인 문서만 삭제합니다.
+        batch.delete(doc.ref);
+    });
+    console.log(`기존 사용자 ${uSnap.size}명 삭제 대기.`);
 
     // 1. Questions 컬렉션 삽입 (기존 데이터 삭제)
     const qSnap = await db.collection("questions").get();
@@ -117,17 +126,20 @@ window.initializeTestDB = async function() {
     
     // 4. Received Votes 서브 컬렉션 삽입 (Rolling Window 테스트용)
     TEST_ROLLING_VOTES.forEach(vote => {
-         batch.set(db.collection("users").doc('user_friend_1').collection("received_votes").doc(), vote);
+          batch.set(db.collection("users").doc('user_friend_1').collection("received_votes").doc(), vote);
     });
     
     await batch.commit();
     
+    // 로컬 스토리지 클리어 (새 계정으로 시작하도록 강제)
+    localStorage.clear();
+
     console.log("--- DB 초기화 성공! 🎉 ---");
-    alert("테스트 DB 초기화 성공! 앱을 새로고침하여 확인하세요.");
+    alert("테스트 DB 초기화 성공! 모든 사용자 데이터가 삭제되었으며, 새 계정으로 시작됩니다.");
 
     if(window.initGame) {
-         window.initGame();
+          window.initGame();
     } else {
-         location.reload(); 
+          location.reload(); 
     }
 }

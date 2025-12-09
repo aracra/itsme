@@ -1,4 +1,4 @@
-// logic.js 파일 (Full Code: Patch v3.8 - 상태 메시지 저장 로직 추가)
+// logic.js 파일 (Full Code: Patch v4.7 - 평가 화면 버그 수정 로직 반영)
 
 // ========================================
 // Firebase 초기화 (고전 방식 - Compat)
@@ -238,9 +238,18 @@ async function loadAchievementDates(uid) {
 // ========================================
 window.startTournament = function() {
     if (window.myInfo.tickets <= 0) {
+        // [🔥 v4.3 수정] 티켓이 0개면 토너먼트 시작을 막고 안내 메시지를 표시합니다.
+        if (typeof window.disableVoteScreen === 'function') {
+            window.disableVoteScreen();
+            return;
+        }
         alert("티켓 소진!");
         return;
     }
+    
+    // [🔥 v4.3 추가] 이전에 표시된 티켓 소진 메시지를 제거합니다.
+    const noTicketMsg = document.getElementById('noTicketMsg');
+    if (noTicketMsg) noTicketMsg.remove();
     
     const vsContainer = document.getElementById('vsContainer');
     if(vsContainer) vsContainer.style.display = 'flex';
@@ -315,7 +324,10 @@ function updateCard(pos, user) {
 }
 
 window.vote = function(idx) {
-    if (window.myInfo.tickets <= 0) { /* ... */ return; }
+    if (window.myInfo.tickets <= 0) { 
+        alert("티켓 소진!");
+        return; 
+    }
     
     const p1 = window.tournamentRound.shift();
     const p2 = window.tournamentRound.shift();
@@ -338,6 +350,14 @@ window.vote = function(idx) {
     if (typeof window.updateProfileUI === 'function') window.updateProfileUI();
 
     showMatch();
+    
+    // [🔥 v4.3 수정] 투표 후 티켓이 0개가 되면 투표 화면을 비활성화/숨김 처리
+    if (window.myInfo.tickets <= 0 && window.tournamentRound.length === 0 && window.nextRound.length === 1) {
+        if (typeof window.disableVoteScreen === 'function') {
+            // 결승 승자 확정 후 티켓 0개면 바로 비활성화 UI 표시
+            setTimeout(window.disableVoteScreen, 100); // 팝업 애니메이션 후 실행
+        }
+    }
 }
 
 function showWinner(winner) {

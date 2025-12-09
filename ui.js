@@ -1,4 +1,4 @@
-// ui.js 파일 (Full Code: Patch v3.8 - 나의 한마디 수정 로직 추가)
+// ui.js 파일 (Full Code: Patch v4.7 - 평가 탭 진입 시 startTournament 호출)
 
 // ========================================
 // 전역 변수 초기화 (UI용)
@@ -94,6 +94,10 @@ function goTab(screenId, navEl) {
         }
     } else if (screenId === 'screen-rank' && typeof window.renderRankList === 'function') {
         window.renderRankList(window.currentFilter);
+    } else if (screenId === 'screen-vote' && typeof window.startTournament === 'function') {
+        // [🔥 v4.7 핵심 수정] 평가 탭 진입 시, 토너먼트 시작 로직 강제 호출
+        // (이전에는 메인 로드 시와 승자 화면에서만 호출되었음)
+        window.startTournament(); 
     }
     
     if (typeof updateProfileUI === 'function') {
@@ -233,6 +237,36 @@ function closeSheet() {
     document.querySelectorAll('.sheet-overlay').forEach(el => el.classList.remove('open'));
 }
 
+// [🔥 v4.3 추가] 투표 화면 비활성화 UI 추가
+function disableVoteScreen() {
+    const voteWrapper = document.getElementById('voteWrapper');
+    const passBtn = document.getElementById('passBtn');
+    const noTicketMsg = document.getElementById('noTicketMsg');
+
+    // 이미 메시지가 있으면 중복 실행 방지
+    if (noTicketMsg) return;
+
+    if (voteWrapper) voteWrapper.style.display = 'none';
+    if (passBtn) passBtn.style.display = 'none';
+    
+    // ⚠️ 임시로 투표 화면 컨테이너에 메시지 표시. (추후 HTML에 전용 화면 추가 권장)
+    const voteScreen = document.getElementById('screen-vote');
+    if (voteScreen) {
+        const tempMsg = document.createElement('div');
+        tempMsg.id = 'noTicketMsg';
+        tempMsg.style.cssText = 'flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 18px; color: #636e72; padding: 20px;';
+        tempMsg.innerHTML = `
+            <div style="font-size: 60px; margin-bottom: 15px;">😴</div>
+            <h2>티켓이 모두 소진되었어요!</h2>
+            <p>내일 다시 평가에 참여해 주세요.</p>
+            <button class="btn btn-primary" onclick="goTab('screen-main', document.querySelector('.nav-item:first-child'))">메인으로</button>
+        `;
+        // 기존 요소를 숨긴 후 메시지 표시
+        voteScreen.appendChild(tempMsg);
+    }
+}
+// [🔥 v4.3 추가 끝]
+
 
 // ========================================
 // 앱 시작: 모든 함수를 window 객체에 연결
@@ -250,7 +284,8 @@ window.finishTest = finishTest;
 window.saveNicknameAndNext = saveNicknameAndNext;
 window.openSheet = openSheet;
 window.closeSheet = closeSheet;
-window.editProfileMsg = editProfileMsg; // [🔥 v3.8 추가]
+window.editProfileMsg = editProfileMsg; 
+window.disableVoteScreen = disableVoteScreen; // [🔥 v4.3 추가]
 
 function init() {
     if (typeof window.loadDataFromServer === 'function') {
