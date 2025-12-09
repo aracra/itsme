@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.0.0</title>
-    <link rel="stylesheet" href="style.css?v=19.0.0">
+    <title>It's me! v19.9.0</title>
+    <link rel="stylesheet" href="style.css?v=19.9.0">
 </head>
 <body>
 
 <div class="app-container" id="mainContainer">
-    
     <div style="position: absolute; top: 10px; left: 10px; z-index: 2000; display:flex; flex-direction:column; align-items:flex-start; gap:5px;">
         <div style="display:flex; gap:5px;">
             <div id="dbStatus" class="db-status">● 연결 중</div>
@@ -93,14 +92,18 @@
                 <h2 class="header-title">나의 거울</h2>
                 <div class="header-badge">👑 상위 12% (종합)</div>
             </div>
-            <div class="avatar-area" style="flex-direction:column; align-items:center; margin-top:20px;">
+            
+            <div class="avatar-area">
                 <div class="avatar-circle">
                     <span id="myAvatar">👤</span>
                     <div class="avatar-badge" id="myMbtiBadge">#???</div>
                 </div>
-                <div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; margin-top: 10px; color: var(--text-primary);">닉네임</div>
-                <div class="msg-bubble"><span id="mainMsg">"상태 메시지"</span></div>
+                <div class="avatar-text-group">
+                    <div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; color: var(--text-primary);">닉네임</div>
+                    <div class="msg-bubble"><span id="mainMsg">"상태 메시지"</span></div>
+                </div>
             </div>
+
             <div class="sub-tab-bar" style="margin-top:20px;">
                 <div class="sub-tab active" onclick="goSubTab('tab-prism', this)">프리즘</div>
                 <div class="sub-tab" onclick="goSubTab('tab-history', this)">발자취</div>
@@ -157,18 +160,25 @@
         <div class="sticky-header-group">
             <div class="rank-header-area">
                 <h2 style="margin-bottom:15px;">주변미터 랭킹</h2>
-                <div class="rank-filter-row">
-                    <div class="stat-pills" id="rankFilterContainer">
-                        <div class="stat-pill active" onclick="filterRank(this, -1)">📊 <span class="pill-text">종합</span></div>
+                
+                <div id="rankFilterContainer" class="rank-filter-wrapper">
+                    <div class="filter-top-row">
+                        <div class="stat-pill active total-pill" onclick="filterRank(this, -1)">
+                            📊 <span class="pill-text-force">종합 랭킹 보기</span>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-scroll-row no-scrollbar">
                         <div class="stat-pill" onclick="filterRank(this, 0)">🧠 <span class="pill-text">지성</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 1)">⚡ <span class="pill-text">센스</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 2)">🛡️ <span class="pill-text">멘탈</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 3)">💖 <span class="pill-text">인성</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 4)">🎉 <span class="pill-text">텐션</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 5)">🌀 <span class="pill-text">광기</span></div>
-                        <div style="min-width: 30px; height: 10px; flex-shrink: 0;"></div>
+                        <div style="min-width: 10px; height: 10px;"></div>
                     </div>
                 </div>
+
             </div>
         </div>
         <div class="scroll-body no-scrollbar">
@@ -246,9 +256,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.0.0" defer></script>
-<script src="ui.js?v=19.0.0" defer></script>
-<script src="init_test.js?v=19.0.0" defer></script> 
+<script src="logic.js?v=19.9.0" defer></script>
+<script src="ui.js?v=19.9.0" defer></script>
+<script src="init_test.js?v=19.9.0" defer></script> 
 
 <script>
     // Entry Point

@@ -1,6 +1,9 @@
 /* style.css */
-/* Version: v19.0.0 */
-/* Refactor: CSS Variables System for Themes */
+/* Version: v19.9.0 */
+/* Patch Note: Restore Accordion Style for Stat Filter (Total Separated) */
+
+/* [Font Import] */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
 /* 1. 기본 설정 및 테마 변수 정의 */
 :root {
@@ -52,7 +55,7 @@ body.bg-dark {
 /* [Theme: Pink Mode] */
 body.bg-pink {
     --primary: #ff7675;
-    --bg: #ffeaa7; /* 따뜻한 배경 */
+    --bg: #ffeaa7;
     --card: #fff0f6;
     --text-primary: #2d3436;
     --text-secondary: #e17055;
@@ -129,9 +132,21 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
 .btn-kakao { background-color: #FEE500; color: #191919; }
 
 /* 4. 주요 컴포넌트 */
-/* Avatar */
-.avatar-circle { width: 80px; height: 80px; background: var(--bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 40px; border: 3px solid var(--card); box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; margin-bottom: 10px; }
-.avatar-badge { position: absolute; bottom: 0; right: 0; background: var(--primary); color: white; font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: bold; }
+/* Avatar Area */
+.avatar-area { display: flex; flex-direction: row; align-items: center; width: 100%; margin-top: 20px; gap: 15px; }
+.avatar-text-group { display: flex; flex-direction: column; align-items: flex-start; flex: 1; }
+
+.avatar-circle { width: 70px; height: 70px; background: var(--bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; border: 3px solid var(--card); box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; flex-shrink: 0; }
+.avatar-badge { position: absolute; bottom: -2px; right: -2px; background: var(--primary); color: white; font-size: 10px; padding: 3px 8px; border-radius: 10px; font-weight: bold; border: 2px solid var(--card); }
+
+/* Header Badge */
+.header-area { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.header-title { text-align: left; font-size: 24px; width: auto; }
+.header-badge { background: var(--badge-bg); color: var(--badge-text); padding: 5px 10px; border-radius: 15px; font-size: 11px; font-weight: bold; display: inline-block; }
+
+/* Message Bubble */
+.msg-bubble { background: var(--btn-bg); padding: 8px 16px; border-radius: 0 15px 15px 15px; margin-top: 5px; font-size: 13px; color: var(--text-primary); text-align: left; position: relative; max-width: 100%; }
+.msg-bubble::before { content: ''; position: absolute; top: 0; left: -8px; width: 0; height: 0; border-top: 10px solid var(--btn-bg); border-left: 10px solid transparent; }
 
 /* Tabs */
 .sub-tab-bar { display: flex; margin-bottom: 10px; background: var(--btn-bg); border-radius: 12px; padding: 4px; width: 100%; }
@@ -140,18 +155,97 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
 .sub-content { display: none; width: 100%; }
 .sub-content.active { display: block; animation: fadeIn 0.3s ease; }
 
-/* List Item */
+/* [v19.9 Patch] Restore Accordion Menu (Icon Only -> Expand) */
+ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
+
+.rank-header-area { width: 100%; text-align: center; }
+
+.rank-filter-wrapper {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+    padding-bottom: 10px;
+}
+
+/* 1층: 종합 버튼 */
+.filter-top-row {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.total-pill {
+    background: var(--bg);
+    border: 2px solid var(--primary);
+    color: var(--primary);
+    width: 60%;
+    justify-content: center;
+    height: 44px;
+    font-size: 15px;
+}
+.total-pill.active {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+    transform: translateY(-2px);
+}
+.pill-text-force { display: inline-block !important; margin-left: 5px; }
+
+/* 2층: 스탯 스크롤 (Accordion Restored) */
+.filter-scroll-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 20px;
+    width: 100%;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.filter-scroll-row::-webkit-scrollbar { display: none; }
+
+.stat-pill {
+    background: var(--btn-bg);
+    color: var(--text-secondary);
+    padding: 8px 12px; /* 아이콘 중심 패딩 */
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px; /* 아이콘만 있을 때 최소 너비 */
+    flex-shrink: 0;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); /* 부드러운 확장 애니메이션 */
+}
+
+/* 활성화 시 아코디언 확장 */
+.stat-pill.active {
+    background: var(--card);
+    border-color: var(--primary);
+    color: var(--primary);
+    padding-right: 15px; /* 텍스트 공간 확보 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* 평소엔 숨김 -> 활성화 시 보임 */
+.pill-text {
+    display: none;
+    margin-left: 6px;
+    opacity: 0;
+    transition: opacity 0.2s ease-in;
+}
+.stat-pill.active .pill-text {
+    display: inline-block;
+    opacity: 1;
+}
+
 .list-item { display: flex; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); width: 100%; height: 74px; cursor: pointer; transition: background 0.2s; }
 .list-item:active { background-color: var(--bg); }
 .list-item-text { flex: 1; margin-right: 10px; display: flex; flex-direction: column; }
 .common-circle-frame { width: 40px; height: 40px; background: var(--btn-bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0; margin-right: 15px; color: var(--text-primary); }
 .list-item-score { font-weight: 800; font-size: 13px; padding: 6px 12px; border-radius: 30px; background: var(--btn-bg); color: var(--text-secondary); }
-
-/* Badges & Pills */
-.stat-pill { background: var(--btn-bg); color: var(--btn-text); padding: 8px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; justify-content: center; min-width: 40px; transition: 0.3s; flex-shrink: 0; }
-.stat-pill.active { background: var(--card); border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding-right: 15px; }
-.pill-text { display: none; margin-left: 6px; }
-.stat-pill.active .pill-text { display: inline-block; }
 
 /* Shop Grid */
 .shop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
@@ -169,12 +263,19 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
 .vs-name { font-size: 16px; font-weight: 800; margin-bottom: 5px; color: var(--text-primary); }
 .vs-desc { font-size: 12px; color: var(--text-secondary); font-weight: 600; line-height: 1.3; }
 
-/* Bottom Sheet & Modal */
-.bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; margin: 0 auto; max-width: 420px; width: 100%; background: var(--card); border-radius: 24px 24px 0 0; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10001; max-height: 80vh; display: flex; flex-direction: column; border-top: 1px solid var(--border); }
+/* Bottom Sheet & Modal (Padding Fixed) */
+.bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; margin: 0 auto; max-width: 420px; width: 100%; background: var(--card); border-radius: 24px 24px 0 0; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10001; max-height: 80vh; display: flex; flex-direction: column; border-top: 1px solid var(--border); box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
 .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 10000; }
 .sheet-overlay.open { display: block; }
 .sheet-overlay.open .bottom-sheet { bottom: 0; }
+
+.sheet-header-area { padding: 25px 25px 15px 25px; display: flex; align-items: center; }
+.sheet-header-icon-frame { font-size: 24px; margin-right: 12px; }
 .sheet-title { font-size: 20px; font-weight: 800; color: var(--text-primary); }
+
+.sheet-body-area { padding: 0 25px 30px 25px; overflow-y: auto; flex: 1; }
+.sheet-footer-area { padding: 20px 25px; border-top: 1px solid var(--border); background: var(--card); }
+
 .sheet-message-box { background: var(--btn-bg); border-radius: 16px; padding: 15px; margin-bottom: 20px; font-size: 15px; color: var(--text-primary); border: 1px solid var(--border); text-align: center; }
 
 .comment-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 320px; background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 10002; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--border); }
@@ -198,15 +299,8 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
 .db-status.error { background: #ffeaa7; border-color: #fdcb6e; color: #d63031; }
 
 .rank-header-area { width: 100%; text-align: center; }
-.rank-filter-row { display: flex; align-items: center; width: 100%; overflow: hidden; padding-bottom: 10px; }
-.stat-pills { flex: 1; display: flex; gap: 6px; overflow-x: auto; padding-left: 5px; }
-
-/* Animation */
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-.vote-intro-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 20px; animation: fadeIn 0.3s ease; }
 
 /* ETC */
-.msg-bubble { background: var(--btn-bg); padding: 8px 16px; border-radius: 20px; margin-top: 10px; font-size: 13px; color: var(--text-primary); max-width: 80%; }
 .achieve-grid { display: grid; grid-template-columns: repeat(4, 1fr) !important; gap: 10px; padding: 10px 0; width: 100%; }
 .achieve-item { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: 0.2s; aspect-ratio: 1/1.2; }
 .achieve-item.locked { opacity: 0.5; filter: grayscale(1); background: var(--btn-bg); }
@@ -215,3 +309,7 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
 /* Dev Menu */
 #devMenuExpanded { display:none; flex-direction:column; gap:5px; background: var(--toast-bg); padding:8px; border-radius:8px; backdrop-filter:blur(5px); }
 .btn-dev-item { padding: 8px; font-size: 11px; background: rgba(255,255,255,0.9); color: #2d3436; border: none; border-radius: 4px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 2px; }
+
+/* Chart & Scroll Fix */
+.chart-wrapper { position: relative; width: 100%; height: 300px; margin: 0 auto; }
+.list-empty-msg { text-align:center; margin-top:50px; color:var(--text-secondary); font-size:14px; }

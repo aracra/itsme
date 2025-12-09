@@ -1,5 +1,5 @@
 // init_test.js
-// Version: v19.0.0
+// Version: v19.1.0
 // Description: Database Initialization Script for Development
 
 console.log("🚀 DB 초기화 스크립트 로드됨 (v19.0.0)");
