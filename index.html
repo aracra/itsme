@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.13.5</title>
-    <link rel="stylesheet" href="style.css?v=19.13.4">
+    <title>It's me! v19.13.6</title>
+    <link rel="stylesheet" href="style.css?v=19.13.6">
 </head>
 <body>
 
@@ -19,6 +19,17 @@
             <button onclick="if(window.initializeTestDB) { initializeTestDB(); }" class="btn-dev-item">🔄 DB 리셋</button>
             <button onclick="if(window.refillTickets) { window.refillTickets(); }" class="btn-dev-item">🎫 티켓 충전</button>
             <button onclick="if(window.addRichTokens) { window.addRichTokens(); }" class="btn-dev-item">💰 돈복사</button>
+        </div>
+    </div>
+
+    <div id="customConfirmOverlay" class="sheet-overlay" style="z-index: 12000;">
+        <div class="comment-modal">
+            <h3>⚠️ 정말 제외할까요?</h3>
+            <p id="customConfirmMsg" style="text-align:center; line-height:1.5; margin-bottom:20px;">...</p>
+            <div class="modal-btn-row" style="display:flex; gap:10px; width:100%;">
+                <button class="btn btn-outline" onclick="closeCustomConfirm()">취소</button>
+                <button class="btn btn-primary" id="btnCustomConfirmAction">확인</button>
+            </div>
         </div>
     </div>
 
@@ -324,8 +335,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.13.5" defer></script>
-<script src="ui.js?v=19.13.5" defer></script>
+<script src="logic.js?v=19.13.6" defer></script>
+<script src="ui.js?v=19.13.6" defer></script>
 <script src="init_test.js?v=19.13.2" defer></script> 
 
 <script>

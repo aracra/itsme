@@ -1,6 +1,6 @@
 // ui.js
-// Version: v19.13.5
-// Description: UI Controller (Exclude Popup Added)
+// Version: v19.13.6
+// Description: UI Controller (Custom Confirm Modal Support)
 
 let myMbti = "";
 let tempTestResult = [];
@@ -396,7 +396,6 @@ window.renderHistoryList = async function() {
 
 window.updateTicketUI = updateTicketUI; window.setMyTypeUI = setMyTypeUI; window.goTab = goTab; window.goSubTab = goSubTab; window.goScreen = goScreen; window.logout = logout; window.loginWithServer = loginWithServer; window.nextTest = nextTest; window.finishTest = finishTest; window.saveNicknameAndNext = saveNicknameAndNext; window.disableVoteScreen = disableVoteScreen; window.showToast = showToast; window.updateInventoryList = updateInventoryList; window.applyActiveEffects = applyActiveEffects; window.renderRankList = renderRankList; window.filterRank = filterRank; window.renderAchievementsList = renderAchievementsList; window.renderHistoryList = renderHistoryList; window.openProfilePopup = openProfilePopup; window.openCommentPopup = openCommentPopup; window.editProfileMsg = editProfileMsg; window.submitProfileMsg = submitProfileMsg; window.openInventory = openInventory; window.closePopup = closePopup;
 
-// [New] 제외 팝업 로직 추가
 window.showExcludePopup = function(userA, userB) {
     const elA = document.getElementById('txtExcludeA');
     const elB = document.getElementById('txtExcludeB');
@@ -415,4 +414,27 @@ window.showExcludePopup = function(userA, userB) {
 
     const overlay = document.getElementById('excludeOverlay');
     if (overlay) overlay.classList.add('open');
+};
+
+// [New] 커스텀 확인 모달 함수 추가
+window.openCustomConfirm = function(msg, onConfirm) {
+    const el = document.getElementById('customConfirmOverlay');
+    const msgEl = document.getElementById('customConfirmMsg');
+    const btn = document.getElementById('btnCustomConfirmAction');
+
+    if (el && msgEl && btn) {
+        msgEl.innerHTML = msg; 
+        
+        btn.onclick = function() {
+            if (onConfirm) onConfirm();
+            window.closeCustomConfirm();
+        };
+        
+        el.classList.add('open');
+    }
+};
+
+window.closeCustomConfirm = function() {
+    const el = document.getElementById('customConfirmOverlay');
+    if (el) el.classList.remove('open');
 };

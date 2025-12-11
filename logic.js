@@ -1,6 +1,6 @@
 // logic.js
-// Version: v19.13.5
-// Description: Core Game Logic (Excluded Users Feature Added)
+// Version: v19.13.6
+// Description: Core Game Logic (Custom Confirm Modal for Exclude)
 
 // ==========================================
 // 1. Firebase Configuration & Utils
@@ -80,7 +80,7 @@ window.myInfo = {
     achievedIds: [],
     inventory: [],
     stats: [50, 50, 50, 50, 50, 50],
-    excluded_uids: [] // [New] 제외 리스트 추가
+    excluded_uids: [] 
 };
 
 window.achievementsList = [];
@@ -121,14 +121,14 @@ window.initGame = async function() {
 
         updateStatus("● 데이터 로드..");
 
-        // My Info 먼저 로드 (제외 목록 확인용)
+        // My Info 먼저 로드
         await window.checkAndResetTickets();
         const myDoc = await db.collection("users").doc(getUserId()).get().catch(() => null);
         if (myDoc && myDoc.exists) {
             const d = myDoc.data();
             window.myInfo = { ...window.myInfo, ...d };
             if (!window.myInfo.inventory) window.myInfo.inventory = [];
-            if (!window.myInfo.excluded_uids) window.myInfo.excluded_uids = []; // [New]
+            if (!window.myInfo.excluded_uids) window.myInfo.excluded_uids = [];
             
             await loadAchievementDates(getUserId());
             checkAchievements(d, d.achievedIds);
@@ -151,7 +151,7 @@ window.initGame = async function() {
             u.stats = u.stats || [50, 50, 50, 50, 50, 50];
             if (!u.avatar) u.avatar = '👤';
             
-            // [New] 제외 로직 적용: 내 아이디가 아니고, 닉네임이 있고, 제외목록에 없어야 함
+            // 제외 로직 적용
             if (u.id !== getUserId() && u.nickname && !window.myInfo.excluded_uids.includes(u.id)) {
                 window.candidates.push(u);
             }
@@ -328,7 +328,6 @@ window.purchaseItem = function(cost, type, val, name) {
         "💎 아이템 구매",
         `${name} 구매하시겠습니까? (${cost}💎)`,
         async () => {
-            // Actual Purchase Logic (Callback)
             const item = {
                 id: `i_${Date.now()}`, type, value: val, name,
                 purchasedAt: new Date().toISOString(), isActive: false
@@ -629,7 +628,7 @@ async function saveScore(w, s) {
     }
 }
 
-// [New] 제외 기능 관련 로직 추가
+// [New] 제외 기능 관련 로직
 window.openExcludeOption = function() {
     if (!window.tournamentRound || window.tournamentRound.length < 2) return;
     const userA = window.tournamentRound[0];
@@ -637,26 +636,31 @@ window.openExcludeOption = function() {
     if (window.showExcludePopup) window.showExcludePopup(userA, userB);
 };
 
-window.confirmExclude = async function(targetId, targetName) {
-    if (!confirm(`'${targetName}'님을 목록에서 영구히 제외하시겠습니까?\n앞으로 이 친구는 투표에 등장하지 않습니다.`)) return;
+// [Modified] 커스텀 모달 사용으로 변경
+window.confirmExclude = function(targetId, targetName) {
+    const msg = `'${targetName}'님을 목록에서<br>영구히 제외하시겠습니까?<br><span class="warn-text">(이 작업은 되돌릴 수 없습니다)</span>`;
 
-    if (!window.myInfo.excluded_uids) window.myInfo.excluded_uids = [];
-    window.myInfo.excluded_uids.push(targetId);
-    window.candidates = window.candidates.filter(u => u.id !== targetId);
+    window.openCustomConfirm(msg, async () => {
+        if (!window.myInfo.excluded_uids) window.myInfo.excluded_uids = [];
+        window.myInfo.excluded_uids.push(targetId);
 
-    if (window.db) {
-        try {
-            await window.db.collection("users").doc(getUserId()).update({
-                excluded_uids: window.FieldValue.arrayUnion(targetId)
-            });
-            if(window.showToast) window.showToast("제외되었습니다. 👋");
-        } catch(e) {
-            console.error(e);
-            alert("처리 중 오류가 발생했습니다.");
+        window.candidates = window.candidates.filter(u => u.id !== targetId);
+
+        if (window.db) {
+            try {
+                await window.db.collection("users").doc(getUserId()).update({
+                    excluded_uids: window.FieldValue.arrayUnion(targetId)
+                });
+                if(window.showToast) window.showToast("제외되었습니다. 👋");
+            } catch(e) {
+                console.error(e);
+                alert("처리 중 오류가 발생했습니다.");
+            }
         }
-    }
 
-    if (window.closePopup) window.closePopup('excludeOverlay');
-    window.isGameRunning = false;
-    window.prepareVoteScreen(); 
+        if (window.closePopup) window.closePopup('excludeOverlay');
+        
+        window.isGameRunning = false;
+        window.prepareVoteScreen(); 
+    });
 };
