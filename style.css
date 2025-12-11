@@ -1,6 +1,6 @@
 /* style.css */
-/* Version: v19.10.0 */
-/* Patch Note: Add Vote Start Button Badge */
+/* Version: v19.11.4 */
+/* Patch Note: Fix Rank Menu Clipping (Left Align), Fix Start Button Text Wrap */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
@@ -146,7 +146,18 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
 .total-pill.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3); transform: translateY(-2px); }
 .pill-text-force { display: inline-block !important; margin-left: 5px; }
 
-.filter-scroll-row { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px; width: 100%; -ms-overflow-style: none; scrollbar-width: none; }
+/* [v19.11.4 Fix] Safe Left Alignment for Accordion */
+.filter-scroll-row { 
+    display: flex; 
+    gap: 8px; 
+    overflow-x: auto; 
+    /* 중요: flex-start로 왼쪽 기준 정렬 (잘림 방지) */
+    justify-content: flex-start;
+    padding: 10px 20px 15px 20px; 
+    width: 100%; 
+    -ms-overflow-style: none; 
+    scrollbar-width: none; 
+}
 .filter-scroll-row::-webkit-scrollbar { display: none; }
 
 .stat-pill { background: var(--btn-bg); color: var(--text-secondary); padding: 8px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; justify-content: center; min-width: 40px; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
@@ -215,6 +226,23 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
 .list-empty-msg { text-align:center; margin-top:50px; color:var(--text-secondary); font-size:14px; }
 .vote-intro-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 20px; animation: fadeIn 0.3s ease; }
 
-/* [v19.10] Start Button Badge */
-.start-btn-wrapper .btn-primary { position: relative; z-index: 1; }
-.start-btn-badge { position: absolute; top: -10px; right: -10px; background: #ff7675; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; border: 2px solid var(--card); }
+/* [v19.11.4] Fix Start Button Text Wrap */
+.start-btn-wrapper .btn-primary { 
+    position: relative; 
+    z-index: 1; 
+    white-space: nowrap; /* 줄바꿈 방지 */
+}
+.start-btn-badge { 
+    position: absolute; 
+    top: -12px; /* 위치 조금 더 위로 */
+    right: -12px; /* 위치 조금 더 오른쪽으로 */
+    background: #ff7675; 
+    color: white; 
+    font-size: 12px; 
+    font-weight: bold; 
+    padding: 4px 10px; 
+    border-radius: 20px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+    z-index: 2; 
+    border: 2px solid var(--card); 
+}
