@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.11.5</title>
-    <link rel="stylesheet" href="style.css?v=19.11.5">
+    <title>It's me! v19.13.4</title>
+    <link rel="stylesheet" href="style.css?v=19.13.4">
 </head>
 <body>
 
@@ -171,9 +171,19 @@
 
             <div class="vote-wrapper" id="voteWrapper" style="display:none; width:100%; flex:1;">
                 <div class="vs-container" id="vsContainer">
-                    <div class="vs-card" onclick="vote(0)"><div class="vs-avatar" id="avatarA">❓</div><div class="vs-name" id="nameA">...</div><div class="vs-desc" id="descA">...</div></div>
-                    <div class="vs-divider-text" style="font-size: 20px; font-weight: 900; color: #dfe6e9; align-self:center;">VS</div>
-                    <div class="vs-card" onclick="vote(1)"><div class="vs-avatar" id="avatarB">❓</div><div class="vs-name" id="nameB">...</div><div class="vs-desc" id="descB">...</div></div>
+                    <div class="vs-card" onclick="vote(0)">
+                        <div class="vs-avatar" id="avatarA">❓</div>
+                        <div class="vs-name" id="nameA">...</div>
+                        <div class="vs-desc" id="descA">...</div>
+                    </div>
+                    
+                    <div class="vs-divider-text">VS</div>
+                    
+                    <div class="vs-card" onclick="vote(1)">
+                        <div class="vs-avatar" id="avatarB">❓</div>
+                        <div class="vs-name" id="nameB">...</div>
+                        <div class="vs-desc" id="descB">...</div>
+                    </div>
                 </div>
             </div>
             
@@ -226,8 +236,12 @@
             <div class="shop-section">
                 <div class="shop-title" style="margin-bottom:10px; font-weight:bold; border-left:4px solid var(--primary); padding-left:10px;">💎 토큰 충전소</div>
                 <div class="shop-grid">
-                    <div class="shop-item" onclick="alert('결제 연동 준비 중!')"><div class="shop-item-img">💰</div><div class="shop-item-name">토큰 100개</div><div class="shop-item-price" style="color:#00b894;">₩ 1,200</div></div>
-                    <div class="shop-item" onclick="alert('결제 연동 준비 중!')"><div class="shop-item-img">💰</div><div class="shop-item-name">토큰 550개</div><div class="shop-item-price" style="color:#00b894;">₩ 5,900</div></div>
+                    <div class="shop-item" onclick="window.openSheet('🚧', '준비 중', '결제 기능은 준비 중입니다.', '조금만 기다려주세요!')">
+                        <div class="shop-item-img">💰</div><div class="shop-item-name">토큰 100개</div><div class="shop-item-price" style="color:#00b894;">₩ 1,200</div>
+                    </div>
+                    <div class="shop-item" onclick="window.openSheet('🚧', '준비 중', '결제 기능은 준비 중입니다.', '조금만 기다려주세요!')">
+                        <div class="shop-item-img">💰</div><div class="shop-item-name">토큰 550개</div><div class="shop-item-price" style="color:#00b894;">₩ 5,900</div>
+                    </div>
                 </div>
             </div>
             <div class="shop-section">
@@ -287,9 +301,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.11.5" defer></script>
-<script src="ui.js?v=19.11.5" defer></script>
-<script src="init_test.js?v=19.11.5" defer></script> 
+<script src="logic.js?v=19.13.2" defer></script>
+<script src="ui.js?v=19.13.2" defer></script>
+<script src="init_test.js?v=19.13.2" defer></script> 
 
 <script>
     window.addEventListener('DOMContentLoaded', function() {

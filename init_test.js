@@ -1,8 +1,8 @@
 // init_test.js
-/* Version: v19.11.4 */
+/* Version: v19.13.2 */
 // Description: Database Initialization Script (Mock Users included)
 
-console.log("🚀 DB 초기화 스크립트 로드됨 (v19.10.0)");
+console.log("🚀 DB 초기화 스크립트 로드됨 (v19.13.2)");
 
 const TEST_USERS = [
     { id: 'user_test_a', nickname: '테스트 A (나)', avatar: '🦊', mbti: 'ENTP', desc: '이 구역의 실험 대상 A입니다.', stats: [60, 50, 40, 70, 80, 90], tokens: 1000, achievedIds: [], login_count: 1, vote_count: 0, tickets: 5, lastTicketDate: new Date().toLocaleDateString(), inventory: [] },

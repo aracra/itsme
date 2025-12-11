@@ -1,5 +1,5 @@
 // logic.js
-// Version: v19.11.6
+// Version: v19.13.2
 // Description: Core Game Logic (Shop Purchase with Custom Modal)
 
 // ==========================================
@@ -312,8 +312,11 @@ window.purchaseItem = function(cost, type, val, name) {
     }
     
     // Check duplicate
+    // [v19.13.2] Alert -> OpenSheet
     if (window.myInfo.inventory.some(i => i.value === val)) {
-        alert("이미 가지고 있는 아이템이에요.");
+        if(window.openSheet) {
+            window.openSheet('🎒', '이미 보유 중', '이미 가지고 있는 아이템이에요.', '보관함을 확인해보세요.');
+        }
         return;
     }
 

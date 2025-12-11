@@ -1,6 +1,6 @@
 /* style.css */
-/* Version: v19.11.5 */
-/* Patch Note: Unified Popups Style */
+/* Version: v19.13.4 */
+/* Patch Note: Fixed VS Layout & Ticket Badge Style */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
@@ -101,6 +101,14 @@ body {
 .screen.active { display: flex; animation: fadeInScreen 0.3s ease-out; }
 .screen.full-center { justify-content: center; overflow-y: auto; }
 
+.login-btn-area {
+    width: 100%;
+    padding: 0 35px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 @keyframes fadeInScreen { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .scroll-body { flex: 1; overflow-y: auto; padding: 0 20px 20px 20px; width: 100%; }
@@ -126,6 +134,19 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
 .header-title { text-align: left; font-size: 24px; width: auto; }
 .header-badge { background: var(--badge-bg); color: var(--badge-text); padding: 5px 10px; border-radius: 15px; font-size: 11px; font-weight: bold; display: inline-block; }
 
+/* [v19.13.4] Ticket Badge Style Refined */
+.ticket-badge {
+    background-color: var(--btn-bg); /* Use a more visible background */
+    color: var(--text-primary);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 8px;
+    border: 1px solid var(--border); /* Added border for better visibility */
+}
+
 .msg-bubble { background: var(--btn-bg); padding: 8px 16px; border-radius: 0 15px 15px 15px; margin-top: 5px; font-size: 13px; color: var(--text-primary); text-align: left; position: relative; max-width: 100%; }
 .msg-bubble::before { content: ''; position: absolute; top: 0; left: -8px; width: 0; height: 0; border-top: 10px solid var(--btn-bg); border-left: 10px solid transparent; }
 
@@ -150,22 +171,15 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
     display: flex; 
     gap: 8px; 
     overflow-x: auto; 
-    padding: 10px 20px 15px 20px; /* 여백 확보 */
+    padding: 10px 20px 15px 20px;
     width: 100%; 
-    
-    /* 스크롤바 숨김 */
     -ms-overflow-style: none; 
     scrollbar-width: none; 
 }
 .filter-scroll-row::-webkit-scrollbar { display: none; }
 
-/* Auto Centering Logic */
-.filter-scroll-row > .stat-pill:first-child {
-    margin-left: auto;
-}
-.filter-scroll-row > .stat-pill:last-child {
-    margin-right: auto;
-}
+.filter-scroll-row > .stat-pill:first-child { margin-left: auto; }
+.filter-scroll-row > .stat-pill:last-child { margin-right: auto; }
 
 .stat-pill { background: var(--btn-bg); color: var(--text-secondary); padding: 8px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; justify-content: center; min-width: 40px; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
 .stat-pill.active { background: var(--card); border-color: var(--primary); color: var(--primary); padding-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -185,24 +199,54 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
 .shop-item-price { font-size: 10px; color: var(--primary); font-weight: bold; }
 
 .vote-header { background-color: var(--card); padding: 15px 20px 10px 20px; width: 100%; text-align: center; z-index: 21; }
-.vs-container { display: flex; gap: 10px; width: 100%; padding: 0 20px; }
-.vs-card { flex: 1; height: 220px; padding: 10px 5px; border: 2px solid var(--border); border-radius: 20px; text-align: center; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; background: var(--card); }
+
+/* [v19.13.4] Flexbox Layout for VS Container */
+.vs-container { 
+    display: flex; 
+    gap: 10px; 
+    width: 100%; 
+    padding: 0 20px; 
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* [v19.13.4] Equal width enforced with flex: 1 and width: 0 */
+.vs-card { 
+    flex: 1; 
+    width: 0; /* Critical for equal width */
+    height: 220px; 
+    padding: 10px 5px; 
+    border: 2px solid var(--border); 
+    border-radius: 20px; 
+    text-align: center; 
+    cursor: pointer; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    transition: 0.2s; 
+    background: var(--card); 
+}
 .vs-card:active { border-color: var(--primary); background: var(--btn-bg); transform: scale(0.96); }
 .vs-avatar { width: 70px; height: 70px; background: var(--bg); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 35px; margin-bottom: 10px; box-shadow: 0 0 0 3px var(--card); }
 .vs-name { font-size: 16px; font-weight: 800; margin-bottom: 5px; color: var(--text-primary); }
 .vs-desc { font-size: 12px; color: var(--text-secondary); font-weight: 600; line-height: 1.3; }
 
-/* [Removed] Bottom Sheet Styles */
-/* .bottom-sheet { ... } */
+/* [v19.13.4] Static position for flex item flow */
+.vs-divider-text { 
+    position: static; 
+    transform: none;
+    width: 40px; 
+    text-align: center;
+    flex: 0 0 auto; /* Do not shrink/grow */
+    font-size: 24px; 
+    font-weight: 900; 
+    color: #dfe6e9; 
+    z-index: 10;
+}
 
 .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 10000; }
 .sheet-overlay.open { display: block; }
-/* .sheet-overlay.open .bottom-sheet { bottom: 0; } */
-
-/* [Removed] Sheet Header/Body/Footer */
-/* .sheet-header-area { ... } */
-/* .sheet-body-area { ... } */
-/* .sheet-footer-area { ... } */
 
 .sheet-message-box { background: var(--btn-bg); border-radius: 16px; padding: 15px; margin-bottom: 20px; font-size: 15px; color: var(--text-primary); border: 1px solid var(--border); text-align: center; }
 
