@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.13.6</title>
-    <link rel="stylesheet" href="style.css?v=19.13.6">
+    <title>It's me! v19.13.9</title>
+    <link rel="stylesheet" href="style.css?v=19.13.9">
 </head>
 <body>
 
@@ -218,17 +218,16 @@
                 </div>
             </div>
             
-			<div id="winnerContainer">
-				<div class="winner-box">
-					<div class="winner-avatar" id="winnerAvatar">🏆</div> 
-					
-					<div class="winner-text-group">
-						<h2 id="winnerTitle">우승!</h2> 
-						<h1 id="winnerName">...</h1>
-						<p id="winnerText">점수 전달 완료!</p>
-					</div>
-				</div>
-			</div>
+            <div id="winnerContainer">
+                <div class="winner-box">
+                    <div class="winner-avatar" id="winnerAvatar">🏆</div> 
+                    <div class="winner-text-group">
+                        <h2 id="winnerTitle">우승!</h2> 
+                        <h1 id="winnerName">...</h1>
+                        <p id="winnerText">점수 전달 완료!</p>
+                    </div>
+                </div>
+            </div>
             
             <button class="btn" style="background:var(--btn-bg); color:var(--text-secondary); margin-top:20px; display:none;" id="passBtn" onclick="window.openExcludeOption()">
                 🚫 모르는 사람이 있어요 (제외하기)
@@ -350,6 +349,42 @@
             console.error("Logic Module Load Failed.");
             document.getElementById('dbStatus').innerText = "● 로드 오류";
             document.getElementById('dbStatus').classList.add('error');
+        }
+    });
+
+    // [Patch] JS 수정 없이 애니메이션을 강제 적용하는 스크립트
+    // logic.js가 로드된 후 실행되도록 window.onload 시점에 실행
+    window.addEventListener('load', function() {
+        if (typeof window.vote === 'function') {
+            console.log("Animation Patch Applied: vote()");
+            
+            // 기존 logic.js의 vote 함수를 백업해둡니다.
+            const originalVote = window.vote;
+            let isAnimating = false;
+
+            // window.vote를 덮어씌워서 애니메이션을 먼저 실행하게 만듭니다.
+            window.vote = function(index) {
+                if (isAnimating) return; // 중복 클릭 방지
+                isAnimating = true;
+
+                // 1. 선택된 카드에 애니메이션 클래스 추가
+                const cards = document.querySelectorAll('#vsContainer .vs-card');
+                const selectedCard = cards[index];
+
+                if (selectedCard) {
+                    selectedCard.classList.add('selected-choice');
+                }
+
+                // 2. 0.5초(500ms) 기다린 후, 원래 기능 실행
+                setTimeout(() => {
+                    // 원래 logic.js의 vote 함수 실행!
+                    originalVote(index);
+                    
+                    // 애니메이션 상태 해제 (다음 판을 위해)
+                    isAnimating = false;
+                    if(selectedCard) selectedCard.classList.remove('selected-choice');
+                }, 550);
+            };
         }
     });
 </script>

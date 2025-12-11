@@ -420,3 +420,38 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
         transform: translateY(0) scale(1);
     }
 }
+
+/* =========================================
+   [Patch] VS Selection Animation Effect
+   - 선택 시 카드가 튀어오르는 효과
+   ========================================= */
+
+/* 기존 .vs-card에 부드러운 트랜지션 추가 (이미 있다면 덮어씌우세요) */
+.vs-card {
+    /* ... 기존 속성들 유지 ... */
+    
+    /* transform(크기변화)이 일어날 때 통통 튀는 느낌(cubic-bezier)을 줍니다. */
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                border-color 0.3s ease, 
+                background-color 0.3s ease, 
+                box-shadow 0.3s ease;
+    /* 혹시 모를 겹침 방지를 위해 relative 설정 */
+    position: relative; 
+    z-index: 1;
+}
+
+/* 클릭 시 자바스크립트로 추가될 클래스 */
+.vs-card.selected-choice {
+    /* 1. 크기를 1.15배 키웁니다. */
+    transform: scale(1.15) !important; 
+    
+    /* 2. 테두리와 배경색을 강조색으로 변경합니다. */
+    border-color: var(--primary) !important;
+    background-color: var(--btn-bg) !important;
+    
+    /* 3. 다른 카드보다 위에 보이도록 z-index를 높입니다. */
+    z-index: 10;
+    
+    /* 4. 부드러운 그림자를 추가해 떠오르는 느낌을 줍니다. */
+    box-shadow: 0 15px 30px rgba(108, 92, 231, 0.3);
+}
