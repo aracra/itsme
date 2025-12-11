@@ -317,26 +317,106 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
     display: block;
 }
 
-/* [New] Winner Box Centering */
+/* =========================================
+   [Patch] Winner Screen Layout Fix
+   - 화면 정중앙 배치
+   - 요소 간 간격(Gap) 최적화
+   - 아바타 비율(1:1) 고정
+   ========================================= */
+
+/* 1. 컨테이너: 화면 전체 높이를 차지하며 내용물을 정중앙에 배치 */
 #winnerContainer {
-    display: none; 
-    flex-direction: column;
-    align-items: center; 
-    justify-content: center; 
+    display: none; /* JS에서 flex로 변경하여 보여줌 */
+    flex: 1;       /* 부모 영역(.scroll-body) 내에서 남은 높이 가득 채움 */
     width: 100%;
-    flex: 1; /* 남은 높이 차지 */
+    height: 100%;  /* 높이 강제 확보 */
+    flex-direction: column;
+    align-items: center;     /* 가로 중앙 정렬 */
+    justify-content: center; /* 세로 중앙 정렬 */
+    padding: 20px;
+    box-sizing: border-box;
 }
 
+/* 2. 내부 박스: 요소들 사이의 간격(Gap) 관리 */
 .winner-box {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     width: 100%;
+    max-width: 320px; /* 너무 퍼지지 않게 최대 너비 제한 */
+    gap: 25px;        /* [핵심] 요소들 사이에 시원한 간격 25px 부여 */
     text-align: center;
+    
+    /* 등장 시 살짝 떠오르는 애니메이션 효과 (선택사항) */
+    animation: fadeUpScale 0.4s ease-out;
 }
 
+/* 3. 아바타: 찌그러짐 방지 및 원형 유지 */
 .winner-avatar {
-    margin-left: auto;
-    margin-right: auto;
+    width: 110px;        /* 고정 너비 */
+    height: 110px;       /* 고정 높이 */
+    border-radius: 50%;  /* 완전한 원형 */
+    background: var(--card);
+    border: 5px solid var(--primary);
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    font-size: 55px;     /* 이모지 크기 */
+    box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3); /* 부드러운 그림자 */
+    
+    /* [핵심] 비율 유지 설정 */
+    aspect-ratio: 1 / 1; 
+    flex-shrink: 0;      /* 화면이 줄어들어도 절대 찌그러지지 않음 */
+}
+
+/* 4. 텍스트 그룹 내부 간격 미세 조정 */
+.winner-text-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* 제목, 이름, 설명 사이의 좁은 간격 */
+    width: 100%;
+}
+
+/* 기존 h1, h2, p의 마진을 초기화하여 gap이 제어하게 함 */
+.winner-box h1, 
+.winner-box h2, 
+.winner-box p {
+    margin: 0 !important; /* 기존 스타일 덮어쓰기 */
+    width: auto;
+    line-height: 1.3;
+}
+
+#winnerTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+#winnerName {
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--primary);
+    word-break: keep-all; /* 이름이 길어도 단어 단위로 줄바꿈 */
+}
+
+#winnerText {
+    font-size: 15px;
+    color: #b2bec3;
+    margin-top: 5px !important;
+}
+
+/* 등장 애니메이션 정의 */
+@keyframes fadeUpScale {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }

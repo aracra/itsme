@@ -218,14 +218,17 @@
                 </div>
             </div>
             
-            <div id="winnerContainer" style="display:none; text-align:center; flex-direction:column; align-items:center; justify-content:center; width:100%;">
-                <div class="winner-box">
-                    <div class="winner-avatar" id="winnerAvatar" style="width:100px; height:100px; font-size:50px; border-radius:50%; background:var(--card); display:flex; justify-content:center; align-items:center; border:5px solid var(--primary); margin-bottom:15px;">🏆</div> 
-                    <h2 id="winnerTitle">우승!</h2> 
-                    <h1 id="winnerName" style="color:var(--primary);">...</h1>
-                    <p id="winnerText">점수 전달 완료!</p>
-                </div>
-            </div>
+			<div id="winnerContainer">
+				<div class="winner-box">
+					<div class="winner-avatar" id="winnerAvatar">🏆</div> 
+					
+					<div class="winner-text-group">
+						<h2 id="winnerTitle">우승!</h2> 
+						<h1 id="winnerName">...</h1>
+						<p id="winnerText">점수 전달 완료!</p>
+					</div>
+				</div>
+			</div>
             
             <button class="btn" style="background:var(--btn-bg); color:var(--text-secondary); margin-top:20px; display:none;" id="passBtn" onclick="window.openExcludeOption()">
                 🚫 모르는 사람이 있어요 (제외하기)
