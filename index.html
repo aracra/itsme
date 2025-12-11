@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.13.4</title>
+    <title>It's me! v19.13.5</title>
     <link rel="stylesheet" href="style.css?v=19.13.4">
 </head>
 <body>
@@ -19,6 +19,26 @@
             <button onclick="if(window.initializeTestDB) { initializeTestDB(); }" class="btn-dev-item">🔄 DB 리셋</button>
             <button onclick="if(window.refillTickets) { window.refillTickets(); }" class="btn-dev-item">🎫 티켓 충전</button>
             <button onclick="if(window.addRichTokens) { window.addRichTokens(); }" class="btn-dev-item">💰 돈복사</button>
+        </div>
+    </div>
+
+    <div id="excludeOverlay" class="sheet-overlay">
+        <div class="comment-modal">
+            <h3>🚫 모르는 사람 제외</h3>
+            <p>누구를 목록에서 제외할까요?<br><span style="font-size:12px; color:#ff7675;">제외하면 앞으로 투표에 나오지 않습니다.</span></p>
+            
+            <div style="display:flex; flex-direction:column; gap:10px; width:100%; margin-bottom:15px;">
+                <button id="btnExcludeA" class="btn btn-outline" style="text-align:left; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span id="txtExcludeA" style="font-weight:bold;">...</span>
+                    <span style="font-size:12px; color:#d63031; font-weight:bold;">제외 🚫</span>
+                </button>
+                <button id="btnExcludeB" class="btn btn-outline" style="text-align:left; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+                    <span id="txtExcludeB" style="font-weight:bold;">...</span>
+                    <span style="font-size:12px; color:#d63031; font-weight:bold;">제외 🚫</span>
+                </button>
+            </div>
+    
+            <button class="btn btn-primary" onclick="closePopup('excludeOverlay')">취소 (그냥 계속하기)</button>
         </div>
     </div>
 
@@ -195,7 +215,10 @@
                     <p id="winnerText">점수 전달 완료!</p>
                 </div>
             </div>
-            <button class="btn" style="background:var(--btn-bg); color:var(--text-secondary); margin-top:20px; display:none;" id="passBtn" onclick="startTournament()">🤔 잘 모르는 사람들이에요 (Skip)</button>
+            
+            <button class="btn" style="background:var(--btn-bg); color:var(--text-secondary); margin-top:20px; display:none;" id="passBtn" onclick="window.openExcludeOption()">
+                🚫 모르는 사람이 있어요 (제외하기)
+            </button>
         </div>
     </div>
     
@@ -301,8 +324,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.13.2" defer></script>
-<script src="ui.js?v=19.13.2" defer></script>
+<script src="logic.js?v=19.13.5" defer></script>
+<script src="ui.js?v=19.13.5" defer></script>
 <script src="init_test.js?v=19.13.2" defer></script> 
 
 <script>

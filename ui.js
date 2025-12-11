@@ -1,6 +1,6 @@
 // ui.js
-// Version: v19.13.2
-// Description: UI Controller (Custom Confirm Modal Added)
+// Version: v19.13.5
+// Description: UI Controller (Exclude Popup Added)
 
 let myMbti = "";
 let tempTestResult = [];
@@ -51,7 +51,6 @@ function setMyTypeUI(m) {
     if (window.goTab) window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
 }
 
-// [v19.11.6 Updated] goTab with Custom Modal
 function goTab(s, n) {
     const activeScreen = document.querySelector('.screen.active');
     
@@ -61,13 +60,11 @@ function goTab(s, n) {
             "⚠️ 평가 이탈", 
             "평가 중 이탈하면 티켓은 복구되지 않습니다.<br>그래도 나가시겠습니까?", 
             () => {
-                // On Confirm
                 window.isGameRunning = false;
-                // Recursive call to proceed navigation
                 goTab(s, n); 
             }
         );
-        return; // Stop execution to wait for user input
+        return; 
     }
 
     document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
@@ -141,19 +138,16 @@ window.submitProfileMsg = async function() {
     }
 }
 
-// [v19.11.6 Added] Generic Confirm Modal
 window.showConfirmModal = function(title, msg, onConfirm) {
     const overlayId = 'genericConfirmOverlay';
     let overlay = document.getElementById(overlayId);
     
-    // Clean previous if exists
     if(overlay) overlay.remove();
 
-    // Create new modal DOM
     overlay = document.createElement('div');
     overlay.id = overlayId;
     overlay.className = 'sheet-overlay open';
-    overlay.style.zIndex = '11000'; // Make sure it's on top
+    overlay.style.zIndex = '11000'; 
 
     overlay.innerHTML = `
         <div class="comment-modal">
@@ -168,7 +162,6 @@ window.showConfirmModal = function(title, msg, onConfirm) {
     
     document.body.appendChild(overlay);
 
-    // Bind events
     document.getElementById('genConfirmCancel').onclick = () => overlay.remove();
     document.getElementById('genConfirmOk').onclick = () => {
         overlay.remove();
@@ -176,7 +169,6 @@ window.showConfirmModal = function(title, msg, onConfirm) {
     };
 }
 
-// [v19.11.6 Updated] Generic Alert Modal (Replaces openSheet)
 window.openSheet = function(icon, title, msg, subMsg) {
     const overlayId = 'genericAlertOverlay';
     let overlay = document.getElementById(overlayId);
@@ -403,3 +395,24 @@ window.renderHistoryList = async function() {
 };
 
 window.updateTicketUI = updateTicketUI; window.setMyTypeUI = setMyTypeUI; window.goTab = goTab; window.goSubTab = goSubTab; window.goScreen = goScreen; window.logout = logout; window.loginWithServer = loginWithServer; window.nextTest = nextTest; window.finishTest = finishTest; window.saveNicknameAndNext = saveNicknameAndNext; window.disableVoteScreen = disableVoteScreen; window.showToast = showToast; window.updateInventoryList = updateInventoryList; window.applyActiveEffects = applyActiveEffects; window.renderRankList = renderRankList; window.filterRank = filterRank; window.renderAchievementsList = renderAchievementsList; window.renderHistoryList = renderHistoryList; window.openProfilePopup = openProfilePopup; window.openCommentPopup = openCommentPopup; window.editProfileMsg = editProfileMsg; window.submitProfileMsg = submitProfileMsg; window.openInventory = openInventory; window.closePopup = closePopup;
+
+// [New] 제외 팝업 로직 추가
+window.showExcludePopup = function(userA, userB) {
+    const elA = document.getElementById('txtExcludeA');
+    const elB = document.getElementById('txtExcludeB');
+    const btnA = document.getElementById('btnExcludeA');
+    const btnB = document.getElementById('btnExcludeB');
+
+    if (elA && userA) {
+        elA.innerText = `${userA.nickname} (${userA.avatar})`;
+        btnA.onclick = () => window.confirmExclude(userA.id, userA.nickname);
+    }
+    
+    if (elB && userB) {
+        elB.innerText = `${userB.nickname} (${userB.avatar})`;
+        btnB.onclick = () => window.confirmExclude(userB.id, userB.nickname);
+    }
+
+    const overlay = document.getElementById('excludeOverlay');
+    if (overlay) overlay.classList.add('open');
+};

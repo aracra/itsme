@@ -1,6 +1,6 @@
 // logic.js
-// Version: v19.13.2
-// Description: Core Game Logic (Shop Purchase with Custom Modal)
+// Version: v19.13.5
+// Description: Core Game Logic (Excluded Users Feature Added)
 
 // ==========================================
 // 1. Firebase Configuration & Utils
@@ -79,7 +79,8 @@ window.myInfo = {
     nickname: "",
     achievedIds: [],
     inventory: [],
-    stats: [50, 50, 50, 50, 50, 50]
+    stats: [50, 50, 50, 50, 50, 50],
+    excluded_uids: [] // [New] 제외 리스트 추가
 };
 
 window.achievementsList = [];
@@ -120,6 +121,21 @@ window.initGame = async function() {
 
         updateStatus("● 데이터 로드..");
 
+        // My Info 먼저 로드 (제외 목록 확인용)
+        await window.checkAndResetTickets();
+        const myDoc = await db.collection("users").doc(getUserId()).get().catch(() => null);
+        if (myDoc && myDoc.exists) {
+            const d = myDoc.data();
+            window.myInfo = { ...window.myInfo, ...d };
+            if (!window.myInfo.inventory) window.myInfo.inventory = [];
+            if (!window.myInfo.excluded_uids) window.myInfo.excluded_uids = []; // [New]
+            
+            await loadAchievementDates(getUserId());
+            checkAchievements(d, d.achievedIds);
+        } else {
+            await db.collection("users").doc(getUserId()).set(window.myInfo);
+        }
+
         const [qSnap, uSnap] = await Promise.all([
             db.collection("questions").get(),
             db.collection("users").get()
@@ -134,22 +150,12 @@ window.initGame = async function() {
             u.id = d.id;
             u.stats = u.stats || [50, 50, 50, 50, 50, 50];
             if (!u.avatar) u.avatar = '👤';
-            if (u.id !== getUserId() && u.nickname) window.candidates.push(u);
-        });
-
-        // My Info
-        await window.checkAndResetTickets();
-        const myDoc = await db.collection("users").doc(getUserId()).get().catch(() => null);
-        if (myDoc && myDoc.exists) {
-            const d = myDoc.data();
-            window.myInfo = { ...window.myInfo, ...d };
-            if (!window.myInfo.inventory) window.myInfo.inventory = [];
             
-            await loadAchievementDates(getUserId());
-            checkAchievements(d, d.achievedIds);
-        } else {
-            await db.collection("users").doc(getUserId()).set(window.myInfo);
-        }
+            // [New] 제외 로직 적용: 내 아이디가 아니고, 닉네임이 있고, 제외목록에 없어야 함
+            if (u.id !== getUserId() && u.nickname && !window.myInfo.excluded_uids.includes(u.id)) {
+                window.candidates.push(u);
+            }
+        });
 
         updateStatus("● 렌더링..");
 
@@ -301,7 +307,6 @@ window.sendCommentToDB = function(uid, txt) {
 // ==========================================
 // 6. Shop System
 // ==========================================
-// [v19.11.6 Updated] purchaseItem with Custom Modal
 window.purchaseItem = function(cost, type, val, name) {
     if (!window.db) return;
     
@@ -312,7 +317,6 @@ window.purchaseItem = function(cost, type, val, name) {
     }
     
     // Check duplicate
-    // [v19.13.2] Alert -> OpenSheet
     if (window.myInfo.inventory.some(i => i.value === val)) {
         if(window.openSheet) {
             window.openSheet('🎒', '이미 보유 중', '이미 가지고 있는 아이템이에요.', '보관함을 확인해보세요.');
@@ -320,7 +324,6 @@ window.purchaseItem = function(cost, type, val, name) {
         return;
     }
 
-    // [New] Use Custom Modal instead of confirm()
     window.showConfirmModal(
         "💎 아이템 구매",
         `${name} 구매하시겠습니까? (${cost}💎)`,
@@ -597,7 +600,6 @@ function showWinner(w, isFinal) {
     const nb = document.createElement('button');
     nb.className = 'btn btn-primary';
     
-    // [v19.11.2 Fix] If tickets <= 0, Direct to Main Screen
     if (window.myInfo.tickets <= 0) {
         nb.innerText = "티켓 소진 (메인으로)";
         nb.onclick = () => window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
@@ -626,3 +628,35 @@ async function saveScore(w, s) {
         window.db.collection("users").doc(w.id).update({ stats: w.stats });
     }
 }
+
+// [New] 제외 기능 관련 로직 추가
+window.openExcludeOption = function() {
+    if (!window.tournamentRound || window.tournamentRound.length < 2) return;
+    const userA = window.tournamentRound[0];
+    const userB = window.tournamentRound[1];
+    if (window.showExcludePopup) window.showExcludePopup(userA, userB);
+};
+
+window.confirmExclude = async function(targetId, targetName) {
+    if (!confirm(`'${targetName}'님을 목록에서 영구히 제외하시겠습니까?\n앞으로 이 친구는 투표에 등장하지 않습니다.`)) return;
+
+    if (!window.myInfo.excluded_uids) window.myInfo.excluded_uids = [];
+    window.myInfo.excluded_uids.push(targetId);
+    window.candidates = window.candidates.filter(u => u.id !== targetId);
+
+    if (window.db) {
+        try {
+            await window.db.collection("users").doc(getUserId()).update({
+                excluded_uids: window.FieldValue.arrayUnion(targetId)
+            });
+            if(window.showToast) window.showToast("제외되었습니다. 👋");
+        } catch(e) {
+            console.error(e);
+            alert("처리 중 오류가 발생했습니다.");
+        }
+    }
+
+    if (window.closePopup) window.closePopup('excludeOverlay');
+    window.isGameRunning = false;
+    window.prepareVoteScreen(); 
+};
