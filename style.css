@@ -1,6 +1,6 @@
 /* style.css */
-/* Version: v19.11.4 */
-/* Patch Note: Fix Rank Menu Clipping (Left Align), Fix Start Button Text Wrap */
+/* Version: v19.11.5 */
+/* Patch Note: Unified Popups Style */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
@@ -146,19 +146,26 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
 .total-pill.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3); transform: translateY(-2px); }
 .pill-text-force { display: inline-block !important; margin-left: 5px; }
 
-/* [v19.11.4 Fix] Safe Left Alignment for Accordion */
 .filter-scroll-row { 
     display: flex; 
     gap: 8px; 
     overflow-x: auto; 
-    /* 중요: flex-start로 왼쪽 기준 정렬 (잘림 방지) */
-    justify-content: flex-start;
-    padding: 10px 20px 15px 20px; 
+    padding: 10px 20px 15px 20px; /* 여백 확보 */
     width: 100%; 
+    
+    /* 스크롤바 숨김 */
     -ms-overflow-style: none; 
     scrollbar-width: none; 
 }
 .filter-scroll-row::-webkit-scrollbar { display: none; }
+
+/* Auto Centering Logic */
+.filter-scroll-row > .stat-pill:first-child {
+    margin-left: auto;
+}
+.filter-scroll-row > .stat-pill:last-child {
+    margin-right: auto;
+}
 
 .stat-pill { background: var(--btn-bg); color: var(--text-secondary); padding: 8px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; justify-content: center; min-width: 40px; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
 .stat-pill.active { background: var(--card); border-color: var(--primary); color: var(--primary); padding-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -185,16 +192,18 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
 .vs-name { font-size: 16px; font-weight: 800; margin-bottom: 5px; color: var(--text-primary); }
 .vs-desc { font-size: 12px; color: var(--text-secondary); font-weight: 600; line-height: 1.3; }
 
-.bottom-sheet { position: fixed; bottom: -100%; left: 0; right: 0; margin: 0 auto; max-width: 420px; width: 100%; background: var(--card); border-radius: 24px 24px 0 0; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 10001; max-height: 80vh; display: flex; flex-direction: column; border-top: 1px solid var(--border); box-shadow: 0 -5px 20px rgba(0,0,0,0.1); }
+/* [Removed] Bottom Sheet Styles */
+/* .bottom-sheet { ... } */
+
 .sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 10000; }
 .sheet-overlay.open { display: block; }
-.sheet-overlay.open .bottom-sheet { bottom: 0; }
+/* .sheet-overlay.open .bottom-sheet { bottom: 0; } */
 
-.sheet-header-area { padding: 25px 25px 15px 25px; display: flex; align-items: center; }
-.sheet-header-icon-frame { font-size: 24px; margin-right: 12px; }
-.sheet-title { font-size: 20px; font-weight: 800; color: var(--text-primary); }
-.sheet-body-area { padding: 0 25px 30px 25px; overflow-y: auto; flex: 1; }
-.sheet-footer-area { padding: 20px 25px; border-top: 1px solid var(--border); background: var(--card); }
+/* [Removed] Sheet Header/Body/Footer */
+/* .sheet-header-area { ... } */
+/* .sheet-body-area { ... } */
+/* .sheet-footer-area { ... } */
+
 .sheet-message-box { background: var(--btn-bg); border-radius: 16px; padding: 15px; margin-bottom: 20px; font-size: 15px; color: var(--text-primary); border: 1px solid var(--border); text-align: center; }
 
 .comment-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 320px; background: var(--card); padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); z-index: 10002; display: flex; flex-direction: column; align-items: center; border: 1px solid var(--border); }
@@ -226,23 +235,5 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
 .list-empty-msg { text-align:center; margin-top:50px; color:var(--text-secondary); font-size:14px; }
 .vote-intro-container { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 20px; animation: fadeIn 0.3s ease; }
 
-/* [v19.11.4] Fix Start Button Text Wrap */
-.start-btn-wrapper .btn-primary { 
-    position: relative; 
-    z-index: 1; 
-    white-space: nowrap; /* 줄바꿈 방지 */
-}
-.start-btn-badge { 
-    position: absolute; 
-    top: -12px; /* 위치 조금 더 위로 */
-    right: -12px; /* 위치 조금 더 오른쪽으로 */
-    background: #ff7675; 
-    color: white; 
-    font-size: 12px; 
-    font-weight: bold; 
-    padding: 4px 10px; 
-    border-radius: 20px; 
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
-    z-index: 2; 
-    border: 2px solid var(--card); 
-}
+.start-btn-wrapper .btn-primary { position: relative; z-index: 1; }
+.start-btn-badge { position: absolute; top: -10px; right: -10px; background: #ff7675; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; border: 2px solid var(--card); }

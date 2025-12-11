@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.11.4</title>
-    <link rel="stylesheet" href="style.css?v=19.11.0">
+    <title>It's me! v19.11.5</title>
+    <link rel="stylesheet" href="style.css?v=19.11.5">
 </head>
 <body>
 
@@ -28,14 +28,40 @@
             <p id="commentTargetName">...</p>
             <textarea id="commentInput" placeholder="이 친구의 어떤 점이 좋았나요? (30자)" maxlength="30"></textarea>
             <div class="modal-btn-row" style="display:flex; gap:10px; width:100%;">
-                <button class="btn btn-outline" onclick="closeCommentPopup()">취소</button>
+                <button class="btn btn-outline" onclick="closePopup('commentOverlay')">취소</button>
                 <button class="btn btn-primary" onclick="submitComment()">보내기</button>
             </div>
         </div>
     </div>
 
-    <div id="bottomSheetOverlay" class="sheet-overlay" onclick="closeSheet()">
-        <div class="bottom-sheet" onclick="event.stopPropagation()"></div>
+    <div id="profileMsgOverlay" class="sheet-overlay">
+        <div class="comment-modal">
+            <h3>✏️ 상태 메시지 변경</h3>
+            <p>나를 표현하는 한 마디를 입력해주세요.</p>
+            <textarea id="profileMsgInput" placeholder="상태 메시지 (50자)" maxlength="50"></textarea>
+            <div class="modal-btn-row" style="display:flex; gap:10px; width:100%;">
+                <button class="btn btn-outline" onclick="closePopup('profileMsgOverlay')">취소</button>
+                <button class="btn btn-primary" onclick="submitProfileMsg()">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="inventoryOverlay" class="sheet-overlay">
+        <div class="comment-modal" style="max-width: 360px; width: 90%;">
+            <h3>🎒 내 아이템 보관함</h3>
+            <div style="width:100%; margin-bottom:15px;">
+                <div class="sub-tab-bar">
+                    <div class="sub-tab active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
+                    <div class="sub-tab inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
+                    <div class="sub-tab inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
+                </div>
+            </div>
+            <div id="inventoryListArea" style="width:100%; min-height:150px; max-height:300px; overflow-y:auto; margin-bottom:20px;">
+                </div>
+            <div class="modal-btn-row" style="width:100%;">
+                <button class="btn btn-primary" onclick="closePopup('inventoryOverlay')">닫기</button>
+            </div>
+        </div>
     </div>
 
     <div id="screen-login" class="screen active full-center">
@@ -181,7 +207,6 @@
                         <div class="stat-pill" onclick="filterRank(this, 3)">💖 <span class="pill-text">인성</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 4)">🎉 <span class="pill-text">텐션</span></div>
                         <div class="stat-pill" onclick="filterRank(this, 5)">🌀 <span class="pill-text">광기</span></div>
-                        <div style="min-width: 10px; height: 10px;"></div>
                     </div>
                 </div>
 
@@ -262,9 +287,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.11.0" defer></script>
-<script src="ui.js?v=19.11.0" defer></script>
-<script src="init_test.js?v=19.11.0" defer></script> 
+<script src="logic.js?v=19.11.5" defer></script>
+<script src="ui.js?v=19.11.5" defer></script>
+<script src="init_test.js?v=19.11.5" defer></script> 
 
 <script>
     window.addEventListener('DOMContentLoaded', function() {

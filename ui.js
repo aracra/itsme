@@ -1,6 +1,6 @@
 // ui.js
-/* Version: v19.11.4 */
-// Description: UI Controller (Fix: Early Exit when No Tickets)
+// Version: v19.11.6
+// Description: UI Controller (Custom Confirm Modal Added)
 
 let myMbti = "";
 let tempTestResult = [];
@@ -51,12 +51,25 @@ function setMyTypeUI(m) {
     if (window.goTab) window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
 }
 
+// [v19.11.6 Updated] goTab with Custom Modal
 function goTab(s, n) {
     const activeScreen = document.querySelector('.screen.active');
+    
+    // Exit Guard with Custom Modal
     if (activeScreen && activeScreen.id === 'screen-vote' && window.isGameRunning) {
-        if (!confirm("평가 중 이탈하면 티켓은 복구되지 않습니다.\n그래도 나가시겠습니까?")) return;
-        window.isGameRunning = false;
+        window.showConfirmModal(
+            "⚠️ 평가 이탈", 
+            "평가 중 이탈하면 티켓은 복구되지 않습니다.<br>그래도 나가시겠습니까?", 
+            () => {
+                // On Confirm
+                window.isGameRunning = false;
+                // Recursive call to proceed navigation
+                goTab(s, n); 
+            }
+        );
+        return; // Stop execution to wait for user input
     }
+
     document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
     document.getElementById(s).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
@@ -115,30 +128,82 @@ function saveNicknameAndNext() {
     if (window.db) window.db.collection("users").doc(localStorage.getItem('my_uid')).update({ nickname: n });
     goScreen('screen-mbti');
 }
-window.editProfileMsg = async function() {
+
+window.editProfileMsg = function() {
     if (!window.myInfo) return;
-    const m = prompt("상태 메시지 변경", window.myInfo.msg === '상태 메시지' ? '' : window.myInfo.msg);
-    if (m === null) return;
-    if (window.saveProfileMsgToDB && await window.saveProfileMsgToDB(m.trim().substring(0, 50))) {}
+    document.getElementById('profileMsgInput').value = window.myInfo.msg === '상태 메시지' ? '' : window.myInfo.msg;
+    document.getElementById('profileMsgOverlay').classList.add('open');
+}
+window.submitProfileMsg = async function() {
+    const m = document.getElementById('profileMsgInput').value;
+    if (window.saveProfileMsgToDB && await window.saveProfileMsgToDB(m.trim().substring(0, 50))) {
+        closePopup('profileMsgOverlay');
+    }
 }
 
-function openSheet(i, t, d, s = "") {
-    const h = `
-    <div class="sheet-header-area">
-        <div class="sheet-header-icon-frame">${i}</div>
-        <div class="sheet-title">${t}</div>
-    </div>
-    <div class="sheet-body-area">
-        <div class="sheet-message-box">${d}</div>
-        ${s}
-    </div>
-    <div class="sheet-footer-area">
-        <button class="btn btn-primary" onclick="closeSheet()">닫기</button>
-    </div>`;
-    document.querySelector('.bottom-sheet').innerHTML = h;
-    document.getElementById('bottomSheetOverlay').classList.add('open');
+// [v19.11.6 Added] Generic Confirm Modal
+window.showConfirmModal = function(title, msg, onConfirm) {
+    const overlayId = 'genericConfirmOverlay';
+    let overlay = document.getElementById(overlayId);
+    
+    // Clean previous if exists
+    if(overlay) overlay.remove();
+
+    // Create new modal DOM
+    overlay = document.createElement('div');
+    overlay.id = overlayId;
+    overlay.className = 'sheet-overlay open';
+    overlay.style.zIndex = '11000'; // Make sure it's on top
+
+    overlay.innerHTML = `
+        <div class="comment-modal">
+            <h3>${title}</h3>
+            <p style="text-align:center; margin-bottom:20px; line-height:1.5;">${msg}</p>
+            <div class="modal-btn-row" style="display:flex; gap:10px; width:100%;">
+                <button class="btn btn-outline" id="genConfirmCancel">취소</button>
+                <button class="btn btn-primary" id="genConfirmOk">확인</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+
+    // Bind events
+    document.getElementById('genConfirmCancel').onclick = () => overlay.remove();
+    document.getElementById('genConfirmOk').onclick = () => {
+        overlay.remove();
+        if (onConfirm) onConfirm();
+    };
 }
-function closeSheet() { document.querySelectorAll('.sheet-overlay').forEach(x => x.classList.remove('open')); }
+
+// [v19.11.6 Updated] Generic Alert Modal (Replaces openSheet)
+window.openSheet = function(icon, title, msg, subMsg) {
+    const overlayId = 'genericAlertOverlay';
+    let overlay = document.getElementById(overlayId);
+    if(overlay) overlay.remove();
+
+    overlay = document.createElement('div');
+    overlay.id = overlayId;
+    overlay.className = 'sheet-overlay open';
+    overlay.style.zIndex = '11000';
+
+    overlay.innerHTML = `
+        <div class="comment-modal">
+            <div style="font-size:40px; margin-bottom:10px;">${icon}</div>
+            <h3>${title}</h3>
+            <p style="text-align:center; margin-bottom:5px; font-weight:bold;">${msg}</p>
+            <p style="text-align:center; font-size:13px; color:var(--text-secondary); margin-bottom:20px;">${subMsg || ''}</p>
+            <div class="modal-btn-row" style="width:100%;">
+                <button class="btn btn-primary" onclick="document.getElementById('${overlayId}').remove()">확인</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function closePopup(id) {
+    document.getElementById(id).classList.remove('open');
+}
 
 function disableVoteScreen() {
     ['voteWrapper', 'passBtn', 'winnerContainer', 'roundBadge'].forEach(i => { const e = document.getElementById(i); if(e) e.style.display = 'none'; });
@@ -161,24 +226,42 @@ window.openProfilePopup = function(id) {
     const user = window.candidates.find(u => u.id === id);
     if (!user) return;
     const msg = user.msg || user.desc || "상태 메시지가 없습니다.";
+    
+    const overlayId = 'profileViewOverlay';
+    let overlay = document.getElementById(overlayId);
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = overlayId;
+        overlay.className = 'sheet-overlay';
+        overlay.innerHTML = `
+            <div class="comment-modal">
+                <h3>👤 친구 정보</h3>
+                <div id="profileViewContent"></div>
+                <div class="modal-btn-row" style="width:100%;">
+                    <button class="btn btn-primary" onclick="closePopup('${overlayId}')">닫기</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
     const content = `
         <div style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;">
             <div class="avatar-circle" style="width:100px; height:100px; font-size:50px; margin-bottom:15px;">${user.avatar}<div class="avatar-badge" style="font-size:14px; padding:5px 10px;">#${user.mbti}</div></div>
             <h2 style="margin-bottom:5px;">${user.nickname}</h2>
-            <p style="color:var(--text-primary); font-weight:bold; font-size:16px;">"${msg}"</p>
+            <div class="sheet-message-box" style="width:100%; margin-bottom:0;">"${msg}"</div>
         </div>`;
-    window.openSheet('👤', '친구 정보', '', content);
-    const msgBox = document.querySelector('.sheet-message-box');
-    if(msgBox) msgBox.style.display = 'none';
+    document.getElementById('profileViewContent').innerHTML = content;
+    overlay.classList.add('open');
 }
+
 window.openCommentPopup = function(id, n) {
     currentWinnerId = id;
     document.getElementById('commentTargetName').innerText = `${n}님에게 한마디`;
     document.getElementById('commentInput').value = '';
-    closeSheet();
     document.getElementById('commentOverlay').classList.add('open');
 }
-window.closeCommentPopup = function() { document.getElementById('commentOverlay').classList.remove('open'); }
+window.closeCommentPopup = function() { closePopup('commentOverlay'); }
 window.submitComment = function() {
     const t = document.getElementById('commentInput').value.trim();
     if (!t) { alert("내용을 입력해주세요."); return; }
@@ -196,13 +279,7 @@ window.showToast = function(msg) {
 }
 
 window.openInventory = function() {
-    const h = `
-    <div class="sheet-header-area"><div class="sheet-header-icon-frame">🎒</div><div class="sheet-title">보관함</div></div>
-    <div style="padding: 0 20px;"><div class="sub-tab-bar"><div class="sub-tab active inv-tab" onclick="updateInventoryList('all', this)">전체</div><div class="sub-tab inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div><div class="sub-tab inv-tab" onclick="updateInventoryList('effect', this)">효과</div></div></div>
-    <div class="sheet-body-area" id="inventoryListArea" style="min-height:200px;"></div>
-    <div class="sheet-footer-area"><button class="btn btn-primary" onclick="closeSheet()">닫기</button></div>`;
-    document.querySelector('.bottom-sheet').innerHTML = h;
-    document.getElementById('bottomSheetOverlay').classList.add('open');
+    document.getElementById('inventoryOverlay').classList.add('open');
     window.updateInventoryList('all');
 }
 window.updateInventoryList = function(filter, tabEl) {
@@ -247,12 +324,10 @@ window.applyActiveEffects = function() {
     if (activeEffect && THEME_CLASSES.includes(activeEffect.value)) { b.classList.add(activeEffect.value); }
 }
 
-// [v19.11.2 Updated] Check Tickets Immediately
 window.prepareVoteScreen = function() {
     if (window.candidates.length < 2) { alert("후보가 부족합니다. (최소 2명)"); return; }
     window.isGameRunning = false;
     
-    // [Fix] If no tickets, go directly to Disabled Screen
     if (window.myInfo && window.myInfo.tickets <= 0) {
         window.disableVoteScreen();
         return; 
@@ -327,4 +402,4 @@ window.renderHistoryList = async function() {
     } catch (e) { console.error(e); container.innerHTML = `<p class="list-empty-msg">기록을 불러오지 못했습니다.</p>`; }
 };
 
-window.updateTicketUI = updateTicketUI; window.setMyTypeUI = setMyTypeUI; window.goTab = goTab; window.goSubTab = goSubTab; window.goScreen = goScreen; window.logout = logout; window.loginWithServer = loginWithServer; window.nextTest = nextTest; window.finishTest = finishTest; window.saveNicknameAndNext = saveNicknameAndNext; window.openSheet = openSheet; window.closeSheet = closeSheet; window.disableVoteScreen = disableVoteScreen; window.showToast = showToast; window.updateInventoryList = updateInventoryList; window.applyActiveEffects = applyActiveEffects; window.renderRankList = renderRankList; window.filterRank = filterRank; window.renderAchievementsList = renderAchievementsList; window.renderHistoryList = renderHistoryList; window.openProfilePopup = openProfilePopup; window.openCommentPopup = openCommentPopup;
+window.updateTicketUI = updateTicketUI; window.setMyTypeUI = setMyTypeUI; window.goTab = goTab; window.goSubTab = goSubTab; window.goScreen = goScreen; window.logout = logout; window.loginWithServer = loginWithServer; window.nextTest = nextTest; window.finishTest = finishTest; window.saveNicknameAndNext = saveNicknameAndNext; window.disableVoteScreen = disableVoteScreen; window.showToast = showToast; window.updateInventoryList = updateInventoryList; window.applyActiveEffects = applyActiveEffects; window.renderRankList = renderRankList; window.filterRank = filterRank; window.renderAchievementsList = renderAchievementsList; window.renderHistoryList = renderHistoryList; window.openProfilePopup = openProfilePopup; window.openCommentPopup = openCommentPopup; window.editProfileMsg = editProfileMsg; window.submitProfileMsg = submitProfileMsg; window.openInventory = openInventory; window.closePopup = closePopup;
