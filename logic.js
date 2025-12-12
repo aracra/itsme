@@ -1,5 +1,5 @@
 // logic.js
-// Version: v19.13.10 - v19.13.6에서 변경점 없음
+// Version: v19.13.11 - v19.13.6에서 변경점 없음
 // Description: Core Game Logic (Custom Confirm Modal for Exclude)
 
 // ==========================================

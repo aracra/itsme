@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.13.10</title>
+    <title>It's me! v19.13.11</title>
     <link rel="stylesheet" href="style.css?v=19.13.9">
 </head>
 <body>
@@ -145,33 +145,41 @@
     </div>
     
     <div id="screen-main" class="screen">
-        <div class="sticky-header-group">
-			<div class="header-area" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; margin-bottom: 5px;">
-				<h2 class="header-title" style="text-align: center; width: 100%; font-size: 26px; margin: 0;">나의 거울</h2>
-				<div class="header-badge" style="margin: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">👑 상위 12% (종합)</div>
+		<div class="sticky-header-group" style="padding: 10px 20px 10px 20px;">
+			
+			<div class="header-area" style="margin: 0 0 10px 0; display: flex; justify-content: center;">
+				<h2 class="header-title" style="text-align: center; font-size: 22px; margin: 0;">나의 거울</h2>
 			</div>
-            
-            <div class="avatar-area">
-                <div class="avatar-circle">
-                    <span id="myAvatar">👤</span>
-                    <div class="avatar-badge" id="myMbtiBadge">#???</div>
-                </div>
-				<div class="avatar-text-group">
-					<div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; color: var(--text-primary);">닉네임</div>
+			
+			<div class="avatar-area" style="margin-top: 0;">
+				<div class="avatar-circle">
+					<span id="myAvatar">👤</span>
+					<div class="avatar-badge" id="myMbtiBadge">#???</div>
+				</div>
+				
+				<div class="avatar-text-group" style="width: 100%;">
 					
+					<div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 5px;">
+						<div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; color: var(--text-primary); line-height: 1;">닉네임</div>
+						
+						<div class="header-badge" style="margin: 0; padding: 4px 10px; font-size: 11px; box-shadow: none; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap;">
+							👑 상위 12% (종합)
+						</div>
+					</div>
+
 					<div class="msg-bubble">
 						<span id="mainMsg">"상태 메시지"</span>
 						<button onclick="editProfileMsg()" class="btn-edit-in-bubble">✏️</button>
 					</div>
 				</div>
-            </div>
+			</div>
 
-            <div class="sub-tab-bar" style="margin-top:20px;">
-                <div class="sub-tab active" onclick="goSubTab('tab-prism', this)">프리즘</div>
-                <div class="sub-tab" onclick="goSubTab('tab-history', this)">발자취</div>
-                <div class="sub-tab" onclick="goSubTab('tab-trophy', this)">업적</div>
-            </div>
-        </div>
+			<div class="sub-tab-bar" style="margin-top: 15px;">
+				<div class="sub-tab active" onclick="goSubTab('tab-prism', this)">프리즘</div>
+				<div class="sub-tab" onclick="goSubTab('tab-history', this)">발자취</div>
+				<div class="sub-tab" onclick="goSubTab('tab-trophy', this)">업적</div>
+			</div>
+		</div>
         
         <div class="scroll-body no-scrollbar">
             <div id="tab-prism" class="sub-content active"><div class="chart-wrapper"><canvas id="myRadarChart"></canvas></div></div>
