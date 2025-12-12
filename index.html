@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.13.9</title>
+    <title>It's me! v19.13.10</title>
     <link rel="stylesheet" href="style.css?v=19.13.9">
 </head>
 <body>
@@ -146,20 +146,24 @@
     
     <div id="screen-main" class="screen">
         <div class="sticky-header-group">
-            <div class="header-area">
-                <h2 class="header-title">나의 거울</h2>
-                <div class="header-badge">👑 상위 12% (종합)</div>
-            </div>
+			<div class="header-area" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; margin-top: 15px; margin-bottom: 5px;">
+				<h2 class="header-title" style="text-align: center; width: 100%; font-size: 26px; margin: 0;">나의 거울</h2>
+				<div class="header-badge" style="margin: 0; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">👑 상위 12% (종합)</div>
+			</div>
             
             <div class="avatar-area">
                 <div class="avatar-circle">
                     <span id="myAvatar">👤</span>
                     <div class="avatar-badge" id="myMbtiBadge">#???</div>
                 </div>
-                <div class="avatar-text-group">
-                    <div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; color: var(--text-primary);">닉네임</div>
-                    <div class="msg-bubble"><span id="mainMsg">"상태 메시지"</span></div>
-                </div>
+				<div class="avatar-text-group">
+					<div id="myNicknameDisplay" style="font-size: 20px; font-weight: 800; color: var(--text-primary);">닉네임</div>
+					
+					<div class="msg-bubble">
+						<span id="mainMsg">"상태 메시지"</span>
+						<button onclick="editProfileMsg()" class="btn-edit-in-bubble">✏️</button>
+					</div>
+				</div>
             </div>
 
             <div class="sub-tab-bar" style="margin-top:20px;">
@@ -218,16 +222,17 @@
                 </div>
             </div>
             
-            <div id="winnerContainer">
-                <div class="winner-box">
-                    <div class="winner-avatar" id="winnerAvatar">🏆</div> 
-                    <div class="winner-text-group">
-                        <h2 id="winnerTitle">우승!</h2> 
-                        <h1 id="winnerName">...</h1>
-                        <p id="winnerText">점수 전달 완료!</p>
-                    </div>
-                </div>
-            </div>
+			<div id="winnerContainer">
+				<div class="winner-box">
+					<div class="winner-avatar" id="winnerAvatar">🏆</div> 
+					
+					<div class="winner-text-group">
+						<h2 id="winnerTitle">우승!</h2> 
+						<h1 id="winnerName">...</h1>
+						<p id="winnerText">점수 전달 완료!</p>
+					</div>
+				</div>
+			</div>
             
             <button class="btn" style="background:var(--btn-bg); color:var(--text-secondary); margin-top:20px; display:none;" id="passBtn" onclick="window.openExcludeOption()">
                 🚫 모르는 사람이 있어요 (제외하기)
@@ -388,5 +393,6 @@
         }
     });
 </script>
+
 </body>
 </html>

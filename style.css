@@ -1,5 +1,5 @@
 /* style.css */
-/* Version: v19.13.8 */
+/* Version: v19.13.10 */
 /* Patch Note: Center alignment for Vote Screen & Winner Box fix */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
@@ -153,8 +153,65 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
     border: 1px solid var(--border);
 }
 
-.msg-bubble { background: var(--btn-bg); padding: 8px 16px; border-radius: 0 15px 15px 15px; margin-top: 5px; font-size: 13px; color: var(--text-primary); text-align: left; position: relative; max-width: 100%; }
-.msg-bubble::before { content: ''; position: absolute; top: 0; left: -8px; width: 0; height: 0; border-top: 10px solid var(--btn-bg); border-left: 10px solid transparent; }
+/* [수정] 말풍선 스타일: 크기 고정 및 꽉 찬 박스 형태 */
+.msg-bubble {
+    background: var(--btn-bg);
+    border-radius: 0 15px 15px 15px;
+    margin-top: 5px;
+    font-size: 13px;
+    color: var(--text-primary);
+    text-align: left;
+    position: relative; /* 자식 요소(연필)의 기준점 */
+    
+    /* [핵심 1] 가로/세로 크기 고정 (꽉 찬 느낌) */
+    width: 100%;        /* 옆 공간 끝까지 채움 */
+    min-height: 85px;   /* 내용이 짧아도 이 높이는 무조건 유지 (3번째 사진 높이와 비슷하게) */
+    
+    /* [핵심 2] 내부 여백 정리 */
+    padding: 12px 15px; 
+    padding-right: 30px; /* 오른쪽은 연필 공간만큼 더 비워둠 */
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 설정 */
+    
+    /* 줄 간격 및 줄바꿈 처리 */
+    line-height: 1.6; 
+    word-break: break-all; /* 긴 영어/숫자도 박스 밖으로 안 튀어나가게 강제 줄바꿈 */
+    
+    display: flex;         /* 텍스트 정렬을 위해 flex 사용 */
+    align-items: flex-start; /* 텍스트는 항상 위쪽부터 시작 */
+}
+
+/* 말풍선 꼬리 */
+.msg-bubble::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -8px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid var(--btn-bg);
+    border-left: 10px solid transparent;
+}
+
+/* [수정] 연필 버튼: 우측 상단 고정 (Absolute) */
+.btn-edit-in-bubble {
+    position: absolute;  /* 말풍선 기준으로 위치 잡기 */
+    top: 10px;           /* 위에서 10px */
+    right: 10px;         /* 오른쪽에서 10px */
+    
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;     /* 아이콘 크기 살짝 키움 */
+    padding: 0;
+    margin: 0;
+    opacity: 0.4;        /* 평소엔 연하게 */
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.btn-edit-in-bubble:hover {
+    opacity: 1;          /* 마우스 올리면 진하게 */
+    transform: scale(1.1);
+}
 
 .sub-tab-bar { display: flex; margin-bottom: 10px; background: var(--btn-bg); border-radius: 12px; padding: 4px; width: 100%; }
 .sub-tab { flex: 1; text-align: center; padding: 8px 0; font-size: 14px; color: var(--text-secondary); border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 500; }
@@ -317,7 +374,7 @@ ul.list-wrap { padding: 0; margin: 0; list-style: none; width: 100%; }
     display: block;
 }
 
-/* =========================================
+//* =========================================
    [Patch] Winner Screen Layout Fix
    - 화면 정중앙 배치
    - 요소 간 간격(Gap) 최적화
