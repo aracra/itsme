@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.14.1 (Refactored)</title>
+    <title>It's me! v19.14.2</title>
     <link rel="stylesheet" href="style.css?v=19.14.0">
 </head>
 <body>
@@ -30,6 +30,17 @@
 			<div class="modal-btn-row">
 				<button class="btn-action type-gray small" onclick="closeCustomConfirm()">취소</button>
 				<button class="btn-action type-purple small" id="btnCustomConfirmAction">확인</button>
+			</div>
+		</div>
+	</div>
+	
+
+	<div id="customAlertOverlay" class="sheet-overlay" style="z-index: 12000;">
+		<div class="comment-modal">
+			<h3 id="customAlertTitle">알림</h3>
+			<p id="customAlertMsg" class="modal-msg" style="white-space: pre-line;">...</p>
+			<div class="modal-btn-row" style="justify-content: center;">
+				<button class="btn-action type-purple small" id="btnCustomAlertOk">확인</button>
 			</div>
 		</div>
 	</div>

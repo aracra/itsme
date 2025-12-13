@@ -1,5 +1,5 @@
 // ui.js
-// Version: v19.14.1 (Refactored)
+// Version: v19.14.2
 // Description: UI Controller & Animation Handler
 
 let myMbti = "";
@@ -302,6 +302,85 @@ window.openCustomConfirm = function(title, msg, onConfirm) {
 window.closeCustomConfirm = function() { 
     document.getElementById('customConfirmOverlay').classList.remove('open'); 
 };
+
+// ui.js 하단에 추가 또는 교체
+
+// [Upgrade] 알림창이 없으면 만들어서 띄우는 똑똑한 함수
+window.openCustomAlert = function(msg, onOk) {
+    let overlayId = 'customAlertOverlay';
+    let el = document.getElementById(overlayId);
+
+    // 1. HTML에 알림창이 없으면 자바스크립트가 직접 만듭니다. (자동 생성)
+    if (!el) {
+        el = document.createElement('div');
+        el.id = overlayId;
+        el.className = 'sheet-overlay';
+        el.style.zIndex = '12000'; // 가장 위에 뜨도록 설정
+        
+        el.innerHTML = `
+            <div class="comment-modal">
+                <h3>알림</h3>
+                <p id="customAlertMsg" class="modal-msg" style="white-space: pre-line; margin-bottom: 20px;">...</p>
+                <div class="modal-btn-row" style="justify-content: center;">
+                    <button class="btn-action type-purple small" id="btnCustomAlertOk">확인</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(el);
+    }
+
+    // 2. 메시지 넣고 띄우기
+    const msgEl = el.querySelector('#customAlertMsg');
+    const btn = el.querySelector('#btnCustomAlertOk');
+
+    if (msgEl && btn) {
+        msgEl.innerText = msg; // 줄바꿈 지원
+        
+        // 버튼 클릭 이벤트 (중복 방지를 위해 매번 새로 연결)
+        btn.onclick = function() {
+            el.classList.remove('open');
+            if (onOk) onOk();
+        };
+
+        // 애니메이션을 위해 약간의 딜레이 후 오픈
+        setTimeout(() => el.classList.add('open'), 10);
+    }
+};
+
+// [Override] 기본 alert를 커스텀 알림으로 교체
+window.alert = function(msg) {
+    window.openCustomAlert(msg);
+};
+
+// [New] 커스텀 알림창 함수
+window.openCustomAlert = function(msg, onOk) {
+    const el = document.getElementById('customAlertOverlay');
+    const msgEl = document.getElementById('customAlertMsg');
+    const btn = document.getElementById('btnCustomAlertOk');
+
+    if (el && msgEl && btn) {
+        msgEl.innerText = msg; // 줄바꿈 적용을 위해 innerText 사용
+        
+        // 확인 버튼 클릭 시 닫기
+        btn.onclick = function() {
+            el.classList.remove('open');
+            if (onOk) onOk();
+        };
+
+        el.classList.add('open');
+    } else {
+        // 만약 HTML이 로드되지 않았다면 비상용으로 기본 alert 사용
+        console.warn("Custom Alert HTML not found. Fallback to native alert.");
+        alert(msg); 
+    }
+};
+
+// ⚡ [핵심] 기존 window.alert를 커스텀 함수로 덮어씌우기 (Override)
+// 이 코드가 실행된 이후부터는 모든 alert()가 예쁜 모달로 바뀝니다.
+window.alert = function(msg) {
+    window.openCustomAlert(msg);
+};
+
 
 window.openSheet = function(icon, title, msg, subMsg) {
     /* Use dynamic creation for generic alert to keep HTML clean */

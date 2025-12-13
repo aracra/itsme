@@ -1,5 +1,5 @@
 // logic.js
-// Version: v19.14.1 (Refactored)
+// Version: v19.14.2
 // Description: Core Game Logic & Data Handling
 
 // 1. Firebase Config
@@ -164,27 +164,50 @@ window.addRichTokens = function() {
     alert("관리자 권한: 10,000💎 지급!");
 }
 
-// 5. Game Logic
+// logic.js - window.realStartGame 함수 전체 교체
+
 window.realStartGame = async function() {
     if (window.isGameRunning) return;
+    
+    // 1. 티켓 확인 (없으면 바로 종료)
     if (!window.myInfo || window.myInfo.tickets < 1) {
         alert("티켓이 부족합니다! (내일 충전됩니다)");
         return;
     }
+
+    // 2. [중요 수정] 후보자 수 검사 (티켓 차감 전에 수행!)
+    // 4명 미만이면 경고를 띄우고 함수를 끝냅니다. (티켓 보호)
+    if (!window.candidates || window.candidates.length < 4) { 
+        alert("후보가 부족합니다. (최소 4명 이상 필요)\n친구를 더 초대하거나 테스트 데이터를 만들어주세요."); 
+        return; 
+    }
+
+    // 3. 티켓 차감 (위 검사를 통과했으니 안전하게 차감)
     window.myInfo.tickets--;
     if (window.updateTicketUI) window.updateTicketUI();
     if (window.showToast) window.showToast("티켓이 한 장 사용되었습니다 🎫");
     if (window.db) window.db.collection("users").doc(getUserId()).update({ tickets: window.myInfo.tickets });
 
+    // 4. 질문 데이터 확인
     if(window.questions.length === 0) { alert("질문 데이터가 없습니다."); return; }
     const q = window.questions[Math.floor(Math.random() * window.questions.length)];
     window.currentQ = q;
 
+    // 5. 게임 상태 변경 및 UI 초기화
     window.isGameRunning = true;
     if(window.initVoteScreenUI) window.initVoteScreenUI(q.text);
 
+    // 6. 대진표 생성 (안전한 로직)
     const count = window.candidates.length;
-    let targetSize = (count >= 32) ? 32 : (count >= 16) ? 16 : (count >= 8) ? 8 : 4;
+    let targetSize = 4; // 기본 4강으로 시작
+    
+    // 인원수에 맞춰서 가장 가까운 2의 제곱수(강) 선택
+    if (count >= 32) targetSize = 32;
+    else if (count >= 16) targetSize = 16;
+    else if (count >= 8) targetSize = 8;
+    else targetSize = 4; // 4~7명은 무조건 4강전
+    
+    // 랜덤 셔플 후 대진표 자르기
     window.tournamentRound = [...window.candidates].sort(() => Math.random() - 0.5).slice(0, targetSize);
     window.nextRound = [];
     window.currentRoundMax = window.tournamentRound.length;
