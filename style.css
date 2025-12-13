@@ -1,5 +1,5 @@
 /* style.css */
-/* Version: v19.14.12 */
+/* Version: v19.14.5 */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
@@ -53,6 +53,7 @@ body.bg-pink {
     --chart-grid: #fab1a0; --chart-label: #d63031;
     --chart-fill: rgba(255, 118, 117, 0.2); --chart-stroke: #ff7675;
 }
+
 body.bg-gold {
     --primary: #daa520; --bg: #fcf4d9; --card: #ffffff; --border: #f1c40f;
     --text-secondary: #b7950b; --chart-stroke: #f1c40f;
@@ -154,7 +155,42 @@ p { color: var(--text-secondary); font-size: 15px; margin-bottom: 25px; text-ali
 }
 
 .btn-outline { background: var(--card); border: 2px solid var(--border); color: var(--text-secondary); width: 100%; padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.1s; }
-.btn-logout { width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; background:#eee; color:#ff4757; margin-top: 20px; }
+
+/* 로그아웃 버튼 스타일 */
+.btn-logout {
+  /* [형태 및 배치] */
+  display: block;
+  width: 100%;
+  padding: 15px 0;
+  margin-top: 30px;
+  border-radius: 22px;     /* 둥근 모서리 */
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  border: none;            /* 테두리 없음 */
+
+  /* [색상 및 입체감] */
+  background-color: #ffffff;      /* 깨끗한 흰색 배경 */
+  color: #777777;                 /* 차분한 회색 글씨 */
+  /* 부드러운 그림자로 3D 효과 (image_3.png 스타일 참고) */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;      /* 부드러운 움직임 */
+}
+
+/* 마우스 올렸을 때 (Hover) */
+.btn-logout:hover {
+  background-color: #f8f8f8;      /* 아주 살짝 어두워짐 */
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.08); /* 그림자가 조금 더 깊어짐 */
+  transform: translateY(-1px);    /* 살짝 떠오르는 느낌 */
+}
+
+/* 클릭했을 때 (Active) - 눌리는 느낌 */
+.btn-logout:active {
+  background-color: #f0f0f0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 그림자가 줄어듦 */
+  transform: translateY(1px);     /* 살짝 가라앉는 느낌 */
+}
 
 /* Inputs */
 input[type="text"] {
@@ -244,8 +280,42 @@ input[type="text"]:focus { background-color: #fff; border-color: var(--primary);
 .vs-card.selected-choice { transform: scale(1.15) !important; border-color: var(--primary) !important; background-color: var(--btn-bg) !important; z-index: 10; box-shadow: 0 15px 30px rgba(108, 92, 231, 0.3); }
 
 /* Winner Screen */
-#winnerContainer { display: none; flex: 1; width: 100%; height: 100%; flex-direction: column; align-items: center !important; justify-content: center !important; padding: 0 !important; margin: 0 !important; }
-.winner-box { display: flex; flex-direction: column; align-items: center !important; justify-content: center; width: 100%; max-width: 320px; margin-left: auto !important; margin-right: auto !important; gap: 25px; animation: fadeUpScale 0.4s ease-out; }
+/* style.css - 우승 화면 스타일 교체 */
+
+#winnerContainer {
+    display: none;
+    width: 100%;
+    min-height: 100%; 
+    
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: flex-start !important; 
+    
+    /* 🔴 [수정] 상단 여백 축소 (40px -> 0px) */
+    /* 아바타와 문구들이 전체적으로 위로 올라갑니다 */
+    padding-top: 0px !important; 
+    
+    /* 하단 여백은 그대로 유지 (버튼 잘림 방지) */
+    padding-bottom: 100px !important; 
+    
+    margin: 0 !important;
+    box-sizing: border-box; 
+}
+
+/* (참고) .winner-box는 기존 그대로 두셔도 됩니다. */
+.winner-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center !important;
+    justify-content: center;
+    width: 100%;
+    max-width: 320px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    gap: 25px;
+    animation: fadeUpScale 0.4s ease-out;
+}
+
 .winner-avatar { width: 110px; height: 110px; border-radius: 50%; background: var(--card); border: 5px solid var(--primary); display: flex; justify-content: center; align-items: center; font-size: 55px; box-shadow: 0 10px 25px rgba(108, 92, 231, 0.3); flex-shrink: 0; margin: 0 auto !important; }
 .winner-text-group { width: 100%; display: flex; flex-direction: column; align-items: center !important; text-align: center !important; }
 #winnerTitle { font-size: 18px; font-weight: 600; color: var(--text-secondary); margin: 0; }
@@ -339,7 +409,6 @@ input[type="text"]:focus { background-color: #fff; border-color: var(--primary);
 .nav-item.active { color: var(--primary); font-weight: bold; }
 .nav-icon { font-size: 20px; margin-bottom: 3px; }
 
-/* style.css 맨 마지막 줄에 추가해주세요 */
 
 /* [긴급 수정] 알림창 강제 노출 및 중앙 정렬 */
 #customAlertOverlay {
@@ -363,4 +432,133 @@ input[type="text"]:focus { background-color: #fff; border-color: var(--primary);
     margin: 0 auto;
     max-width: 300px !important;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+}
+
+.settings-account-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.acc-label { font-size: 14px; color: var(--text-secondary); font-weight: bold; }
+.acc-value { font-size: 14px; color: var(--text-primary); font-weight: 800; }
+
+
+
+/* 1. 상점 & 설정 화면용: 상단 여백을 넉넉하게 (50px) */
+.padding-top-50 {
+    padding-top: 50px !important;
+}
+
+/* 2. 나의 거울(프리즘) 차트용: 위쪽 마진 추가 (40px) */
+.chart-spacing {
+    margin-top: 40px !important;
+}
+
+/* style.css 맨 아래 (기존 인벤토리 스타일 교체) */
+
+/* 1. 탭 헤더: 아래 여백 제거 (리스트와 밀착) */
+.tab-line-header {
+    display: flex;
+    border-bottom: 2px solid #f1f2f6;
+    margin-bottom: 0; /* ✨ 기존 20px -> 0으로 변경 (핵심!) */
+    width: 100%;
+}
+
+/* ... (tab-line-item 등은 기존 유지, 생략 가능하지만 헷갈리시면 아래 전체 복붙하세요) ... */
+.tab-line-item {
+    flex: 1;
+    text-align: center;
+    padding: 12px 0;
+    font-size: 15px;
+    color: #b2bec3;
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+}
+.tab-line-item.active {
+    color: var(--primary);
+    font-weight: 800;
+}
+.tab-line-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary);
+    border-radius: 3px 3px 0 0;
+}
+
+/* 2. 리스트 영역: 패딩으로 여백 확보 & 스크롤바 숨김 */
+.inventory-list-area {
+    width: 100%;
+    min-height: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+    
+    /* ✨ 마진 대신 패딩을 줘서, 스크롤은 위에서부터 되지만 글자는 띄워짐 */
+    padding-top: 15px; 
+    margin-bottom: 20px;
+
+    /* 스크롤바 숨기기 (이미 적용됨) */
+    -ms-overflow-style: none; /* IE, Edge */
+    scrollbar-width: none; /* Firefox */
+}
+/* Chrome, Safari, Opera용 스크롤바 숨김 */
+.inventory-list-area::-webkit-scrollbar { 
+    display: none; 
+}
+
+/* ... (버튼 스타일 btn-item-use는 그대로 유지) ... */
+.btn-item-use {
+    background: #fff;
+    border: 1px solid #dfe6e9;
+    color: var(--text-primary);
+    padding: 8px 0; /* 좌우 패딩을 빼고 너비로 제어 */
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.1s;
+    white-space: nowrap;
+    
+    /* ✨ [수정] 너비 고정 및 중앙 정렬 추가 */
+    min-width: 80px; 
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-item-use:active { background: #f1f2f6; transform: scale(0.95); }
+.btn-item-use.using { background: #dfe6e9; color: #636e72; cursor: default; border-color: #dfe6e9; transform: none; }
+
+/* style.css 맨 아래 추가 */
+
+/* [수정] 탭이 있는 헤더 전용: 패딩과 테두리를 없애서 탭 라인이 끝이 되게 함 */
+.sticky-header-group.has-tabs {
+    padding-bottom: 0 !important;
+    border-bottom: none !important; /* 회색 가로선(헤더 테두리) 제거 */
+}
+
+/* [강화] 스크롤바 숨기기 (PC 포함 강제 적용) */
+.no-scrollbar::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+}
+.no-scrollbar {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+}
+
+/* [보정] 나의 거울 리스트 상단 여백 (내용이 탭에 너무 붙지 않게) */
+#screen-main .scroll-body {
+    padding-top: 20px; /* 스크롤 시 이 공간으로 내용이 슥 올라감 */
 }

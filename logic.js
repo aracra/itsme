@@ -1,5 +1,5 @@
 // logic.js
-// Version: v19.14.2
+// Version: v19.14.5
 // Description: Core Game Logic & Data Handling
 
 // 1. Firebase Config
@@ -427,10 +427,23 @@ window.equipAvatar = async function(val) {
     if (!window.db) return;
     try { await window.db.collection("users").doc(getUserId()).update({ avatar: val }); window.myInfo.avatar = val; if (window.updateProfileUI) window.updateProfileUI(); if (window.closePopup) window.closePopup('inventoryOverlay'); if (window.showToast) window.showToast("아바타가 변경되었습니다. ✨"); } catch (e) {}
 }
+
+// logic.js 내부 window.toggleEffect 함수 수정
 window.toggleEffect = async function(id) {
     if (!window.db) return;
     const idx = window.myInfo.inventory.findIndex(i => i.id === id); if (idx === -1) return;
     const newState = !window.myInfo.inventory[idx].isActive;
     const newInv = window.myInfo.inventory.map(i => { if (i.type === 'effect') { if (i.id === id) return { ...i, isActive: newState }; if (newState) return { ...i, isActive: false }; } return i; });
-    try { await window.db.collection("users").doc(getUserId()).update({ inventory: newInv }); window.myInfo.inventory = newInv; if (window.applyActiveEffects) window.applyActiveEffects(); if (window.updateInventoryList) window.updateInventoryList('all'); } catch (e) {}
+	try {
+			await window.db.collection("users").doc(getUserId()).update({ inventory: newInv });
+			window.myInfo.inventory = newInv;
+			
+			if (window.applyActiveEffects) window.applyActiveEffects();
+			
+			// 🔴 [수정] 무조건 'all'이 아니라, 저장된 현재 탭(currentInvFilter)을 유지!
+			if (window.updateInventoryList) {
+				window.updateInventoryList(window.currentInvFilter || 'all'); 
+			}
+			
+	} catch (e) {}
 }

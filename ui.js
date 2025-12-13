@@ -1,10 +1,11 @@
 // ui.js
-// Version: v19.14.2
+// Version: v19.14.5
 // Description: UI Controller & Animation Handler
 
 let myMbti = "";
 let tempTestResult = [];
 let myChart = null;
+window.currentInvFilter = 'all'; // ✨ [신규] 현재 보고 있는 탭 저장용 변수
 const THEME_CLASSES = ['bg-gold', 'bg-dark', 'bg-pink'];
 
 // 1. Common UI Updaters
@@ -38,22 +39,32 @@ window.updateTicketUI = function() {
     }
 }
 
+// ui.js의 window.updateProfileUI 함수 교체
+
 window.updateProfileUI = function() {
     if (!window.myInfo) return;
+
+    // 1. 보여줄 데이터 준비
+    // (설정 화면에서 아바타/닉네임 등은 삭제되었으므로 여기서도 굳이 안 챙겨도 되지만, 
+    //  다른 화면에서 쓸 수 있으니 기존 코드는 유지하되 'settingsAccountDisplay'를 추가합니다.)
     const d = {
         mainMsg: `"${window.myInfo.msg || '상태 메시지'}"`,
-        settingMsg: `"${window.myInfo.msg || '상태 메시지'}"`,
         shopTokenDisplay: window.myInfo.tokens,
         myAvatar: window.myInfo.avatar,
-        settingsAvatar: window.myInfo.avatar,
         myNicknameDisplay: window.myInfo.nickname,
-        settingsNickname: window.myInfo.nickname,
-        myMbtiBadge: `#${window.myInfo.mbti}`
+        myMbtiBadge: `#${window.myInfo.mbti}`,
+        
+        // ✨ [추가] 설정 화면의 계정 정보 표시
+        // (실제로는 카카오 연동이 아니지만 그럴싸하게 ID 일부를 보여줍니다)
+        settingsAccountDisplay: `kakao_${getUserId().substr(0,8)}***` 
     };
+
+    // 2. 화면 업데이트
     for (const k in d) {
         const e = document.getElementById(k);
         if (e) e.innerText = d[k];
     }
+
     if (document.getElementById('tab-prism')?.classList.contains('active') && window.drawChart) window.drawChart();
     if (window.applyActiveEffects) window.applyActiveEffects();
     window.updateTicketUI();
@@ -106,11 +117,23 @@ function proceedTab(s, n) {
     if (window.updateProfileUI) window.updateProfileUI();
 }
 
+// ui.js의 window.goSubTab 함수 교체
 window.goSubTab = function(c, t) {
+    // 1. 내용물(Content) 탭 전환
     document.querySelectorAll('.sub-content').forEach(x => x.classList.remove('active'));
     document.getElementById(c).classList.add('active');
-    document.querySelectorAll('.sub-tab').forEach(x => x.classList.remove('active'));
-    if (t) t.classList.add('active');
+
+    // 2. [업그레이드] 클릭된 버튼(Tab) 활성화 처리
+    // (클래스 이름에 상관없이, 클릭된 놈의 형제들 중에서 나만 활성화!)
+    if (t) {
+        const parent = t.parentNode;
+        // 형제들의 active 제거
+        Array.from(parent.children).forEach(child => child.classList.remove('active'));
+        // 나에게 active 추가
+        t.classList.add('active');
+    }
+
+    // 3. 탭별 데이터 로드 (차트 등)
     if (c === 'tab-prism' && window.drawChart) setTimeout(window.drawChart, 50);
     else if (c === 'tab-history' && window.renderHistoryList) window.renderHistoryList();
     else if (c === 'tab-trophy' && window.renderAchievementsList) window.renderAchievementsList();
@@ -465,27 +488,129 @@ window.finishTest = function(l) { tempTestResult.push(l); const c={E:0,I:0,S:0,N
 window.saveNicknameAndNext = function() { const n=document.getElementById('inputNickname').value.trim(); if(!n){alert("닉네임을 입력해주세요!");return;} if(!window.myInfo)window.myInfo={nickname:""}; window.myInfo.nickname=n; if(window.db)window.db.collection("users").doc(localStorage.getItem('my_uid')).update({nickname:n}); goScreen('screen-mbti'); }
 window.editProfileMsg = function() { if(!window.myInfo)return; document.getElementById('profileMsgInput').value=window.myInfo.msg==='상태 메시지'?'':window.myInfo.msg; document.getElementById('profileMsgOverlay').classList.add('open'); }
 window.submitProfileMsg = async function() { const m=document.getElementById('profileMsgInput').value; if(window.saveProfileMsgToDB && await window.saveProfileMsgToDB(m.trim().substring(0,50))) closePopup('profileMsgOverlay'); }
-window.openInventory = function() { document.getElementById('inventoryOverlay').classList.add('open'); window.updateInventoryList('all'); }
+
+// 1. window.openInventory 함수 수정 (초기화 로직 추가)
+window.openInventory = function() {
+    document.getElementById('inventoryOverlay').classList.add('open');
+    
+    // ✨ 열 때마다 '전체' 탭을 강제로 선택해서 리스트를 갱신
+    const allTab = document.querySelector('.inv-tab:first-child'); 
+    if(allTab) {
+        window.updateInventoryList('all', allTab);
+    }
+}
+
+// 2. window.updateInventoryList 함수 수정 (버튼 디자인 적용)
 window.updateInventoryList = function(filter, tabEl) {
-    if(tabEl) { document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active')); tabEl.classList.add('active'); }
-    const container = document.getElementById('inventoryListArea'); if(!container) return;
+    // ✨ [신규] 탭을 클릭했거나 갱신될 때, 현재 필터를 기억해둠
+    if (filter) window.currentInvFilter = filter;
+    
+    // 탭 활성화 UI 처리
+    if(tabEl) { 
+        document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active')); 
+        tabEl.classList.add('active'); 
+    }
+
+    const container = document.getElementById('inventoryListArea'); 
+    if(!container) return;
+    
     const l = window.myInfo.inventory || [];
     const def = { id: 'def', type: 'avatar', value: '👤', name: '기본' };
+    
+    // 필터링 로직 (기존 동일)
     let all = (filter === 'effect') ? l.filter(i => i.type === 'effect') : (filter === 'avatar') ? [def, ...l.filter(i => i.type === 'avatar')] : [def, ...l];
+    
     let listHtml = '';
-    if (all.length === 0) listHtml = `<p class="list-empty-msg">아이템이 없습니다.</p>`;
-    else {
+    if (all.length === 0) {
+        listHtml = `<p class="list-empty-msg" style="margin-top:80px;">보관함이 비어있어요 텅~ 🗑️</p>`;
+    } else {
         all.forEach(i => {
             const isEquipped = (i.type === 'avatar' && i.value === window.myInfo.avatar);
             const isActive = i.isActive;
-            let btnLabel = '사용', btnClass = 'btn-outline', btnAction = '';
-            if (i.type === 'avatar') { if (isEquipped) { btnLabel = '사용 중'; btnClass = 'btn-action type-gray small'; } else { btnAction = `onclick="equipAvatar('${i.value}')"`; btnClass = 'btn-action small'; } }
-            else { if (isActive) { btnLabel = '해제'; btnClass = 'btn-action type-gray small'; btnAction = `onclick="toggleEffect('${i.id}')"`; } else { btnAction = `onclick="toggleEffect('${i.id}')"`; btnClass = 'btn-action small'; } }
-            listHtml += `<div class="list-item"><div class="common-circle-frame">${i.value.startsWith('bg')?'✨':i.value}</div><div class="list-item-text"><div style="font-weight:bold;font-size:14px;">${i.name}</div></div><button class="${btnClass}" style="width:80px;" ${btnAction}>${btnLabel}</button></div>`;
+            
+            // ✨ [수정] 버튼 스타일을 'pre.png' 스타일(.btn-item-use)로 변경
+            let btnLabel = '사용';
+            let btnClass = 'btn-item-use';
+            let btnAction = '';
+
+            if (i.type === 'avatar') { 
+                if (isEquipped) { 
+                    btnLabel = '사용 중'; 
+                    btnClass += ' using'; // 회색 스타일 추가
+                } else { 
+                    btnAction = `onclick="equipAvatar('${i.value}')"`; 
+                } 
+            } else { // effect
+                if (isActive) { 
+                    btnLabel = '해제'; 
+                    btnClass = 'btn-item-use using'; // 해제 버튼도 차분하게
+                    btnAction = `onclick="toggleEffect('${i.id}')"`; 
+                } else { 
+                    btnAction = `onclick="toggleEffect('${i.id}')"`; 
+                } 
+            }
+            
+            // 만료일 체크 로직 (기존 유지)
+            let subText = i.type === 'avatar' ? '영구 소장' : '기간제';
+            let subStyle = 'color:var(--text-secondary);';
+            if (i.expiresAt) {
+                 const diff = new Date(i.expiresAt) - new Date();
+                 if (diff <= 0) subText = '만료됨';
+                 else {
+                     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                     subText = `${days}일 남음`;
+                     if(diff < 86400000) { subStyle = 'color:#ff7675; font-weight:bold;'; subText = '곧 만료!'; }
+                 }
+            }
+
+            // HTML 생성
+            listHtml += `
+                <div class="list-item" style="border-bottom: 1px solid #f1f2f6;">
+                    <div class="common-circle-frame" style="background:#f8f9fa;">${i.value.startsWith('bg')?'✨':i.value}</div>
+                    <div class="list-item-text">
+                        <div style="font-weight:bold; font-size:14px; margin-bottom:2px;">${i.name}</div>
+                        <div style="font-size:11px; ${subStyle}">${subText}</div>
+                    </div>
+                    <button class="${btnClass}" ${btnAction}>${btnLabel}</button>
+                </div>`;
         });
     }
     container.innerHTML = listHtml;
 }
+
 window.applyActiveEffects = function() { const b=document.body; b.classList.remove(...THEME_CLASSES); if(!window.myInfo?.inventory) return; const activeEffect=window.myInfo.inventory.find(i=>i.type==='effect'&&i.isActive); if(activeEffect&&THEME_CLASSES.includes(activeEffect.value)){b.classList.add(activeEffect.value);} }
 window.renderAchievementsList = function() { const container = document.querySelector('.achieve-grid'); if(!container) return; const list = window.achievementsList||[]; const myIds = new Set(window.myInfo.achievedIds||[]); let html=''; list.forEach(a=>{ const isUnlocked=myIds.has(a.id); const cls=isUnlocked?'':'locked'; const date=window.achievedDateMap[a.id]||''; html+=`<div class="achieve-item ${cls}" onclick="window.showToast('${isUnlocked?'달성일: '+date:'미달성: '+a.desc}')"><div style="font-size:30px; margin-bottom:5px;">${a.icon}</div><div class="achieve-title">${a.title}</div>${isUnlocked?'<div style="font-size:9px; color:var(--primary); margin-top:2px;">✔ 달성</div>':''}</div>`; }); if(html==='') html=`<p class="list-empty-msg" style="grid-column:1/-1;">업적 데이터 로딩 중...</p>`; container.innerHTML=html; }
 window.renderHistoryList = async function() { const container = document.querySelector('#tab-history .list-wrap'); if(!container) return; container.innerHTML=`<div style="text-align:center; padding:20px;">🔄 기록 불러오는 중...</div>`; if(!window.db){container.innerHTML=`<p class="list-empty-msg">DB 연결이 필요합니다.</p>`;return;} try{const uid=localStorage.getItem('my_uid'); const snapshot=await window.db.collection("logs").where("target_uid","==",uid).orderBy("timestamp","desc").limit(20).get(); if(snapshot.empty){container.innerHTML=`<p class="list-empty-msg">아직 기록이 없어요.</p>`;return;} let html=''; snapshot.forEach(doc=>{ const data=doc.data(); const date=data.timestamp?data.timestamp.toDate().toLocaleDateString():'날짜 미상'; let icon='📩'; if(data.action_type==='VOTE')icon='🗳️';else if(data.action_type==='ACHIEVE')icon='🏆';else if(data.action_type==='PURCHASE')icon='🛍️'; html+=`<li class="list-item"><div class="common-circle-frame">${icon}</div><div class="list-item-text"><div style="font-weight:bold; font-size:13px;">${data.message}</div><div style="font-size:11px; color:var(--text-secondary);">${date}</div></div>${data.score_change!==0?`<div class="list-item-score" style="background:transparent; color:${data.score_change>0?'#ff7675':'var(--text-secondary)'};">${data.score_change>0?'+':''}${data.score_change}</div>`:''}</li>`; }); container.innerHTML=html; } catch(e){console.error(e);container.innerHTML=`<p class="list-empty-msg">기록 로드 실패</p>`;} }
+
+// ui.js 맨 아래에 추가
+
+window.shareLink = function() {
+    const url = window.location.href;
+    const title = "It's me! - 남들이 보는 진짜 나";
+    const text = "친구들이 보는 내 이미지는 어떨까? 지금 확인해보세요!";
+
+    // 1. 브라우저 내장 공유 기능 시도 (모바일 등)
+    if (navigator.share) {
+        navigator.share({ title: title, text: text, url: url })
+            .catch((error) => console.log('공유 취소 또는 실패', error));
+    } 
+    // 2. 미지원 시 클립보드 복사 (PC 등)
+    else {
+        // 임시 textarea를 만들어 복사하고 삭제하는 방식 (호환성 좋음)
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        textarea.style.position = 'fixed'; // 화면 밖으로 튀지 않게 고정
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        
+        try {
+            document.execCommand('copy');
+            if(window.showToast) window.showToast("링크가 복사되었습니다! 🔗");
+            else alert("링크가 복사되었습니다!");
+        } catch (err) {
+            alert("링크 복사에 실패했습니다.");
+        }
+        document.body.removeChild(textarea);
+    }
+};

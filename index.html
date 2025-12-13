@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.14.2</title>
+    <title>It's me! v19.14.5</title>
     <link rel="stylesheet" href="style.css?v=19.14.0">
 </head>
 <body>
@@ -89,22 +89,24 @@
         </div>
     </div>
 
-    <div id="inventoryOverlay" class="sheet-overlay">
-        <div class="comment-modal modal-wide">
-            <h3>🎒 내 아이템 보관함</h3>
-            <div class="tab-wrapper">
-                <div class="sub-tab-bar">
-                    <div class="sub-tab active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
-                    <div class="sub-tab inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
-                    <div class="sub-tab inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
-                </div>
-            </div>
-            <div id="inventoryListArea" class="inventory-list-area"></div>
-            <div class="modal-btn-row">
-                <button class="btn-action type-purple" onclick="closePopup('inventoryOverlay')">닫기</button>
-            </div>
-        </div>
-    </div>
+	<div id="inventoryOverlay" class="sheet-overlay">
+		<div class="comment-modal modal-wide">
+			<h3 style="margin-bottom: 20px;">🎒 내 아이템 보관함</h3>
+			
+			<div class="tab-line-header">
+				<div class="tab-line-item active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
+				<div class="tab-line-item inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
+				<div class="tab-line-item inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
+			</div>
+
+			<div id="inventoryListArea" class="inventory-list-area">
+				</div>
+
+			<div class="modal-btn-row" style="margin-top: 0;">
+				<button class="btn-action type-purple" onclick="closePopup('inventoryOverlay')" style="width: 100%; margin-bottom: 0;">닫기</button>
+			</div>
+		</div>
+	</div>
 
     <div id="screen-login" class="screen active full-center">
         <div class="center-content">
@@ -159,42 +161,42 @@
         </div>
     </div>
     
-    <div id="screen-main" class="screen">
-        <div class="sticky-header-group">
-            <h2 class="main-screen-title">나의 거울</h2>
-            
-            <div class="avatar-area">
-                <div class="avatar-circle">
-                    <span id="myAvatar">👤</span>
-                    <div class="avatar-badge" id="myMbtiBadge">#???</div>
-                </div>
-                
-                <div class="avatar-text-group">
-                    <div class="profile-header-row">
-                        <div id="myNicknameDisplay" class="profile-name">닉네임</div>
-                        <div class="header-badge">👑 상위 12% (종합)</div>
-                    </div>
+	<div id="screen-main" class="screen">
+		<div class="sticky-header-group has-tabs">
+			<h2 class="main-screen-title">나의 거울</h2>
+			
+			<div class="avatar-area">
+				<div class="avatar-circle">
+					<span id="myAvatar">👤</span>
+					<div class="avatar-badge" id="myMbtiBadge">#???</div>
+				</div>
+				
+				<div class="avatar-text-group">
+					<div class="profile-header-row">
+						<div id="myNicknameDisplay" class="profile-name">닉네임</div>
+						<div class="header-badge">👑 상위 12% (종합)</div>
+					</div>
 
-                    <div class="msg-bubble">
-                        <span id="mainMsg">"상태 메시지"</span>
-                        <button onclick="editProfileMsg()" class="btn-edit-in-bubble">✏️</button>
-                    </div>
-                </div>
-            </div>
+					<div class="msg-bubble">
+						<span id="mainMsg">"상태 메시지"</span>
+						<button onclick="editProfileMsg()" class="btn-edit-in-bubble">✏️</button>
+					</div>
+				</div>
+			</div>
 
-            <div class="sub-tab-bar margin-top-15">
-                <div class="sub-tab active" onclick="goSubTab('tab-prism', this)">프리즘</div>
-                <div class="sub-tab" onclick="goSubTab('tab-history', this)">발자취</div>
-                <div class="sub-tab" onclick="goSubTab('tab-trophy', this)">업적</div>
-            </div>
-        </div>
-        
-        <div class="scroll-body no-scrollbar">
-            <div id="tab-prism" class="sub-content active"><div class="chart-wrapper"><canvas id="myRadarChart"></canvas></div></div>
-            <div id="tab-history" class="sub-content"><ul class="list-wrap"></ul></div>
-            <div id="tab-trophy" class="sub-content"><div class="achieve-grid"></div></div>
-        </div>
-    </div>
+			<div class="tab-line-header margin-top-20">
+				<div class="tab-line-item active" onclick="goSubTab('tab-prism', this)">프리즘</div>
+				<div class="tab-line-item" onclick="goSubTab('tab-history', this)">발자취</div>
+				<div class="tab-line-item" onclick="goSubTab('tab-trophy', this)">업적</div>
+			</div>
+		</div>
+		
+		<div class="scroll-body no-scrollbar">
+			<div id="tab-prism" class="sub-content active"><div class="chart-wrapper chart-spacing"><canvas id="myRadarChart"></canvas></div></div>
+			<div id="tab-history" class="sub-content"><ul class="list-wrap"></ul></div>
+			<div id="tab-trophy" class="sub-content"><div class="achieve-grid"></div></div>
+		</div>
+	</div>
 
     <div id="screen-vote" class="screen">
         <div id="voteHeader" class="vote-header sticky-header-group"> 
@@ -291,10 +293,10 @@
 
     <div id="screen-shop" class="screen">
         <div class="sticky-header-group">
-            <h2 class="main-screen-title">상점</h2>
+            <h2 class="main-screen-title padding-top-20">상점</h2>
             <div class="shop-token-info">내 보유 토큰: <span id="shopTokenDisplay">0</span> 💎</div>
         </div>
-        <div class="scroll-body no-scrollbar padding-top-20">
+        <div class="scroll-body no-scrollbar padding-top-50">
             <div class="shop-section">
                 <div class="shop-title">💎 토큰 충전소</div>
                 <div class="shop-grid">
@@ -326,28 +328,36 @@
         </div>
     </div>
 
-    <div id="screen-settings" class="screen">
-        <div class="sticky-header-group">
-            <h2 class="main-screen-title">설정</h2>
-            <div class="settings-profile">
-                <div class="st-avatar" id="settingsAvatar">👤</div>
-                <div class="st-info"><div class="st-name" id="settingsNickname">나</div><div class="st-account">kakao_u***</div></div>
-            </div>
-        </div>
-        <div class="scroll-body no-scrollbar padding-top-20">
-            <div class="settings-msg-box">
-                <span class="st-msg-label">나의 한마디</span>
-                <div class="st-msg-text" id="settingMsg">"..."</div>
-                <div class="st-msg-edit" onclick="editProfileMsg()">✏️</div>
-            </div>
-            <ul class="settings-menu">
-                <li class="st-menu-item" onclick="openInventory()"><span>🎒 내 아이템 보관함</span><span class="text-primary-bold">열기 ></span></li>
-                <li class="st-menu-item"><span>🔔 알림 설정</span><span class="text-gray">></span></li>
-                <li class="st-menu-item"><span>📜 이용 약관</span><span class="text-gray">></span></li>
-            </ul>
-            <button class="btn-logout" onclick="logout()">로그아웃</button>
-        </div>
-    </div>
+	<div id="screen-settings" class="screen">
+		<div class="sticky-header-group">
+			<h2 class="main-screen-title">설정</h2>
+		</div>
+		
+		<div class="scroll-body no-scrollbar padding-top-50">
+			
+			<div class="settings-account-box">
+				<span class="acc-label">로그인 정보</span>
+				<span class="acc-value" id="settingsAccountDisplay">kakao_guest</span>
+			</div>
+
+			<ul class="settings-menu">
+				<li class="st-menu-item" onclick="openInventory()">
+					<span>🎒 내 아이템 보관함</span>
+					<span class="text-gray">></span>
+				</li>
+
+				<li class="st-menu-item" onclick="shareLink()">
+					<span>💌 친구 초대하기</span>
+					<span class="text-gray">></span>
+				</li>
+
+				<li class="st-menu-item"><span>🔔 알림 설정</span><span class="text-gray">></span></li>
+				<li class="st-menu-item"><span>📜 이용 약관</span><span class="text-gray">></span></li>
+			</ul>
+			
+			<button class="btn-logout" onclick="logout()">로그아웃</button>
+		</div>
+	</div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="goTab('screen-main', this)"><span class="nav-icon">🪞</span>거울</div>
