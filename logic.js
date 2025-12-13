@@ -1,5 +1,5 @@
 // logic.js
-// Version: v19.14.0 (Refactored)
+// Version: v19.14.1 (Refactored)
 // Description: Core Game Logic & Data Handling
 
 // 1. Firebase Config
@@ -289,8 +289,10 @@ window.openExcludeOption = function() {
 
 window.confirmExclude = function(targetId, targetName) {
     const msg = `'${targetName}'님을 목록에서<br>영구히 제외하시겠습니까?<br><span class="warn-text">(이 작업은 되돌릴 수 없습니다)</span>`;
+    
     if(window.openCustomConfirm) {
-        window.openCustomConfirm(msg, async () => {
+        // 👇 [수정됨] 맨 앞에 제목("⚠️ 정말 제외할까요?")을 추가했습니다!
+        window.openCustomConfirm("⚠️ 정말 제외할까요?", msg, async () => {
             if (!window.myInfo.excluded_uids) window.myInfo.excluded_uids = [];
             window.myInfo.excluded_uids.push(targetId);
             window.candidates = window.candidates.filter(u => u.id !== targetId);
@@ -363,12 +365,27 @@ window.sendCommentToDB = function(uid, txt) {
     window.db.collection("users").doc(uid).update({ comment_count: window.FieldValue.increment(1) });
     if(window.showToast) window.showToast("전송 완료! 💌");
 }
+// logic.js - window.purchaseItem 수정
+
 window.purchaseItem = function(cost, type, val, name) {
     if (!window.db) return;
-    if (window.myInfo.tokens < cost) { if(window.openSheet) window.openSheet('❌', '토큰 부족', `보유: ${window.myInfo.tokens}💎 / 필요: ${cost}💎`, '충전이 필요해요.'); return; }
-    if (window.myInfo.inventory.some(i => i.value === val)) { if(window.openSheet) window.openSheet('🎒', '이미 보유 중', '이미 가지고 있는 아이템이에요.', '보관함을 확인해보세요.'); return; }
+    
+    // 1. 토큰 부족 체크
+    if (window.myInfo.tokens < cost) { 
+        if(window.openSheet) window.openSheet('❌', '토큰 부족', `보유: ${window.myInfo.tokens}💎 / 필요: ${cost}💎`, '충전이 필요해요.'); 
+        return; 
+    }
+    
+    // 2. 이미 보유 중 체크
+    if (window.myInfo.inventory.some(i => i.value === val)) { 
+        if(window.openSheet) window.openSheet('🎒', '이미 보유 중', '이미 가지고 있는 아이템이에요.', '보관함을 확인해보세요.'); 
+        return; 
+    }
+
+    // 3. 구매 확인 팝업 (여기 수정됨! ✨)
     if(window.openCustomConfirm) {
-        window.openCustomConfirm(`${name} 구매하시겠습니까? (${cost}💎)`, async () => {
+        // 첫 번째 인자로 "💎 아이템 구매" (제목)을 추가했습니다.
+        window.openCustomConfirm("💎 아이템 구매", `${name} 구매하시겠습니까? (${cost}💎)`, async () => {
             const item = { id: `i_${Date.now()}`, type, value: val, name, purchasedAt: new Date().toISOString(), isActive: false };
             if (type === 'effect') { const d = new Date(); d.setDate(d.getDate() + 7); item.expiresAt = d.toISOString(); }
             try {
@@ -382,6 +399,7 @@ window.purchaseItem = function(cost, type, val, name) {
         });
     }
 }
+
 window.equipAvatar = async function(val) {
     if (!window.db) return;
     try { await window.db.collection("users").doc(getUserId()).update({ avatar: val }); window.myInfo.avatar = val; if (window.updateProfileUI) window.updateProfileUI(); if (window.closePopup) window.closePopup('inventoryOverlay'); if (window.showToast) window.showToast("아바타가 변경되었습니다. ✨"); } catch (e) {}

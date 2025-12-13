@@ -1,5 +1,5 @@
 // ui.js
-// Version: v19.14.0 (Refactored)
+// Version: v19.14.1 (Refactored)
 // Description: UI Controller & Animation Handler
 
 let myMbti = "";
@@ -69,13 +69,21 @@ window.setMyTypeUI = function(m) {
 }
 
 // 2. Navigation
+// [수정됨] goTab 함수에서도 제목 파라미터 추가하여 호출
 window.goTab = function(s, n) {
     const activeScreen = document.querySelector('.screen.active');
+    
+    // Exit Guard with Custom Modal
     if (activeScreen && activeScreen.id === 'screen-vote' && window.isGameRunning) {
-        window.openCustomConfirm("⚠️ 평가 이탈<br><span class='warn-text'>티켓은 복구되지 않습니다.</span>", () => {
-            window.isGameRunning = false;
-            proceedTab(s, n);
-        });
+        // ✨ 첫 번째 인자로 제목("⚠️ 평가 이탈") 전달
+        window.openCustomConfirm(
+            "⚠️ 평가 이탈", 
+            "평가 중 이탈하면 티켓은 복구되지 않습니다.<br><span class='warn-text'>그래도 나가시겠습니까?</span>", 
+            () => {
+                window.isGameRunning = false;
+                proceedTab(s, n);
+            }
+        );
         return; 
     }
     proceedTab(s, n);
@@ -264,20 +272,36 @@ window.resetVoteScreenUI = function() {
     document.getElementById('screen-vote').style.position = '';
 }
 
-// 5. Modals & Popups
-window.showConfirmModal = function(title, msg, onConfirm) { /* Deprecated -> use openCustomConfirm */ window.openCustomConfirm(msg, onConfirm); }
+// 5. Modals & Popups (수정됨)
 
-window.openCustomConfirm = function(msg, onConfirm) {
+// 옛날 코드 호환용 (이제 title까지 같이 넘겨줌)
+window.showConfirmModal = function(title, msg, onConfirm) { 
+    window.openCustomConfirm(title, msg, onConfirm); 
+}
+
+// ✨ 수정된 핵심 함수
+window.openCustomConfirm = function(title, msg, onConfirm) {
     const el = document.getElementById('customConfirmOverlay');
+    const titleEl = document.getElementById('customConfirmTitle'); // 1. 제목 요소 찾기
     const msgEl = document.getElementById('customConfirmMsg');
     const btn = document.getElementById('btnCustomConfirmAction');
+
     if (el && msgEl && btn) {
+        if (titleEl) titleEl.innerText = title; // 2. 제목 내용 갈아끼우기
         msgEl.innerHTML = msg; 
-        btn.onclick = function() { if (onConfirm) onConfirm(); window.closeCustomConfirm(); };
+        
+        btn.onclick = function() { 
+            if (onConfirm) onConfirm(); 
+            window.closeCustomConfirm(); 
+        };
+        
         el.classList.add('open');
     }
 };
-window.closeCustomConfirm = function() { document.getElementById('customConfirmOverlay').classList.remove('open'); };
+
+window.closeCustomConfirm = function() { 
+    document.getElementById('customConfirmOverlay').classList.remove('open'); 
+};
 
 window.openSheet = function(icon, title, msg, subMsg) {
     /* Use dynamic creation for generic alert to keep HTML clean */

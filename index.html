@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.14.0 (Refactored)</title>
+    <title>It's me! v19.14.1 (Refactored)</title>
     <link rel="stylesheet" href="style.css?v=19.14.0">
 </head>
 <body>
@@ -22,16 +22,17 @@
         </div>
     </div>
 
-    <div id="customConfirmOverlay" class="sheet-overlay">
-        <div class="comment-modal">
-            <h3>⚠️ 정말 제외할까요?</h3>
-            <p id="customConfirmMsg" class="modal-msg">...</p>
-            <div class="modal-btn-row">
-                <button class="btn-action type-gray small" onclick="closeCustomConfirm()">취소</button>
-                <button class="btn-action type-purple small" id="btnCustomConfirmAction">확인</button>
-            </div>
-        </div>
-    </div>
+	<div id="customConfirmOverlay" class="sheet-overlay">
+		<div class="comment-modal">
+			<h3 id="customConfirmTitle">알림</h3> 
+			
+			<p id="customConfirmMsg" class="modal-msg">...</p>
+			<div class="modal-btn-row">
+				<button class="btn-action type-gray small" onclick="closeCustomConfirm()">취소</button>
+				<button class="btn-action type-purple small" id="btnCustomConfirmAction">확인</button>
+			</div>
+		</div>
+	</div>
 
     <div id="excludeOverlay" class="sheet-overlay">
         <div class="comment-modal">
