@@ -1,11 +1,11 @@
 // ui.js
-// Version: v19.14.5
+// Version: v19.14.6 (Cleanup)
 // Description: UI Controller & Animation Handler
 
 let myMbti = "";
 let tempTestResult = [];
 let myChart = null;
-window.currentInvFilter = 'all'; // ✨ [신규] 현재 보고 있는 탭 저장용 변수
+window.currentInvFilter = 'all'; 
 const THEME_CLASSES = ['bg-gold', 'bg-dark', 'bg-pink'];
 
 // 1. Common UI Updaters
@@ -31,35 +31,23 @@ window.updateTicketUI = function() {
     const count = (window.myInfo && window.myInfo.tickets) ? window.myInfo.tickets : 0;
     
     if (e) e.innerText = `🎫 남은 티켓: ${count}/5`;
-    
-    // [Fix] 패치되었던 티켓 카운트 배지 로직 정식 반영
     if (b) {
         const numSpan = b.querySelector('.fb-count');
         if(numSpan) numSpan.innerText = count;
     }
 }
 
-// ui.js의 window.updateProfileUI 함수 교체
-
 window.updateProfileUI = function() {
     if (!window.myInfo) return;
-
-    // 1. 보여줄 데이터 준비
-    // (설정 화면에서 아바타/닉네임 등은 삭제되었으므로 여기서도 굳이 안 챙겨도 되지만, 
-    //  다른 화면에서 쓸 수 있으니 기존 코드는 유지하되 'settingsAccountDisplay'를 추가합니다.)
     const d = {
         mainMsg: `"${window.myInfo.msg || '상태 메시지'}"`,
         shopTokenDisplay: window.myInfo.tokens,
         myAvatar: window.myInfo.avatar,
         myNicknameDisplay: window.myInfo.nickname,
         myMbtiBadge: `#${window.myInfo.mbti}`,
-        
-        // ✨ [추가] 설정 화면의 계정 정보 표시
-        // (실제로는 카카오 연동이 아니지만 그럴싸하게 ID 일부를 보여줍니다)
         settingsAccountDisplay: `kakao_${getUserId().substr(0,8)}***` 
     };
 
-    // 2. 화면 업데이트
     for (const k in d) {
         const e = document.getElementById(k);
         if (e) e.innerText = d[k];
@@ -80,13 +68,9 @@ window.setMyTypeUI = function(m) {
 }
 
 // 2. Navigation
-// [수정됨] goTab 함수에서도 제목 파라미터 추가하여 호출
 window.goTab = function(s, n) {
     const activeScreen = document.querySelector('.screen.active');
-    
-    // Exit Guard with Custom Modal
     if (activeScreen && activeScreen.id === 'screen-vote' && window.isGameRunning) {
-        // ✨ 첫 번째 인자로 제목("⚠️ 평가 이탈") 전달
         window.openCustomConfirm(
             "⚠️ 평가 이탈", 
             "평가 중 이탈하면 티켓은 복구되지 않습니다.<br><span class='warn-text'>그래도 나가시겠습니까?</span>", 
@@ -117,23 +101,14 @@ function proceedTab(s, n) {
     if (window.updateProfileUI) window.updateProfileUI();
 }
 
-// ui.js의 window.goSubTab 함수 교체
 window.goSubTab = function(c, t) {
-    // 1. 내용물(Content) 탭 전환
     document.querySelectorAll('.sub-content').forEach(x => x.classList.remove('active'));
     document.getElementById(c).classList.add('active');
-
-    // 2. [업그레이드] 클릭된 버튼(Tab) 활성화 처리
-    // (클래스 이름에 상관없이, 클릭된 놈의 형제들 중에서 나만 활성화!)
     if (t) {
         const parent = t.parentNode;
-        // 형제들의 active 제거
         Array.from(parent.children).forEach(child => child.classList.remove('active'));
-        // 나에게 active 추가
         t.classList.add('active');
     }
-
-    // 3. 탭별 데이터 로드 (차트 등)
     if (c === 'tab-prism' && window.drawChart) setTimeout(window.drawChart, 50);
     else if (c === 'tab-history' && window.renderHistoryList) window.renderHistoryList();
     else if (c === 'tab-trophy' && window.renderAchievementsList) window.renderAchievementsList();
@@ -149,13 +124,11 @@ window.prepareVoteScreen = function() {
     if (window.candidates.length < 2) { alert("후보가 부족합니다. (최소 2명)"); return; }
     window.isGameRunning = false;
     
-    // Check Ticket
     if (window.myInfo && window.myInfo.tickets <= 0) {
         window.disableVoteScreen();
         return; 
     }
 
-    // Reset UI
     const noMsg = document.getElementById('noTicketMsg');
     if(noMsg) noMsg.remove();
     document.getElementById('screen-vote').style.position = ''; 
@@ -192,7 +165,6 @@ window.updateVsCardUI = function(uA, uB) {
     document.getElementById('vsContainer').style.display = 'flex';
     document.getElementById('winnerContainer').style.display = 'none';
     
-    // Reset Animation Classes
     const cards = document.querySelectorAll('.vs-card');
     cards.forEach(c => c.classList.remove('selected-choice'));
 
@@ -206,17 +178,13 @@ function updateCard(p, u) {
     document.getElementById('avatar' + p).innerText = u.avatar;
 }
 
-// [New] Animation Handler for Vote
 window.animateVoteSelection = function(idx) {
     return new Promise(resolve => {
         const cards = document.querySelectorAll('#vsContainer .vs-card');
         const selectedCard = cards[idx];
-        
         if (selectedCard) {
             selectedCard.classList.add('selected-choice');
         }
-
-        // Wait 550ms then resolve
         setTimeout(() => {
             resolve();
         }, 550);
@@ -234,9 +202,8 @@ window.showWinnerScreen = function(w) {
     document.getElementById('winnerTitle').innerText = "🏆 최종 우승!";
     document.getElementById('winnerText').innerText = "이 친구에게 점수가 전달되었습니다.";
 
-    // Render Buttons
     const actionArea = document.getElementById('winnerActionArea');
-    actionArea.innerHTML = ''; // Clear prev
+    actionArea.innerHTML = ''; 
 
     const btnComment = document.createElement('button');
     btnComment.className = 'btn-action type-white btn-master';
@@ -267,7 +234,7 @@ window.fireRoundEffect = function(r) {
     }
 }
 
-// 4. Ticket Empty Screen
+// 4. Ticket Empty Screen (Cleaned)
 window.disableVoteScreen = function() {
     ['voteWrapper', 'passBtn', 'winnerContainer', 'roundBadge', 'voteIntro', 'voteTitle'].forEach(i => { 
         const e = document.getElementById(i); if(e) e.style.display = 'none'; 
@@ -279,11 +246,11 @@ window.disableVoteScreen = function() {
         s.style.position = 'relative'; 
         const d = document.createElement('div');
         d.id = 'noTicketMsg';
-        d.style.cssText = `position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 18px; color: var(--text-secondary); background-color: var(--card); z-index: 10;`;
+        d.className = 'no-ticket-screen'; // Use CSS class
         d.innerHTML = `
-            <div style="font-size:60px; margin-bottom:20px;">😴</div>
-            <h2 style="margin-bottom:10px;">티켓 소진!</h2>
-            <p style="margin-bottom:30px;">내일 다시 충전돼요.</p>
+            <div class="no-ticket-icon">😴</div>
+            <h2 class="margin-bottom-30">티켓 소진!</h2>
+            <p class="margin-bottom-30">내일 다시 충전돼요.</p>
             <button class="btn-action type-purple btn-master" onclick="goTab('screen-main',document.querySelector('.nav-item:first-child'))">메인으로</button>
         `;
         s.appendChild(d);
@@ -295,22 +262,19 @@ window.resetVoteScreenUI = function() {
     document.getElementById('screen-vote').style.position = '';
 }
 
-// 5. Modals & Popups (수정됨)
-
-// 옛날 코드 호환용 (이제 title까지 같이 넘겨줌)
+// 5. Modals & Popups
 window.showConfirmModal = function(title, msg, onConfirm) { 
     window.openCustomConfirm(title, msg, onConfirm); 
 }
 
-// ✨ 수정된 핵심 함수
 window.openCustomConfirm = function(title, msg, onConfirm) {
     const el = document.getElementById('customConfirmOverlay');
-    const titleEl = document.getElementById('customConfirmTitle'); // 1. 제목 요소 찾기
+    const titleEl = document.getElementById('customConfirmTitle');
     const msgEl = document.getElementById('customConfirmMsg');
     const btn = document.getElementById('btnCustomConfirmAction');
 
     if (el && msgEl && btn) {
-        if (titleEl) titleEl.innerText = title; // 2. 제목 내용 갈아끼우기
+        if (titleEl) titleEl.innerText = title;
         msgEl.innerHTML = msg; 
         
         btn.onclick = function() { 
@@ -326,93 +290,48 @@ window.closeCustomConfirm = function() {
     document.getElementById('customConfirmOverlay').classList.remove('open'); 
 };
 
-// ui.js 하단에 추가 또는 교체
-
-// [Upgrade] 알림창이 없으면 만들어서 띄우는 똑똑한 함수
-window.openCustomAlert = function(msg, onOk) {
-    let overlayId = 'customAlertOverlay';
-    let el = document.getElementById(overlayId);
-
-    // 1. HTML에 알림창이 없으면 자바스크립트가 직접 만듭니다. (자동 생성)
-    if (!el) {
-        el = document.createElement('div');
-        el.id = overlayId;
-        el.className = 'sheet-overlay';
-        el.style.zIndex = '12000'; // 가장 위에 뜨도록 설정
-        
-        el.innerHTML = `
-            <div class="comment-modal">
-                <h3>알림</h3>
-                <p id="customAlertMsg" class="modal-msg" style="white-space: pre-line; margin-bottom: 20px;">...</p>
-                <div class="modal-btn-row" style="justify-content: center;">
-                    <button class="btn-action type-purple small" id="btnCustomAlertOk">확인</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(el);
-    }
-
-    // 2. 메시지 넣고 띄우기
-    const msgEl = el.querySelector('#customAlertMsg');
-    const btn = el.querySelector('#btnCustomAlertOk');
-
-    if (msgEl && btn) {
-        msgEl.innerText = msg; // 줄바꿈 지원
-        
-        // 버튼 클릭 이벤트 (중복 방지를 위해 매번 새로 연결)
-        btn.onclick = function() {
-            el.classList.remove('open');
-            if (onOk) onOk();
-        };
-
-        // 애니메이션을 위해 약간의 딜레이 후 오픈
-        setTimeout(() => el.classList.add('open'), 10);
-    }
-};
-
-// [Override] 기본 alert를 커스텀 알림으로 교체
-window.alert = function(msg) {
-    window.openCustomAlert(msg);
-};
-
-// [New] 커스텀 알림창 함수
 window.openCustomAlert = function(msg, onOk) {
     const el = document.getElementById('customAlertOverlay');
     const msgEl = document.getElementById('customAlertMsg');
     const btn = document.getElementById('btnCustomAlertOk');
 
     if (el && msgEl && btn) {
-        msgEl.innerText = msg; // 줄바꿈 적용을 위해 innerText 사용
-        
-        // 확인 버튼 클릭 시 닫기
+        msgEl.innerText = msg;
         btn.onclick = function() {
             el.classList.remove('open');
             if (onOk) onOk();
         };
-
         el.classList.add('open');
     } else {
-        // 만약 HTML이 로드되지 않았다면 비상용으로 기본 alert 사용
         console.warn("Custom Alert HTML not found. Fallback to native alert.");
         alert(msg); 
     }
 };
 
-// ⚡ [핵심] 기존 window.alert를 커스텀 함수로 덮어씌우기 (Override)
-// 이 코드가 실행된 이후부터는 모든 alert()가 예쁜 모달로 바뀝니다.
 window.alert = function(msg) {
     window.openCustomAlert(msg);
 };
 
-
 window.openSheet = function(icon, title, msg, subMsg) {
-    /* Use dynamic creation for generic alert to keep HTML clean */
     const overlayId = 'genericAlertOverlay';
     let overlay = document.getElementById(overlayId);
     if(overlay) overlay.remove();
     overlay = document.createElement('div');
-    overlay.id = overlayId; overlay.className = 'sheet-overlay open'; overlay.style.zIndex = '11000';
-    overlay.innerHTML = `<div class="comment-modal"><div style="font-size:40px; margin-bottom:10px;">${icon}</div><h3>${title}</h3><p style="text-align:center; margin-bottom:5px; font-weight:bold;">${msg}</p><p style="text-align:center; font-size:13px; color:var(--text-secondary); margin-bottom:20px;">${subMsg || ''}</p><div class="modal-btn-row"><button class="btn-action type-gray" onclick="document.getElementById('${overlayId}').remove()">확인</button></div></div>`;
+    overlay.id = overlayId; 
+    overlay.className = 'sheet-overlay open'; 
+    overlay.style.zIndex = '11000'; // Keep this specific override
+    overlay.innerHTML = `
+        <div class="comment-modal">
+            <div class="sheet-icon">${icon}</div>
+            <h3 class="sheet-title-text">${title}</h3>
+            <p class="sheet-sub-text">
+                <span style="font-weight:bold; display:block; margin-bottom:5px;">${msg}</span>
+                ${subMsg || ''}
+            </p>
+            <div class="modal-btn-row">
+                <button class="btn-action type-gray" onclick="document.getElementById('${overlayId}').remove()">확인</button>
+            </div>
+        </div>`;
     document.body.appendChild(overlay);
 }
 
@@ -428,7 +347,15 @@ window.openProfilePopup = function(id) {
         overlay.innerHTML = `<div class="comment-modal"><div id="profileViewContent"></div><div class="modal-btn-row"><button class="btn-action type-gray" onclick="closePopup('${overlayId}')">닫기</button></div></div>`;
         document.body.appendChild(overlay);
     }
-    const content = `<div style="display:flex; flex-direction:column; align-items:center; margin-bottom:20px;"><div class="avatar-circle" style="width:100px; height:100px; font-size:50px; margin-bottom:15px;">${user.avatar}<div class="avatar-badge" style="font-size:14px; padding:5px 10px;">#${user.mbti}</div></div><h2 style="margin-bottom:5px;">${user.nickname}</h2><div class="sheet-message-box" style="width:100%; margin-bottom:0;">"${user.msg || user.desc || "상태 메시지가 없습니다."}"</div></div>`;
+    const content = `
+        <div class="profile-view-box">
+            <div class="avatar-circle profile-view-avatar">
+                ${user.avatar}
+                <div class="avatar-badge profile-view-badge">#${user.mbti}</div>
+            </div>
+            <h2 class="margin-bottom-30">${user.nickname}</h2>
+            <div class="sheet-message-box">"${user.msg || user.desc || "상태 메시지가 없습니다."}"</div>
+        </div>`;
     document.getElementById('profileViewContent').innerHTML = content;
     overlay.classList.add('open');
 }
@@ -478,8 +405,6 @@ window.renderRankList = function(filterIdx) {
 };
 window.filterRank = function(el, type) { document.querySelectorAll('#rankFilterContainer .stat-pill').forEach(x => x.classList.remove('active')); el.classList.add('active'); window.currentFilter = type; window.renderRankList(type); };
 
-// Other helpers (Inventory, History, MBTI Test) omitted for brevity but presumed included or identical to previous version.
-// Simply re-adding missing tiny functions to ensure full operation:
 window.logout = function() { localStorage.clear(); location.reload(); }
 window.loginWithServer = function() { goScreen('screen-nickname'); }
 window.debugLogin = function(u) { if (!u) return; localStorage.setItem('my_uid', u); location.reload(); }
@@ -489,23 +414,18 @@ window.saveNicknameAndNext = function() { const n=document.getElementById('input
 window.editProfileMsg = function() { if(!window.myInfo)return; document.getElementById('profileMsgInput').value=window.myInfo.msg==='상태 메시지'?'':window.myInfo.msg; document.getElementById('profileMsgOverlay').classList.add('open'); }
 window.submitProfileMsg = async function() { const m=document.getElementById('profileMsgInput').value; if(window.saveProfileMsgToDB && await window.saveProfileMsgToDB(m.trim().substring(0,50))) closePopup('profileMsgOverlay'); }
 
-// 1. window.openInventory 함수 수정 (초기화 로직 추가)
+// Inventory System (Cleaned)
 window.openInventory = function() {
     document.getElementById('inventoryOverlay').classList.add('open');
-    
-    // ✨ 열 때마다 '전체' 탭을 강제로 선택해서 리스트를 갱신
     const allTab = document.querySelector('.inv-tab:first-child'); 
     if(allTab) {
         window.updateInventoryList('all', allTab);
     }
 }
 
-// 2. window.updateInventoryList 함수 수정 (버튼 디자인 적용)
 window.updateInventoryList = function(filter, tabEl) {
-    // ✨ [신규] 탭을 클릭했거나 갱신될 때, 현재 필터를 기억해둠
     if (filter) window.currentInvFilter = filter;
     
-    // 탭 활성화 UI 처리
     if(tabEl) { 
         document.querySelectorAll('.inv-tab').forEach(t => t.classList.remove('active')); 
         tabEl.classList.add('active'); 
@@ -517,7 +437,6 @@ window.updateInventoryList = function(filter, tabEl) {
     const l = window.myInfo.inventory || [];
     const def = { id: 'def', type: 'avatar', value: '👤', name: '기본' };
     
-    // 필터링 로직 (기존 동일)
     let all = (filter === 'effect') ? l.filter(i => i.type === 'effect') : (filter === 'avatar') ? [def, ...l.filter(i => i.type === 'avatar')] : [def, ...l];
     
     let listHtml = '';
@@ -528,7 +447,6 @@ window.updateInventoryList = function(filter, tabEl) {
             const isEquipped = (i.type === 'avatar' && i.value === window.myInfo.avatar);
             const isActive = i.isActive;
             
-            // ✨ [수정] 버튼 스타일을 'pre.png' 스타일(.btn-item-use)로 변경
             let btnLabel = '사용';
             let btnClass = 'btn-item-use';
             let btnAction = '';
@@ -536,21 +454,20 @@ window.updateInventoryList = function(filter, tabEl) {
             if (i.type === 'avatar') { 
                 if (isEquipped) { 
                     btnLabel = '사용 중'; 
-                    btnClass += ' using'; // 회색 스타일 추가
+                    btnClass += ' using'; 
                 } else { 
                     btnAction = `onclick="equipAvatar('${i.value}')"`; 
                 } 
             } else { // effect
                 if (isActive) { 
                     btnLabel = '해제'; 
-                    btnClass = 'btn-item-use using'; // 해제 버튼도 차분하게
+                    btnClass = 'btn-item-use using'; 
                     btnAction = `onclick="toggleEffect('${i.id}')"`; 
                 } else { 
                     btnAction = `onclick="toggleEffect('${i.id}')"`; 
                 } 
             }
             
-            // 만료일 체크 로직 (기존 유지)
             let subText = i.type === 'avatar' ? '영구 소장' : '기간제';
             let subStyle = 'color:var(--text-secondary);';
             if (i.expiresAt) {
@@ -563,9 +480,9 @@ window.updateInventoryList = function(filter, tabEl) {
                  }
             }
 
-            // HTML 생성
+            // Using Clean CSS Classes
             listHtml += `
-                <div class="list-item" style="border-bottom: 1px solid #f1f2f6;">
+                <div class="list-item border-bottom-light">
                     <div class="common-circle-frame" style="background:#f8f9fa;">${i.value.startsWith('bg')?'✨':i.value}</div>
                     <div class="list-item-text">
                         <div style="font-weight:bold; font-size:14px; margin-bottom:2px;">${i.name}</div>
@@ -582,35 +499,22 @@ window.applyActiveEffects = function() { const b=document.body; b.classList.remo
 window.renderAchievementsList = function() { const container = document.querySelector('.achieve-grid'); if(!container) return; const list = window.achievementsList||[]; const myIds = new Set(window.myInfo.achievedIds||[]); let html=''; list.forEach(a=>{ const isUnlocked=myIds.has(a.id); const cls=isUnlocked?'':'locked'; const date=window.achievedDateMap[a.id]||''; html+=`<div class="achieve-item ${cls}" onclick="window.showToast('${isUnlocked?'달성일: '+date:'미달성: '+a.desc}')"><div style="font-size:30px; margin-bottom:5px;">${a.icon}</div><div class="achieve-title">${a.title}</div>${isUnlocked?'<div style="font-size:9px; color:var(--primary); margin-top:2px;">✔ 달성</div>':''}</div>`; }); if(html==='') html=`<p class="list-empty-msg" style="grid-column:1/-1;">업적 데이터 로딩 중...</p>`; container.innerHTML=html; }
 window.renderHistoryList = async function() { const container = document.querySelector('#tab-history .list-wrap'); if(!container) return; container.innerHTML=`<div style="text-align:center; padding:20px;">🔄 기록 불러오는 중...</div>`; if(!window.db){container.innerHTML=`<p class="list-empty-msg">DB 연결이 필요합니다.</p>`;return;} try{const uid=localStorage.getItem('my_uid'); const snapshot=await window.db.collection("logs").where("target_uid","==",uid).orderBy("timestamp","desc").limit(20).get(); if(snapshot.empty){container.innerHTML=`<p class="list-empty-msg">아직 기록이 없어요.</p>`;return;} let html=''; snapshot.forEach(doc=>{ const data=doc.data(); const date=data.timestamp?data.timestamp.toDate().toLocaleDateString():'날짜 미상'; let icon='📩'; if(data.action_type==='VOTE')icon='🗳️';else if(data.action_type==='ACHIEVE')icon='🏆';else if(data.action_type==='PURCHASE')icon='🛍️'; html+=`<li class="list-item"><div class="common-circle-frame">${icon}</div><div class="list-item-text"><div style="font-weight:bold; font-size:13px;">${data.message}</div><div style="font-size:11px; color:var(--text-secondary);">${date}</div></div>${data.score_change!==0?`<div class="list-item-score" style="background:transparent; color:${data.score_change>0?'#ff7675':'var(--text-secondary)'};">${data.score_change>0?'+':''}${data.score_change}</div>`:''}</li>`; }); container.innerHTML=html; } catch(e){console.error(e);container.innerHTML=`<p class="list-empty-msg">기록 로드 실패</p>`;} }
 
-// ui.js 맨 아래에 추가
-
 window.shareLink = function() {
     const url = window.location.href;
     const title = "It's me! - 남들이 보는 진짜 나";
     const text = "친구들이 보는 내 이미지는 어떨까? 지금 확인해보세요!";
-
-    // 1. 브라우저 내장 공유 기능 시도 (모바일 등)
     if (navigator.share) {
-        navigator.share({ title: title, text: text, url: url })
-            .catch((error) => console.log('공유 취소 또는 실패', error));
-    } 
-    // 2. 미지원 시 클립보드 복사 (PC 등)
-    else {
-        // 임시 textarea를 만들어 복사하고 삭제하는 방식 (호환성 좋음)
+        navigator.share({ title: title, text: text, url: url }).catch((error) => console.log('공유 취소 또는 실패', error));
+    } else {
         const textarea = document.createElement('textarea');
         textarea.value = url;
-        textarea.style.position = 'fixed'; // 화면 밖으로 튀지 않게 고정
-        textarea.style.opacity = '0';
+        textarea.style.position = 'fixed'; textarea.style.opacity = '0';
         document.body.appendChild(textarea);
         textarea.select();
-        
         try {
             document.execCommand('copy');
-            if(window.showToast) window.showToast("링크가 복사되었습니다! 🔗");
-            else alert("링크가 복사되었습니다!");
-        } catch (err) {
-            alert("링크 복사에 실패했습니다.");
-        }
+            if(window.showToast) window.showToast("링크가 복사되었습니다! 🔗"); else alert("링크가 복사되었습니다!");
+        } catch (err) { alert("링크 복사에 실패했습니다."); }
         document.body.removeChild(textarea);
     }
 };

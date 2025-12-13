@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.14.5</title>
-    <link rel="stylesheet" href="style.css?v=19.14.0">
+    <title>It's me! v19.14.6</title>
+    <link rel="stylesheet" href="style.css?v=19.14.6">
 </head>
 <body>
 
@@ -22,28 +22,26 @@
         </div>
     </div>
 
-	<div id="customConfirmOverlay" class="sheet-overlay">
-		<div class="comment-modal">
-			<h3 id="customConfirmTitle">알림</h3> 
-			
-			<p id="customConfirmMsg" class="modal-msg">...</p>
-			<div class="modal-btn-row">
-				<button class="btn-action type-gray small" onclick="closeCustomConfirm()">취소</button>
-				<button class="btn-action type-purple small" id="btnCustomConfirmAction">확인</button>
-			</div>
-		</div>
-	</div>
-	
+    <div id="customConfirmOverlay" class="sheet-overlay">
+        <div class="comment-modal">
+            <h3 id="customConfirmTitle">알림</h3> 
+            <p id="customConfirmMsg" class="modal-msg">...</p>
+            <div class="modal-btn-row">
+                <button class="btn-action type-gray small" onclick="closeCustomConfirm()">취소</button>
+                <button class="btn-action type-purple small" id="btnCustomConfirmAction">확인</button>
+            </div>
+        </div>
+    </div>
 
-	<div id="customAlertOverlay" class="sheet-overlay" style="z-index: 12000;">
-		<div class="comment-modal">
-			<h3 id="customAlertTitle">알림</h3>
-			<p id="customAlertMsg" class="modal-msg" style="white-space: pre-line;">...</p>
-			<div class="modal-btn-row" style="justify-content: center;">
-				<button class="btn-action type-purple small" id="btnCustomAlertOk">확인</button>
-			</div>
-		</div>
-	</div>
+    <div id="customAlertOverlay" class="sheet-overlay">
+        <div class="comment-modal">
+            <h3 id="customAlertTitle">알림</h3>
+            <p id="customAlertMsg" class="modal-msg">...</p>
+            <div class="modal-btn-row">
+                <button class="btn-action type-purple small" id="btnCustomAlertOk">확인</button>
+            </div>
+        </div>
+    </div>
 
     <div id="excludeOverlay" class="sheet-overlay">
         <div class="comment-modal">
@@ -89,24 +87,23 @@
         </div>
     </div>
 
-	<div id="inventoryOverlay" class="sheet-overlay">
-		<div class="comment-modal modal-wide">
-			<h3 style="margin-bottom: 20px;">🎒 내 아이템 보관함</h3>
-			
-			<div class="tab-line-header">
-				<div class="tab-line-item active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
-				<div class="tab-line-item inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
-				<div class="tab-line-item inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
-			</div>
+    <div id="inventoryOverlay" class="sheet-overlay">
+        <div class="comment-modal modal-wide">
+            <h3 class="margin-bottom-30">🎒 내 아이템 보관함</h3>
+            
+            <div class="tab-line-header">
+                <div class="tab-line-item active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
+                <div class="tab-line-item inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
+                <div class="tab-line-item inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
+            </div>
 
-			<div id="inventoryListArea" class="inventory-list-area">
-				</div>
+            <div id="inventoryListArea" class="inventory-list-area"></div>
 
-			<div class="modal-btn-row" style="margin-top: 0;">
-				<button class="btn-action type-purple" onclick="closePopup('inventoryOverlay')" style="width: 100%; margin-bottom: 0;">닫기</button>
-			</div>
-		</div>
-	</div>
+            <div class="modal-btn-row margin-top-15">
+                <button class="btn-action type-purple" onclick="closePopup('inventoryOverlay')" style="width: 100%; margin-bottom: 0;">닫기</button>
+            </div>
+        </div>
+    </div>
 
     <div id="screen-login" class="screen active full-center">
         <div class="center-content">
@@ -130,10 +127,10 @@
 
     <div id="screen-mbti" class="screen">
         <div class="scroll-body padding-20">
-            <div class="spacer-20"></div>
+            <div class="margin-top-20"></div>
             <h2>기초 데이터 입력</h2>
             <p>나의 MBTI를 선택해주세요.</p>
-            <div class="mbti-grid">
+            <div class="mbti-grid" style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
                 <button class="stat-pill" onclick="saveMbtiToServer('ENFP')">ENFP</button><button class="stat-pill" onclick="saveMbtiToServer('ISTJ')">ISTJ</button>
                 <button class="stat-pill" onclick="saveMbtiToServer('ENTP')">ENTP</button><button class="stat-pill" onclick="saveMbtiToServer('INFJ')">INFJ</button>
                 <button class="stat-pill" onclick="saveMbtiToServer('ISTP')">ISTP</button><button class="stat-pill" onclick="saveMbtiToServer('ISFP')">ISFP</button>
@@ -143,7 +140,7 @@
                 <button class="stat-pill" onclick="saveMbtiToServer('ENFJ')">ENFJ</button><button class="stat-pill" onclick="saveMbtiToServer('ENTJ')">ENTJ</button>
                 <button class="stat-pill" onclick="saveMbtiToServer('INTJ')">INTJ</button><button class="stat-pill" onclick="saveMbtiToServer('ISFJ')">ISFJ</button>
             </div>
-            <button class="btn-action type-purple" onclick="goScreen('screen-test-1')">🤔 테스트로 찾기</button>
+            <button class="btn-action type-purple margin-top-20" onclick="goScreen('screen-test-1')">🤔 테스트로 찾기</button>
         </div>
     </div>
 
@@ -161,42 +158,42 @@
         </div>
     </div>
     
-	<div id="screen-main" class="screen">
-		<div class="sticky-header-group has-tabs">
-			<h2 class="main-screen-title">나의 거울</h2>
-			
-			<div class="avatar-area">
-				<div class="avatar-circle">
-					<span id="myAvatar">👤</span>
-					<div class="avatar-badge" id="myMbtiBadge">#???</div>
-				</div>
-				
-				<div class="avatar-text-group">
-					<div class="profile-header-row">
-						<div id="myNicknameDisplay" class="profile-name">닉네임</div>
-						<div class="header-badge">👑 상위 12% (종합)</div>
-					</div>
+    <div id="screen-main" class="screen">
+        <div class="sticky-header-group has-tabs">
+            <h2 class="main-screen-title">나의 거울</h2>
+            
+            <div class="avatar-area">
+                <div class="avatar-circle">
+                    <span id="myAvatar">👤</span>
+                    <div class="avatar-badge" id="myMbtiBadge">#???</div>
+                </div>
+                
+                <div class="avatar-text-group">
+                    <div class="profile-header-row">
+                        <div id="myNicknameDisplay" class="profile-name">닉네임</div>
+                        <div class="header-badge">👑 상위 12% (종합)</div>
+                    </div>
 
-					<div class="msg-bubble">
-						<span id="mainMsg">"상태 메시지"</span>
-						<button onclick="editProfileMsg()" class="btn-edit-in-bubble">✏️</button>
-					</div>
-				</div>
-			</div>
+                    <div class="msg-bubble">
+                        <span id="mainMsg">"상태 메시지"</span>
+                        <button onclick="editProfileMsg()" class="btn-edit-in-bubble">✏️</button>
+                    </div>
+                </div>
+            </div>
 
-			<div class="tab-line-header margin-top-20">
-				<div class="tab-line-item active" onclick="goSubTab('tab-prism', this)">프리즘</div>
-				<div class="tab-line-item" onclick="goSubTab('tab-history', this)">발자취</div>
-				<div class="tab-line-item" onclick="goSubTab('tab-trophy', this)">업적</div>
-			</div>
-		</div>
-		
-		<div class="scroll-body no-scrollbar">
-			<div id="tab-prism" class="sub-content active"><div class="chart-wrapper chart-spacing"><canvas id="myRadarChart"></canvas></div></div>
-			<div id="tab-history" class="sub-content"><ul class="list-wrap"></ul></div>
-			<div id="tab-trophy" class="sub-content"><div class="achieve-grid"></div></div>
-		</div>
-	</div>
+            <div class="tab-line-header margin-top-20">
+                <div class="tab-line-item active" onclick="goSubTab('tab-prism', this)">프리즘</div>
+                <div class="tab-line-item" onclick="goSubTab('tab-history', this)">발자취</div>
+                <div class="tab-line-item" onclick="goSubTab('tab-trophy', this)">업적</div>
+            </div>
+        </div>
+        
+        <div class="scroll-body no-scrollbar">
+            <div id="tab-prism" class="sub-content active"><div class="chart-wrapper"><canvas id="myRadarChart"></canvas></div></div>
+            <div id="tab-history" class="sub-content"><ul class="list-wrap"></ul></div>
+            <div id="tab-trophy" class="sub-content"><div class="achieve-grid"></div></div>
+        </div>
+    </div>
 
     <div id="screen-vote" class="screen">
         <div id="voteHeader" class="vote-header sticky-header-group"> 
@@ -328,36 +325,36 @@
         </div>
     </div>
 
-	<div id="screen-settings" class="screen">
-		<div class="sticky-header-group">
-			<h2 class="main-screen-title">설정</h2>
-		</div>
-		
-		<div class="scroll-body no-scrollbar padding-top-50">
-			
-			<div class="settings-account-box">
-				<span class="acc-label">로그인 정보</span>
-				<span class="acc-value" id="settingsAccountDisplay">kakao_guest</span>
-			</div>
+    <div id="screen-settings" class="screen">
+        <div class="sticky-header-group">
+            <h2 class="main-screen-title">설정</h2>
+        </div>
+        
+        <div class="scroll-body no-scrollbar padding-top-50">
+            
+            <div class="settings-account-box">
+                <span class="acc-label">로그인 정보</span>
+                <span class="acc-value" id="settingsAccountDisplay">kakao_guest</span>
+            </div>
 
-			<ul class="settings-menu">
-				<li class="st-menu-item" onclick="openInventory()">
-					<span>🎒 내 아이템 보관함</span>
-					<span class="text-gray">></span>
-				</li>
+            <ul class="settings-menu">
+                <li class="st-menu-item" onclick="openInventory()">
+                    <span>🎒 내 아이템 보관함</span>
+                    <span class="text-gray">></span>
+                </li>
 
-				<li class="st-menu-item" onclick="shareLink()">
-					<span>💌 친구 초대하기</span>
-					<span class="text-gray">></span>
-				</li>
+                <li class="st-menu-item" onclick="shareLink()">
+                    <span>💌 친구 초대하기</span>
+                    <span class="text-gray">></span>
+                </li>
 
-				<li class="st-menu-item"><span>🔔 알림 설정</span><span class="text-gray">></span></li>
-				<li class="st-menu-item"><span>📜 이용 약관</span><span class="text-gray">></span></li>
-			</ul>
-			
-			<button class="btn-logout" onclick="logout()">로그아웃</button>
-		</div>
-	</div>
+                <li class="st-menu-item"><span>🔔 알림 설정</span><span class="text-gray">></span></li>
+                <li class="st-menu-item"><span>📜 이용 약관</span><span class="text-gray">></span></li>
+            </ul>
+            
+            <button class="btn-logout" onclick="logout()">로그아웃</button>
+        </div>
+    </div>
 
     <div class="bottom-nav">
         <div class="nav-item active" onclick="goTab('screen-main', this)"><span class="nav-icon">🪞</span>거울</div>
@@ -373,8 +370,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.14.0" defer></script>
-<script src="ui.js?v=19.14.0" defer></script>
+<script src="logic.js?v=19.14.6" defer></script>
+<script src="ui.js?v=19.14.6" defer></script>
 <script src="init_test.js?v=19.13.2" defer></script> 
 
 <script>
