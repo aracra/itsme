@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! v19.14.6</title>
-    <link rel="stylesheet" href="style.css?v=19.14.6">
+    <title>It's me! Version: v19.15.0</title>
+    <link rel="stylesheet" href="style.css?v=19.15.0">
 </head>
 <body>
 
@@ -268,9 +268,15 @@
                 <h2 class="main-screen-title">주변미터 랭킹</h2>
                 <div id="rankFilterContainer" class="rank-filter-wrapper">
                     <div class="filter-top-row">
-                        <div class="stat-pill active total-pill" onclick="filterRank(this, -1)">
-                            📊 <span class="pill-text-force">종합 랭킹 보기</span>
-                        </div>
+						<div class="ranking-switch-container">
+							<input type="radio" id="tabRank" name="rankView" checked onchange="switchRankView('rank')">
+							<label for="tabRank" class="switch-label">🏆 전체 랭킹</label>
+
+							<input type="radio" id="tabFandom" name="rankView" onchange="switchRankView('fandom')">
+							<label for="tabFandom" class="switch-label">💖 나의 팬덤</label>
+							
+							<div class="switch-selection"></div>
+						</div>
                     </div>
                     <div class="filter-scroll-row no-scrollbar">
                         <div class="stat-pill" onclick="filterRank(this, 0)">🧠 <span class="pill-text">지성</span></div>
@@ -288,42 +294,40 @@
         </div>
     </div>
 
-    <div id="screen-shop" class="screen">
-        <div class="sticky-header-group">
-            <h2 class="main-screen-title padding-top-20">상점</h2>
-            <div class="shop-token-info">내 보유 토큰: <span id="shopTokenDisplay">0</span> 💎</div>
-        </div>
-        <div class="scroll-body no-scrollbar padding-top-50">
-            <div class="shop-section">
-                <div class="shop-title">💎 토큰 충전소</div>
-                <div class="shop-grid">
-                    <div class="shop-item" onclick="window.openSheet('🚧', '준비 중', '결제 기능은 준비 중입니다.', '조금만 기다려주세요!')">
-                        <div class="shop-item-img">💰</div><div class="shop-item-name">토큰 100개</div><div class="shop-item-price price-green">₩ 1,200</div>
-                    </div>
-                    <div class="shop-item" onclick="window.openSheet('🚧', '준비 중', '결제 기능은 준비 중입니다.', '조금만 기다려주세요!')">
-                        <div class="shop-item-img">💰</div><div class="shop-item-name">토큰 550개</div><div class="shop-item-price price-green">₩ 5,900</div>
-                    </div>
-                </div>
-            </div>
-            <div class="shop-section margin-top-20">
-                <div class="shop-title">🦊 아바타 스킨 (영구)</div>
-                <div class="shop-grid">
-                    <div class="shop-item" onclick="purchaseItem(50, 'avatar', '🐯', '호랑이')"><div class="shop-item-img">🐯</div><div class="shop-item-name">호랑이</div><div class="shop-item-price">💎 50</div></div>
-                    <div class="shop-item" onclick="purchaseItem(50, 'avatar', '🐰', '토끼')"><div class="shop-item-img">🐰</div><div class="shop-item-name">토끼</div><div class="shop-item-price">💎 50</div></div>
-                    <div class="shop-item" onclick="purchaseItem(100, 'avatar', '👽', '외계인')"><div class="shop-item-img">👽</div><div class="shop-item-name">외계인</div><div class="shop-item-price">💎 100</div></div>
-                    <div class="shop-item" onclick="purchaseItem(100, 'avatar', '🤖', '로봇')"><div class="shop-item-img">🤖</div><div class="shop-item-name">로봇</div><div class="shop-item-price">💎 100</div></div>
-                </div>
-            </div>
-            <div class="shop-section margin-top-20">
-                <div class="shop-title">✨ 테마 아이템 (7일)</div>
-                <div class="shop-grid">
-                    <div class="shop-item" onclick="purchaseItem(30, 'effect', 'bg-gold', '황금 배경')"><div class="shop-item-img">✨</div><div class="shop-item-name">황금 배경</div><div class="shop-item-price">💎 30</div></div>
-                    <div class="shop-item" onclick="purchaseItem(30, 'effect', 'bg-dark', '다크 모드')"><div class="shop-item-img">🌑</div><div class="shop-item-name">다크 모드</div><div class="shop-item-price">💎 30</div></div>
-                    <div class="shop-item" onclick="purchaseItem(30, 'effect', 'bg-pink', '핑크 모드')"><div class="shop-item-img">🌸</div><div class="shop-item-name">핑크 모드</div><div class="shop-item-price">💎 30</div></div>
-                </div>
-            </div>
-        </div>
-    </div>
+	<div id="screen-shop" class="screen">
+		<div class="sticky-header-group">
+			<h2 class="main-screen-title padding-top-20">상점</h2>
+			<div class="shop-token-info" style="margin-bottom: 8px;">
+				내 보유 토큰: <span id="shopTokenDisplay">0</span> 💎
+			</div>
+			
+			<button class="btn-action type-gray small" onclick="openInventory()" 
+					style="width: auto; padding: 5px 15px; min-height: 36px; font-size: 13px; margin-bottom: 5px; box-shadow:none; border:1px solid #dfe6e9;">
+				🎒 구매한 아이템 확인 / 장착
+			</button>
+		</div>
+
+		<div class="scroll-body no-scrollbar padding-top-50">
+			<div class="ranking-switch-container shop-switch">
+				<input type="radio" id="shopUtil" name="shopView" checked onchange="filterShop('utility')">
+				<label for="shopUtil" class="switch-label">🪄</label>
+
+				<input type="radio" id="shopDeco" name="shopView" onchange="filterShop('deco')">
+				<label for="shopDeco" class="switch-label">🎨</label>
+
+				<input type="radio" id="shopSocial" name="shopView" onchange="filterShop('social')">
+				<label for="shopSocial" class="switch-label">📢</label>
+
+				<input type="radio" id="shopGacha" name="shopView" onchange="filterShop('gacha')">
+				<label for="shopGacha" class="switch-label">🎲</label>
+				
+				<div class="switch-selection"></div>
+			</div>
+
+			<div class="shop-grid"></div>
+
+		</div>
+	</div>
 
     <div id="screen-settings" class="screen">
         <div class="sticky-header-group">
@@ -353,6 +357,7 @@
             </ul>
             
             <button class="btn-logout" onclick="logout()">로그아웃</button>
+			
         </div>
     </div>
 
@@ -370,9 +375,9 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.14.6" defer></script>
-<script src="ui.js?v=19.14.6" defer></script>
-<script src="init_test.js?v=19.13.2" defer></script> 
+<script src="logic.js?v=19.15.0" defer></script>
+<script src="ui.js?v=19.15.0" defer></script>
+<script src="init_test.js?v=19.15.0" defer></script> 
 
 <script>
     window.addEventListener('DOMContentLoaded', function() {

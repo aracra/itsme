@@ -1,5 +1,5 @@
 /* style.css */
-/* Version: v19.14.5 (Refactored) */
+/* Version: v19.15.0 */
 
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
@@ -96,7 +96,7 @@ body.bg-gold {
 
 /* Layout Container */
 .app-container { 
-    width: 100%; max-width: 420px; background: var(--card); height: 100%; 
+    width: 100%; max-width: 480px; background: var(--card); height: 100%; 
     display: flex; flex-direction: column; position: relative; 
     box-shadow: 0 0 20px rgba(0,0,0,0.1); overflow: hidden; 
     transition: background 0.3s;
@@ -288,18 +288,194 @@ input[type="text"]:focus { background-color: #fff; border-color: var(--primary);
 .total-pill { background: var(--bg); border: 2px solid var(--primary); color: var(--primary); width: 60%; justify-content: center; height: 44px; font-size: 15px; }
 .total-pill.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3); transform: translateY(-2px); }
 .pill-text-force { display: inline-block !important; margin-left: 5px; }
-.filter-scroll-row { display: flex; gap: 8px; overflow-x: auto; padding: 10px 20px 15px 20px; width: 100%; }
+.filter-scroll-row {
+	
+/* 스크롤 필수 옵션들 */
+    display: flex;
+    overflow-x: auto;
+	align-items: center; /* 세로 중앙 정렬 (혹시 위아래 삐뚤빼뚤할까봐) */
+	margin: 5px auto 15px auto; /* 👈 위쪽 마진을 0 -> 5px로 변경 */ 
+  
+    /* 👇 이게 핵심입니다! (다글다글 탈출약) */
+    gap: 5px; 
+    
+    /* 👇 기존에 중앙 정렬이 되어 있다면 두세요. 
+       단, 아이템이 많아져서 화면을 넘어가면 이걸 지워야 합니다! */
+    justify-content: center;
+
+	/* 👇 아랫도리에 공간을 좀 주면 그림자가 숨을 쉽니다 */
+    padding-bottom: 15px;
+    
+    /* 스크롤바 숨김 (선택사항, 깔끔하게) */
+    scrollbar-width: none;
+	
+}
+
 .filter-scroll-row > .stat-pill:first-child { margin-left: auto; }
 .filter-scroll-row > .stat-pill:last-child { margin-right: auto; }
-.stat-pill { background: var(--btn-bg); color: var(--text-secondary); padding: 8px 12px; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: flex; align-items: center; justify-content: center; min-width: 40px; flex-shrink: 0; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
-.stat-pill.active { background: var(--card); border-color: var(--primary); color: var(--primary); padding-right: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+/* [초-고급 3D 버전] 랭킹 필터 버튼 (볼륨감 추가) */
+.stat-pill { 
+    /* 1. 배경을 단색 대신 '은은한 그라데이션'으로 변경 */
+    /* 위쪽은 흰색(빛 받음) ~ 아래쪽은 원래 버튼색(그림자) */
+    background: linear-gradient(to bottom, #ffffff, var(--btn-bg));
+    
+    color: var(--text-secondary); 
+    padding: 8px 12px; 
+    border-radius: 20px; 
+    font-size: 14px; 
+    font-weight: 600; 
+    cursor: pointer; 
+    border: 1px solid transparent; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    min-width: 40px; 
+    flex-shrink: 0; 
+    
+    transition: all 0.1s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* 2. 그림자 3단 콤보! (이너광 + 딱딱한 그림자 + 퍼지는 그림자) */
+    box-shadow: 
+        inset 0 1px 0 rgba(255,255,255, 0.8), /* ✨ (New) 윗면 하이라이트 (유리 느낌) */
+        0 4px 0 #dfe6e9,                      /* 받침대 */
+        0 5px 10px rgba(0,0,0,0.1);           /* 은은한 그림자 */
+        
+    transform: translateY(0);
+}
+
+/* 눌렀을 때 (Active) */
+.stat-pill:active {
+    background: var(--btn-bg); /* 누르면 그라데이션 꺼지고 어두워짐 */
+    
+    /* 누르면 모든 그림자 끄고, 안쪽으로 살짝 파인 느낌(Inset) 추가 */
+    box-shadow: 
+        inset 0 2px 4px rgba(0,0,0,0.1), /* 눌린 자국 */
+        0 0 0 #dfe6e9; 
+        
+    transform: translateY(4px);
+}
+
+/* 선택된 버튼 (Selected) - 여기가 하이라이트! */
+.stat-pill.active { 
+    /* 선택된 버튼도 보라색 그라데이션으로 볼륨감 뿜뿜 */
+    background: linear-gradient(to bottom, #7d5fff, var(--primary)); 
+    
+    border-color: transparent; /* 테두리 없애고 빛으로 승부 */
+    color: #ffffff;            /* 글자는 흰색으로 */
+    padding-right: 15px; 
+    
+    box-shadow: 
+        inset 0 1px 0 rgba(255,255,255, 0.4), /* ✨ 보라색 위 흐릿한 광택 */
+        0 4px 0 #5f27cd,                      /* 진한 보라색 받침대 */
+        0 5px 15px rgba(108, 92, 231, 0.4);   /* 보라색 아우라 */
+        
+    transform: translateY(0);
+}
+
+/* 선택된 상태에서 누를 때 */
+.stat-pill.active:active {
+    background: var(--primary);
+    box-shadow: inset 0 3px 5px rgba(0,0,0,0.2);
+    transform: translateY(4px);
+}
+
+
+/* 랭킹 탭 스위치 컨테이너 */
+.ranking-switch-container {
+    position: relative;
+    display: flex;
+    width: 90%;             /* 적당한 너비 */
+    max-width: 300px;
+    height: 50px;
+    background-color: #e0e5ec; /* 움푹 파인 트랙 색상 */
+    border-radius: 25px;    /* 둥글게 */
+    padding: 4px;           /* 안쪽 여백 */
+    margin: 0 auto 15px auto; /* 중앙 정렬 */
+    
+    /* 트랙 안쪽 그림자 (움푹 파인 느낌) */
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); 
+}
+
+/* 라디오 버튼 숨기기 */
+.ranking-switch-container input[type="radio"] {
+    display: none;
+}
+
+/* 탭 라벨 (글자) */
+.switch-label {
+    flex: 1;
+    z-index: 2;             /* 배경보다 위에 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #b2bec3;         /* 선택 안 됐을 때 글자색 */
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+/* 움직이는 하얀색 알약 (Selection) */
+.switch-selection {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: calc(50% - 4px); /* 정확히 절반 크기 */
+    height: calc(100% - 8px);
+    background-color: #ffffff;
+    border-radius: 22px;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    
+    /* 알약 그림자 (선배님 취향 반영: 살짝 뜸) */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* === 동작 로직 === */
+
+/* 왼쪽 탭(전체 랭킹) 선택 시 */
+#tabRank:checked ~ .switch-selection {
+    transform: translateX(0); /* 제자리 */
+}
+#tabRank:checked + label {
+    color: var(--primary);    /* 글자색 강조 */
+}
+
+/* 오른쪽 탭(나의 팬덤) 선택 시 */
+#tabFandom:checked ~ .switch-selection {
+    transform: translateX(100%); /* 오른쪽으로 이동 */
+}
+#tabFandom:checked ~ label[for="tabFandom"] {
+    color: #e84393;           /* 팬덤은 핑크색으로 강조! */
+}
+
+
 .pill-text { display: none; margin-left: 6px; opacity: 0; transition: opacity 0.2s ease-in; }
 .stat-pill.active .pill-text { display: inline-block; opacity: 1; }
 
 .shop-token-info { font-weight: bold; color: var(--primary); margin-top: 5px; }
 .shop-section { width: 100%; }
-.shop-title { margin-bottom: 10px; font-weight: bold; border-left: 4px solid var(--primary); padding-left: 10px; }
-.shop-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+/* =========================================
+   [2025-12-14 상점 레이아웃 긴급 교정]
+   자바스크립트가 만든 구조가 깨지지 않게
+   강제로 블록(Block) 형태로 변경합니다.
+   ========================================= */
+
+.shop-grid {
+    display: block !important; /* 👈 범인 검거! 옆으로 서지 말고 위아래로 쌓여라! */
+    width: 100% !important;
+    padding-bottom: 50px !important; /* 맨 아래 여유 공간 */
+}
+
+/* 제목이 너무 딱 붙지 않게 여백 추가 */
+.shop-title {
+    margin-top: 20px !important;
+    margin-bottom: 10px !important;
+    width: 100% !important;
+    clear: both; /* 옆에 누가 못 오게 막기 */
+}
+
 .shop-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 5px; text-align: center; cursor: pointer; transition: 0.2s; }
 .shop-item:active { transform: scale(0.95); border-color: var(--primary); }
 .shop-item-name { color: var(--text-primary); font-size: 11px; font-weight: bold; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -411,3 +587,79 @@ input[type="text"]:focus { background-color: #fff; border-color: var(--primary);
 .profile-view-badge { font-size: 14px; padding: 5px 10px; }
 .no-ticket-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 18px; color: var(--text-secondary); background-color: var(--card); z-index: 10; }
 .no-ticket-icon { font-size: 60px; margin-bottom: 20px; }
+
+
+/* 상점용 스위치 (4개짜리) */
+.shop-switch .switch-selection {
+    width: calc(25% - 6px); /* 4등분 크기 */
+}
+
+/* 위치 계산 (수학 시간!) */
+/* 1번: 0% */
+#shopUtil:checked ~ .switch-selection { transform: translateX(0%); }
+/* 2번: 100% (자기 몸집만큼 1번 이동) */
+#shopDeco:checked ~ .switch-selection { transform: translateX(100%); }
+/* 3번: 200% */
+#shopSocial:checked ~ .switch-selection { transform: translateX(200%); }
+/* 4번: 300% */
+#shopGacha:checked ~ .switch-selection { transform: translateX(300%); }
+
+/* 선택된 라벨 색상 변경 (옵션) */
+.shop-switch input:checked + label {
+    font-size: 18px; /* 선택되면 아이콘 살짝 커짐 */
+    transition: 0.2s;
+}
+
+/* =========================================
+   [2025-12-14 긴급 수정: 그림자 구출 작전]
+   타겟: .filter-scroll-row (이름표 수정 완료!)
+   목표: 그림자 잘림 해결 & 칼각 정렬
+   ========================================= */
+
+/* 1. 상단 헤더: 그림자가 밖으로 넘쳐도 자르지 마라! */
+.sticky-header-group {
+    overflow: visible !important; /* 👈 핵심! 감옥 문 개방 */
+    z-index: 100 !important;      /* 제일 위에 보여라 */
+}
+
+/* 2. [수정됨] 스크롤 메뉴 (이름표: .filter-scroll-row) */
+.filter-scroll-row {
+    /* (1) 그림자 공간 확보 (위아래를 넓혀서 그림자가 안 잘리게 함) */
+    padding-top: 15px !important;    /* 위쪽 그림자 공간 */
+    padding-bottom: 20px !important; /* 아래쪽 그림자 공간 */
+
+    /* (2) 늘어난 패딩 때문에 붕 뜨는 걸 방지하기 위해 위치를 당김 */
+    margin-top: -5px !important;      
+    margin-bottom: 5px !important;
+
+    /* (3) 좌우 칼각 정렬 (화면 끝까지 스크롤 + 시작점 맞춤) */
+    margin-left: -20px !important;
+    margin-right: -20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+
+    /* (4) 플렉스 설정 유지 */
+    display: flex !important;
+    gap: 10px !important; /* 간격 조금 넓게 (숨통 트이기) */
+    align-items: center !important;
+    
+    /* (5) 스크롤바 숨김 */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.filter-scroll-row::-webkit-scrollbar { display: none; }
+
+/* 3. 랭킹 스위치 (탭) 위치 정리 */
+.ranking-switch-container {
+    margin-top: 5px !important;
+    margin-bottom: 10px !important;
+    width: 95% !important; /* 너무 꽉 차지 않게 살짝 여유 */
+    max-width: 320px !important; /* PC에서 너무 길어지지 않게 */
+    
+    z-index: 101 !important; /* 필터보다 위에 */
+}
+
+/* 4. [보너스] 상점 페이지 헤더 정리 */
+#screen-shop .sticky-header-group {
+    padding-top: 10px !important;
+}

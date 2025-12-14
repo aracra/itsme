@@ -1,5 +1,5 @@
 // logic.js
-// Version: v19.14.5
+// Version: v19.15.0
 // Description: Core Game Logic & Data Handling
 
 // 1. Firebase Config
@@ -446,4 +446,85 @@ window.toggleEffect = async function(id) {
 			}
 			
 	} catch (e) {}
+}
+
+// ==========================================
+// [NEW] 팬덤(추종자) 데이터 관리 로직
+// ==========================================
+
+// [수정] logic.js 맨 아래 getMyFandomData 함수 교체
+
+window.getMyFandomData = async function(filterStatIdx) {
+    if (!window.db) { console.log("❌ DB 연결 안됨"); return []; }
+    const myUid = localStorage.getItem('my_uid');
+    if (!myUid) { console.log("❌ 로그인 정보 없음"); return []; }
+
+    console.log(`🔎 팬덤 데이터 조회 시작 (Target: ${myUid})`);
+
+    try {
+        // [수정 1] orderBy("timestamp", "desc") 삭제! (인덱스 에러 방지)
+        // 일단 순서 상관없이 긁어옵니다.
+        const snapshot = await window.db.collection("logs")
+            .where("target_uid", "==", myUid)
+            .where("action_type", "==", "VOTE")
+            .get(); // limit도 일단 뺍니다.
+
+        if (snapshot.empty) {
+            console.log("📂 조회 결과 없음 (로그가 0개입니다)");
+            return [];
+        }
+
+        console.log(`📂 ${snapshot.size}개의 투표 로그 발견! 집계 시작...`);
+
+        // 2. 데이터 집계
+        const voteMap = {}; 
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const senderId = data.sender_uid;
+            const statType = data.stat_type; 
+
+            // 필터링 (전체보기 -1 이거나, 타입이 맞을 때만)
+            if (filterStatIdx !== -1 && statType !== filterStatIdx) return;
+
+            if (!voteMap[senderId]) {
+                voteMap[senderId] = { id: senderId, count: 0, stats: {} };
+            }
+            
+            voteMap[senderId].count++;
+            if(!voteMap[senderId].stats[statType]) voteMap[senderId].stats[statType] = 0;
+            voteMap[senderId].stats[statType]++;
+        });
+
+        // 3. 유저 정보 매핑
+        const resultList = [];
+        for (const uid in voteMap) {
+            // 후보 목록에서 찾거나, 없으면 '알 수 없음' 처리
+            let userInfo = window.candidates.find(u => u.id === uid);
+            
+            // [수정 2] 유령 팬(ghost_fan)이나 탈퇴한 유저 처리 강화
+            if (!userInfo) {
+                userInfo = { nickname: '알 수 없음', avatar: '👻', mbti: '???' };
+                if(uid === 'ghost_fan') userInfo = { nickname: '유령 팬', avatar: '👻', mbti: 'GHOST' };
+            }
+
+            resultList.push({
+                ...userInfo, 
+                voteCount: voteMap[uid].count,
+                voteDetails: voteMap[uid].stats
+            });
+        }
+
+        // 4. 자바스크립트에서 정렬 (DB 대신 여기서 함)
+        resultList.sort((a, b) => b.voteCount - a.voteCount);
+
+        console.log("✅ 최종 팬덤 리스트:", resultList);
+        return resultList;
+
+    } catch (e) {
+        // 🔴 여기에 에러가 찍힐 겁니다!
+        console.error("🔥 팬덤 로드 중 에러 발생:", e);
+        alert("데이터 로드 실패! 콘솔(F12)을 확인해주세요.");
+        return [];
+    }
 }

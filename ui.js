@@ -1,5 +1,5 @@
 // ui.js
-// Version: v19.14.6 (Cleanup)
+// Version: v19.15.0
 // Description: UI Controller & Animation Handler
 
 let myMbti = "";
@@ -84,20 +84,25 @@ window.goTab = function(s, n) {
     proceedTab(s, n);
 }
 
+// [수정] proceedTab 함수 내 'screen-rank' 부분 변경
 function proceedTab(s, n) {
     document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
     document.getElementById(s).classList.add('active');
     document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
     if (n) n.classList.add('active');
 
-    if (s === 'screen-main') setTimeout(() => window.goSubTab('tab-prism', document.querySelector('.sub-tab:first-child')), 0);
+    if (s === 'screen-main') {
+        setTimeout(() => window.goSubTab('tab-prism', document.querySelector('.sub-tab:first-child')), 0);
+    } 
     else if (s === 'screen-rank') {
-        if (window.renderRankList) window.renderRankList(-1);
-        const allPill = document.querySelector('#rankFilterContainer .stat-pill:first-child');
-        if (window.filterRank && allPill) window.filterRank(allPill, -1);
-    } else if (s === 'screen-vote') {
+        // 👇 [여기만 싹 바꿨습니다!] 
+        // 입장 시 무조건 '종합 랭킹' 모드로 초기화
+        if (window.initRankScreen) window.initRankScreen(); 
+    } 
+    else if (s === 'screen-vote') {
         if(window.prepareVoteScreen) window.prepareVoteScreen();
     }
+    
     if (window.updateProfileUI) window.updateProfileUI();
 }
 
@@ -403,7 +408,26 @@ window.renderRankList = function(filterIdx) {
     });
     container.innerHTML = html;
 };
-window.filterRank = function(el, type) { document.querySelectorAll('#rankFilterContainer .stat-pill').forEach(x => x.classList.remove('active')); el.classList.add('active'); window.currentFilter = type; window.renderRankList(type); };
+
+// [수정] filterRank 함수 교체
+window.filterRank = function(el, type) { 
+    // 1. 모든 알약(필터) 끄기
+    document.querySelectorAll('#rankFilterContainer .stat-pill').forEach(x => x.classList.remove('active')); 
+    
+    // 2. 선택된 알약 켜기 (el이 있을 때만)
+    if (el) el.classList.add('active'); 
+    
+    // 3. 현재 보고 있는 뷰(Rank vs Fandom)에 따라 다른 함수 호출
+    // window.currentRankView 변수는 아래 3번에서 추가합니다.
+    if (window.currentRankView === 'fandom') {
+        console.log("팬덤 필터 적용:", type);
+        window.renderFandomList(type); // 팬덤 리스트 다시 그리기
+    } else {
+        console.log("랭킹 필터 적용:", type);
+        window.currentFilter = type; 
+        window.renderRankList(type);   // 랭킹 리스트 다시 그리기
+    }
+};
 
 window.logout = function() { localStorage.clear(); location.reload(); }
 window.loginWithServer = function() { goScreen('screen-nickname'); }
@@ -518,3 +542,306 @@ window.shareLink = function() {
         document.body.removeChild(textarea);
     }
 };
+
+// ==========================================
+// [NEW] 랭킹 & 추종자(팬덤) 시스템 추가 로직
+// ==========================================
+
+// 현재 뷰 상태 저장 ('rank' 또는 'fandom')
+window.currentRankView = 'rank'; 
+
+// 1. 랭킹 화면 초기화 (입장 시 호출)
+window.initRankScreen = function() {
+    // 스위치를 '전체 랭킹'으로 강제 이동
+    const radioRank = document.getElementById('tabRank');
+    if(radioRank) radioRank.checked = true;
+    
+    // 뷰 상태 업데이트
+    window.switchRankView('rank');
+}
+
+// 2. 탭 스위치 전환 (HTML의 radio input에서 onchange로 호출)
+window.switchRankView = function(viewType) {
+    window.currentRankView = viewType; // 상태 변경
+    
+    // 필터(알약) 초기화: 아무것도 선택 안 된 상태로
+    document.querySelectorAll('#rankFilterContainer .stat-pill').forEach(x => x.classList.remove('active'));
+
+    // 리스트 새로고침 (종합 기준 -1)
+    if (viewType === 'fandom') {
+        window.renderFandomList(-1);
+    } else {
+        window.renderRankList(-1);
+    }
+}
+
+// [수정] ui.js 맨 아래에 있는 renderFandomList 함수 교체
+
+window.renderFandomList = async function(filterIdx) { // async 붙음!
+    const container = document.getElementById('rankListContainer'); 
+    if (!container) return;
+    
+    // 로딩 표시
+    container.innerHTML = `<div style="text-align:center; padding:50px;">
+        <span style="font-size:30px;">🛰️</span><br><br>
+        팬덤 신호를 수신 중입니다...
+    </div>`;
+
+    // 1. 진짜 데이터 가져오기 (Logic 호출)
+    const fandomData = await window.getMyFandomData(filterIdx);
+
+    // 2. HTML 생성
+    let html = '';
+    
+    if (fandomData.length === 0) {
+        // 데이터 없을 때 멘트
+        const emptyComment = (filterIdx === -1) 
+            ? "아직 팬이 없네요... 🥲<br>친구들에게 매력을 어필해보세요!" 
+            : "이 능력으로는 아직<br>받은 표가 없어요!";
+            
+        html = `<p class="list-empty-msg" style="margin-top:50px; line-height:1.6;">${emptyComment}</p>`;
+    } else {
+        fandomData.forEach((fan, idx) => {
+            // 순위 아이콘 (1,2,3등만 특별대우)
+            let rankBadge = (idx===0)?'🥇':(idx===1)?'🥈':(idx===2)?'🥉':`${idx+1}`;
+            let rankColor = (idx<3) ? '#e84393' : '#ccc'; // 핑크색 강조
+            
+            // 필터 여부에 따른 텍스트 (총 득표 vs 해당 득표)
+            let scoreLabel = (filterIdx !== -1) ? '표 (해당)' : '표 (누적)';
+            
+            html += `
+            <li class="list-item" onclick="window.openProfilePopup('${fan.id}')">
+                <div style="font-weight:900; font-size:16px; width:30px; text-align:center; margin-right:10px; color:${rankColor}">${rankBadge}</div>
+                <div class="common-circle-frame" style="margin-right:10px;">${fan.avatar}</div>
+                <div class="list-item-text">
+                    <div style="font-weight:bold; font-size:14px;">${fan.nickname}</div>
+                    <div style="font-size:11px; color:var(--text-secondary);">${fan.mbti ? '#'+fan.mbti : ''}</div>
+                </div>
+                <div class="list-item-score" style="background:#fff0f6; color:#e84393; border:1px solid #ffc9c9;">
+                    ${fan.voteCount}${scoreLabel}
+                </div>
+            </li>`;
+        });
+    }
+    
+    container.innerHTML = html;
+}
+
+// ==========================================
+// [ui.js] 상점 시스템 로직 (여기부터 끝까지 복사!)
+// ==========================================
+
+// 1. 상점 데이터
+const SHOP_ITEMS = [
+    { id: 'ticket_1', tab: 'utility', section: '💎 토큰 충전소', type: 'item', icon: '🎫', name: '티켓 1장', price: 100, desc: '즉시 충전' },
+    { id: 'ticket_5', tab: 'utility', section: '💎 토큰 충전소', type: 'item', icon: '🎫', name: '티켓 5장', price: 450, desc: '5장 묶음' },
+    { id: 'name_change', tab: 'utility', section: '🏷️ 계정 관리', type: 'item', icon: '📝', name: '닉변권', price: 300, desc: '닉네임 변경' },
+
+    { id: 'avatar_tiger', tab: 'deco', section: '🐯 동물 아바타 (영구)', type: 'avatar', icon: '🐯', name: '호랑이', price: 50 },
+    { id: 'avatar_rabbit', tab: 'deco', section: '🐯 동물 아바타 (영구)', type: 'avatar', icon: '🐰', name: '토끼', price: 50 },
+    { id: 'avatar_robot', tab: 'deco', section: '🤖 스페셜 아바타', type: 'avatar', icon: '🤖', name: '로봇', price: 100 },
+    { id: 'avatar_alien', tab: 'deco', section: '🤖 스페셜 아바타', type: 'avatar', icon: '👽', name: '외계인', price: 100 },
+    
+    { id: 'bg_gold', tab: 'deco', section: '✨ 테마 아이템 (7일)', type: 'effect', icon: '✨', name: '황금 배경', price: 30 },
+    { id: 'bg_dark', tab: 'deco', section: '✨ 테마 아이템 (7일)', type: 'effect', icon: '🌑', name: '다크 모드', price: 30 },
+    { id: 'bg_pink', tab: 'deco', section: '✨ 테마 아이템 (7일)', type: 'effect', icon: '🌸', name: '핑크 모드', price: 30 },
+
+    { id: 'shout', tab: 'social', section: '📢 확성기', type: 'item', icon: '📢', name: '전체 외치기', price: 50, desc: '준비 중...' },
+
+    // 👇 type: 'gacha' 확인!
+    { id: 'random_box', tab: 'gacha', section: '🎁 행운의 상자', type: 'gacha', icon: '❓', name: '랜덤 박스', price: 20, desc: '뭐가 나올까?' }
+];
+
+// 2. 탭 필터링
+window.filterShop = function(category) {
+    const container = document.querySelector('.shop-grid');
+    if (!container) return; 
+
+    const items = SHOP_ITEMS.filter(item => item.tab === category);
+    container.innerHTML = ''; 
+
+    if (items.length === 0) {
+        container.innerHTML = `<div class="list-empty-msg" style="padding:50px;">준비 중인 상점입니다. 🧹</div>`;
+        return;
+    }
+
+    const groups = {};
+    items.forEach(item => {
+        if (!groups[item.section]) groups[item.section] = [];
+        groups[item.section].push(item);
+    });
+
+    let html = '';
+    for (const [sectionTitle, groupItems] of Object.entries(groups)) {
+        html += `
+            <div class="shop-title" style="width:100%; margin-top:20px; margin-bottom:10px; font-weight:bold; font-size:16px; border-left:4px solid var(--primary); padding-left:10px; text-align:left;">
+                ${sectionTitle}
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; width:100%; margin-bottom:20px;">
+        `;
+        groupItems.forEach(item => {
+            html += `
+            <div class="shop-item" onclick="window.tryPurchase('${item.id}')" style="background:var(--card); border:1px solid var(--border); border-radius:12px; padding:15px 5px; text-align:center;">
+                <div style="font-size:30px; margin-bottom:5px;">${item.icon}</div>
+                <div class="shop-item-name" style="font-size:12px; font-weight:bold;">${item.name}</div>
+                <div class="shop-item-price" style="font-size:11px; color:var(--primary); font-weight:bold;">💎 ${item.price}</div>
+            </div>
+            `;
+        });
+        html += `</div>`; 
+    }
+    container.innerHTML = html;
+}
+
+// 3. 구매 시도
+window.tryPurchase = function(itemId) {
+    const item = SHOP_ITEMS.find(i => i.id === itemId);
+    if (!item) return;
+
+    if (item.type === 'gacha') {
+        runGachaSystem(item); 
+        return; 
+    }
+
+    let checkVal = (item.type === 'effect') ? item.id : item.icon;
+    if (window.myInfo.inventory.some(i => i.value === checkVal)) {
+        alert("이미 보유한 아이템입니다!");
+        return;
+    }
+
+    if (window.purchaseItem) {
+        window.purchaseItem(item.price, item.type, checkVal, item.name);
+    }
+}
+
+// ============================================================
+// [수정] 가챠 시스템 (시스템 창 제거 -> 전용 모달 적용)
+// ============================================================
+window.runGachaSystem = function(item) {
+    // 1. 돈 검사
+    if (window.myInfo.tokens < item.price) {
+        // 시스템 alert 대신 커스텀 알림 사용
+        openCustomAlert("잔액 부족 💸", "토큰이 부족합니다!\n상점에서 충전해주세요.");
+        return;
+    }
+
+    // 2. 구매 확인 (시스템 confirm 제거 -> 커스텀 모달 사용)
+    // "확인" 버튼을 눌렀을 때 실행될 행동(Action)을 정의합니다.
+    const doGacha = function() {
+        // --- 여기서부터 실제 가챠 로직 ---
+        
+        // 로컬 차감 및 UI 갱신
+        window.myInfo.tokens -= item.price;
+        document.getElementById('shopTokenDisplay').innerText = window.myInfo.tokens;
+        
+        // 확률 굴리기
+        const rand = Math.random() * 100;
+        let rewardType = "token";
+        let rewardVal = 10;
+        let msgTitle = "";
+        let msgBody = "";
+
+        // 확률표 (0~40: 꽝, 40~90: 50토큰, 90~100: 유령)
+        if (rand < 40) {
+            rewardType = 'token'; rewardVal = 10; 
+            msgTitle = "😭 꽝..."; 
+            msgBody = "아쉽네요...\n위로금 10💎을 드립니다.";
+        } else if (rand < 90) {
+            rewardType = 'token'; rewardVal = 50; 
+            msgTitle = "💰 축하합니다!"; 
+            msgBody = "본전 뽑았다!\n토큰 50💎 획득!";
+        } else {
+            if (window.myInfo.inventory.some(i => i.value === '👻')) {
+                rewardType = 'token'; rewardVal = 500; 
+                msgTitle = "👻 [전설] 중복";
+                msgBody = "이미 유령이 있네요!\n대신 500토큰을 드립니다!";
+            } else {
+                rewardType = 'avatar'; rewardVal = '👻'; 
+                msgTitle = "👻 대박 사건!!";
+                msgBody = "[전설] 유령 아바타 당첨!!\n지금 바로 장착해보세요.";
+            }
+        }
+
+        // DB 업데이트 준비
+        const updates = { tokens: window.myInfo.tokens }; 
+
+        if (rewardType === 'token') {
+            updates.tokens += rewardVal; 
+            window.myInfo.tokens += rewardVal; 
+            document.getElementById('shopTokenDisplay').innerText = window.myInfo.tokens; 
+        } else if (rewardType === 'avatar') {
+            const newItem = { type: 'avatar', value: rewardVal, name: '유령 아바타', date: new Date() };
+            window.myInfo.inventory.push(newItem);
+            updates.inventory = window.myInfo.inventory;
+        }
+
+        // DB 저장 실행
+        if (window.db) {
+            window.db.collection('users').doc(localStorage.getItem('my_uid')).update(updates)
+                .then(() => { 
+                    // 3. 결과 알림 (시스템 alert 제거 -> 커스텀 알림)
+                    openCustomAlert(msgTitle, msgBody);
+                })
+                .catch((err) => { 
+                    console.error(err); 
+                    openCustomAlert("오류", "저장에 실패했습니다."); 
+                });
+        }
+    };
+
+    // 커스텀 확인창 띄우기 (제목, 내용, 확인시 실행할 함수)
+    openCustomConfirm(
+        "🎁 랜덤 박스", 
+        `${item.name}를 구매하시겠습니까?\n(가격: ${item.price} 💎)`, 
+        doGacha
+    );
+}
+
+// ============================================================
+// [NEW] 모달 팝업 도우미 함수 (다른 곳에서도 쓰세요!)
+// ============================================================
+
+// 1. 확인/취소 팝업 띄우기
+window.openCustomConfirm = function(title, msg, yesCallback) {
+    const overlay = document.getElementById('customConfirmOverlay');
+    if(!overlay) return;
+
+    // 제목과 내용 채우기
+    document.getElementById('customConfirmTitle').innerText = title;
+    document.getElementById('customConfirmMsg').innerText = msg;
+
+    // '확인' 버튼에 기능 연결 (기존 이벤트 제거 후 새거 연결)
+    const btn = document.getElementById('btnCustomConfirmAction');
+    // 복제해서 기존 리스너 날리기 (가장 쉬운 방법)
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+
+    newBtn.onclick = function() {
+        overlay.classList.remove('open'); // 팝업 닫기
+        if(yesCallback) yesCallback();    // 콜백 실행
+    };
+
+    overlay.classList.add('open'); // 팝업 열기
+}
+
+// 2. 팝업 닫기 (취소 버튼용)
+window.closeCustomConfirm = function() {
+    document.getElementById('customConfirmOverlay').classList.remove('open');
+}
+
+// 3. 단순 알림 팝업 띄우기 (Alert 대체)
+window.openCustomAlert = function(title, msg) {
+    const overlay = document.getElementById('customAlertOverlay');
+    if(!overlay) return;
+
+    document.getElementById('customAlertTitle').innerText = title;
+    document.getElementById('customAlertMsg').innerText = msg;
+
+    // 확인 버튼 누르면 닫기
+    const btn = document.getElementById('btnCustomAlertOk');
+    btn.onclick = function() {
+        overlay.classList.remove('open');
+    };
+
+    overlay.classList.add('open');
+}

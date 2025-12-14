@@ -1,5 +1,5 @@
 // init_test.js
-// Version: v19.14.5 v19.13.2에서 변경점 없음
+// Version: v19.15.0 - v19.13.2에서 변경점 없음
 // Description: Database Initialization Script (Mock Users included)
 
 console.log("🚀 DB 초기화 스크립트 로드됨 (v19.13.2)");
