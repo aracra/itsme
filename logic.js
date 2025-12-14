@@ -2,6 +2,9 @@
 // Version: v19.15.0
 // Description: Core Game Logic & Data Handling
 
+// [logic.js] 파일 맨 꼭대기에 추가해주세요!
+window.pageLoadTime = Date.now(); // ⏱️ 페이지 접속 시간 기록 (이 시간 이후의 메시지만 받음)
+
 // 1. Firebase Config
 window.firebaseConfig = {
     apiKey: "AIzaSyCZJB72jkS2rMgM213Wu9fEuW4Q4jN1scc",
@@ -528,3 +531,51 @@ window.getMyFandomData = async function(filterStatIdx) {
         return [];
     }
 }
+
+// ==========================================
+// 📢 확성기 메시지를 DB에 기록하는 함수
+// ==========================================
+window.saveShoutLog = async function(shoutLog) {
+    if (!window.db) {
+        console.error("DB 객체가 초기화되지 않았습니다.");
+        return;
+    }
+    
+    try {
+        // [NEW] 서버 타임스탬프를 여기서 직접 정의해서 전달
+        shoutLog.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        
+        await window.db.collection('shout_log').add(shoutLog);
+        console.log("📢 확성기 로그 저장 완료:", shoutLog.message);
+    } catch (e) {
+        console.error("📢 확성기 로그 저장 실패:", e);
+    }
+};
+
+// [logic.js] 맨 아래에 추가
+// ==========================================
+// 📡 확성기 수신 대기 (리스너)
+// ==========================================
+window.initShoutListener = function() {
+    if (!window.db) return;
+
+    // 최근 메시지 1개만 감시
+    window.db.collection('shout_log')
+        .orderBy('timestamp', 'desc')
+        .limit(1)
+        .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const data = change.doc.data();
+                    // ⚠️ 중요: 페이지 접속 이후에 생성된 메시지만 표시 (새로고침 시 알림 폭탄 방지)
+                    if (data.timestamp && data.timestamp.toMillis() > window.pageLoadTime) {
+                        // UI에 알림 표시 요청!
+                        if (window.showShoutNotification) {
+                            window.showShoutNotification(data);
+                        }
+                    }
+                }
+            });
+        });
+    console.log("📡 확성기 채널 연결됨...");
+};

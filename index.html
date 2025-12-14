@@ -42,6 +42,21 @@
             </div>
         </div>
     </div>
+	
+	<div id="shoutInputOverlay" class="sheet-overlay">
+		<div class="comment-modal">
+			<h3>📢 전체 외치기 메시지</h3>
+			<p>친구들에게 전달하고 싶은 메시지를 입력해주세요.</p>
+			
+			<textarea id="shoutInputText" placeholder="최대 50자 입력" maxlength="50"></textarea>
+			<p id="shoutInputPrice" class="modal-msg margin-top-10">가격: 50 💎</p>
+
+			<div class="modal-btn-row">
+				<button class="btn-action type-gray small" onclick="closePopup('shoutInputOverlay')">취소</button>
+				<button class="btn-action type-purple small" id="btnShoutSubmit">보내기</button>
+			</div>
+		</div>
+	</div>
 
     <div id="excludeOverlay" class="sheet-overlay">
         <div class="comment-modal">
@@ -375,14 +390,16 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
 
-<script src="logic.js?v=19.15.0" defer></script>
-<script src="ui.js?v=19.15.0" defer></script>
+<script src="logic.js?v=19.15.1" defer></script>
+<script src="ui.js?v=19.15.1" defer></script>
 <script src="init_test.js?v=19.15.0" defer></script> 
 
 <script>
     window.addEventListener('DOMContentLoaded', function() {
         if (window.loadDataFromServer) {
             window.loadDataFromServer();
+            // 👇 [NEW] 이 한 줄을 추가해주세요! (DB 연결 후 리스너 실행)
+            setTimeout(() => { if(window.initShoutListener) window.initShoutListener(); }, 2000);
         } else {
             console.error("Logic Module Load Failed.");
             document.getElementById('dbStatus').innerText = "● 로드 오류";

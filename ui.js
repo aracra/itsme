@@ -694,10 +694,18 @@ window.filterShop = function(category) {
 }
 
 // 3. 구매 시도
+// [ui.js] window.tryPurchase 함수 수정
 window.tryPurchase = function(itemId) {
     const item = SHOP_ITEMS.find(i => i.id === itemId);
     if (!item) return;
 
+    // [NEW] 확성기 아이템일 경우, 메시지 입력 창을 띄웁니다.
+    if (item.id === 'shout') {
+        openShoutInputModal(item); // 📢 확성기 전용 함수 호출
+        return; 
+    }
+    
+    // [가챠]
     if (item.type === 'gacha') {
         runGachaSystem(item); 
         return; 
@@ -713,6 +721,103 @@ window.tryPurchase = function(itemId) {
         window.purchaseItem(item.price, item.type, checkVal, item.name);
     }
 }
+
+// ==========================================
+// [NEW] 확성기 메시지 입력 모달 함수 추가
+// ==========================================
+// [ui.js] window.openShoutInputModal 함수 전체 교체
+window.openShoutInputModal = function(item) {
+    // 1. 돈 검사 (다시 한번)
+    if (window.myInfo.tokens < item.price) {
+        openCustomAlert("잔액 부족 💸", "토큰이 부족합니다!");
+        return;
+    }
+
+    // 2. 메시지 입력창 UI 업데이트
+    document.getElementById('shoutInputPrice').innerText = `가격: ${item.price} 💎`;
+    document.getElementById('shoutInputText').value = ""; // 입력창 비우기
+
+    // 3. '보내기' 버튼에 이벤트 연결 (이벤트 리스너 중복 방지 처리 포함)
+    const btn = document.getElementById('btnShoutSubmit');
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+
+    newBtn.onclick = function() {
+        const message = document.getElementById('shoutInputText').value.trim();
+        
+        if (message.length === 0) {
+            openCustomAlert("입력 오류", "보낼 메시지를 입력해주세요.");
+            return;
+        }
+
+        // 4. 구매 및 DB 저장 로직 실행 (로직은 아래에)
+        submitShoutMessage(item, message);
+    };
+
+    // 5. 모달 띄우기
+    openPopup('shoutInputOverlay');
+};
+
+// ==========================================
+// [NEW] 확성기 메시지 최종 구매 및 DB 저장 함수
+// ==========================================
+// [ui.js] window.submitShoutMessage 함수 전체 교체 (DB 안전성 강화)
+window.submitShoutMessage = function(item, message) {
+    // 1. 토큰 차감
+    window.myInfo.tokens -= item.price;
+    document.getElementById('shopTokenDisplay').innerText = window.myInfo.tokens;
+    closePopup('shoutInputOverlay'); // 입력 모달 닫기
+    
+    // 2. DB 업데이트: 토큰 차감
+    const updates = { tokens: window.myInfo.tokens }; 
+    
+    // 3. 확성기 로그 데이터 준비
+    const shoutLog = {
+        senderNickname: window.myInfo.nickname,
+        senderAvatar: window.myInfo.avatar,
+        message: message,
+        // **[NEW]** firebase.firestore 대신 안전하게 Firestore에서 가져오도록 수정
+        timestamp: new Date() // 임시로 클라이언트 시간 사용 (오류 회피용)
+    };
+    
+    // 4. DB 저장 및 완료 알림
+    if (window.db) {
+        window.db.collection('users').doc(localStorage.getItem('my_uid')).update(updates)
+            .then(() => {
+                // [NEW] 📢 확성기 로그 저장 함수 호출! (async)
+                window.saveShoutLog(shoutLog);
+                openCustomAlert("📢 전송 완료", `메시지 "${message}"를 전체에게 보냈습니다!`);
+            })
+            .catch((err) => { 
+                console.error(err); 
+                openCustomAlert("오류", "전송에 실패했습니다."); 
+            });
+    } else {
+        // DB 연결 실패 시에도 일단 알림은 띄웁니다.
+        openCustomAlert("경고", "DB 연결에 실패하여 토큰 차감 기록이 되지 않았을 수 있습니다.");
+    }
+};
+
+// [logic.js] 맨 아래에 추가된 코드 확인
+// ==========================================
+// 📢 확성기 메시지를 DB에 기록하는 함수
+// ==========================================
+window.saveShoutLog = async function(shoutLog) {
+    if (!window.db) {
+        console.error("DB 객체가 초기화되지 않았습니다.");
+        return;
+    }
+    
+    try {
+        // [NEW] 서버 타임스탬프를 여기서 직접 정의해서 전달
+        shoutLog.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        
+        await window.db.collection('shout_log').add(shoutLog);
+        console.log("📢 확성기 로그 저장 완료:", shoutLog.message);
+    } catch (e) {
+        console.error("📢 확성기 로그 저장 실패:", e);
+    }
+};
 
 // ============================================================
 // [수정] 가챠 시스템 (시스템 창 제거 -> 전용 모달 적용)
@@ -845,3 +950,61 @@ window.openCustomAlert = function(title, msg) {
 
     overlay.classList.add('open');
 }
+
+// [ui.js] 맨 아래에 추가
+// ==========================================
+// 🔔 확성기 알림 표시 (Toast UI)
+// ==========================================
+window.showShoutNotification = function(data) {
+    // 1. 알림창 HTML 동적 생성
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
+        background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 20px;
+        border-radius: 50px; z-index: 9999; display: flex; align-items: center; gap: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        font-size: 14px; white-space: nowrap; max-width: 90%;
+    `;
+    
+    // 내용 채우기 (아바타 + 닉네임 + 메시지)
+    toast.innerHTML = `
+        <span style="font-size:18px;">${data.senderAvatar || '📢'}</span>
+        <span style="font-weight:bold; color:#a29bfe;">${data.senderNickname}</span>
+        <span style="opacity:0.9;">: ${data.message}</span>
+    `;
+
+    document.body.appendChild(toast);
+
+    // 2. 애니메이션: 위에서 아래로 쑥!
+    setTimeout(() => {
+        toast.style.transform = "translateX(-50%) translateY(0)"; // 등장
+    }, 100);
+
+    // 3. 5초 뒤에 사라지기
+    setTimeout(() => {
+        toast.style.transform = "translateX(-50%) translateY(-100px)"; // 퇴장
+        setTimeout(() => { document.body.removeChild(toast); }, 500); // 삭제
+    }, 5000);
+};
+
+
+// [ui.js] 파일 맨 끝에 붙여넣기 (누락된 팝업 도우미 함수들)
+// ==========================================
+
+// 1. 팝업 열기 (ID로 찾아서 open 클래스 추가)
+window.openPopup = function(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.add('open');
+    } else {
+        console.error(`❌ 팝업을 찾을 수 없습니다: ${id}`);
+    }
+};
+
+// 2. 팝업 닫기 (ID로 찾아서 open 클래스 제거)
+window.closePopup = function(id) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.classList.remove('open');
+    }
+};
