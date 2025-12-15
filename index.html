@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>It's me! Version: v19.15.0</title>
-    <link rel="stylesheet" href="style.css?v=19.15.0">
+    <title>It's me! v19.16.0</title>
+    <link rel="stylesheet" href="style.css?v=19.15.1">
 </head>
 <body>
 
@@ -42,27 +42,42 @@
             </div>
         </div>
     </div>
-	
-	<div id="shoutInputOverlay" class="sheet-overlay">
-		<div class="comment-modal">
-			<h3>📢 전체 외치기 메시지</h3>
-			<p>친구들에게 전달하고 싶은 메시지를 입력해주세요.</p>
-			
-			<textarea id="shoutInputText" placeholder="최대 50자 입력" maxlength="50"></textarea>
-			<p id="shoutInputPrice" class="modal-msg margin-top-10">가격: 50 💎</p>
+    
+    <div id="shoutInputOverlay" class="sheet-overlay">
+        <div class="comment-modal">
+            <h3>📢 전체 외치기 메시지</h3>
+            <p>친구들에게 전달하고 싶은 메시지를 입력해주세요.</p>
+            <textarea id="shoutInputText" placeholder="최대 50자 입력" maxlength="50"></textarea>
+            <p id="shoutInputPrice" class="modal-msg margin-top-10">가격: 50 💎</p>
+            <div class="modal-btn-row">
+                <button class="btn-action type-gray small" onclick="closePopup('shoutInputOverlay')">취소</button>
+                <button class="btn-action type-purple small" id="btnShoutSubmit">보내기</button>
+            </div>
+        </div>
+    </div>
 
-			<div class="modal-btn-row">
-				<button class="btn-action type-gray small" onclick="closePopup('shoutInputOverlay')">취소</button>
-				<button class="btn-action type-purple small" id="btnShoutSubmit">보내기</button>
-			</div>
-		</div>
-	</div>
+    <div id="inventoryOverlay" class="sheet-overlay">
+        <div class="comment-modal modal-wide">
+            <h3 class="margin-bottom-30">🎒 내 가방</h3>
+            
+            <div class="tab-line-header">
+                <div class="tab-line-item active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
+                <div class="tab-line-item inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
+                <div class="tab-line-item inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
+            </div>
+
+            <div id="inventoryListArea" class="inventory-list-area"></div>
+
+            <div class="modal-btn-row margin-top-15">
+                <button class="btn-action type-purple" onclick="closePopup('inventoryOverlay')" style="width: 100%; margin-bottom: 0;">닫기</button>
+            </div>
+        </div>
+    </div>
 
     <div id="excludeOverlay" class="sheet-overlay">
         <div class="comment-modal">
             <h3>🚫 모르는 사람 제외</h3>
             <p>누구를 목록에서 제외할까요?<br><span class="warn-text">제외하면 앞으로 투표에 나오지 않습니다.</span></p>
-            
             <div class="exclude-list-box">
                 <button id="btnExcludeA" class="btn-action type-gray exclude-item-btn">
                     <span id="txtExcludeA" class="exclude-name">...</span>
@@ -73,8 +88,7 @@
                     <span class="exclude-label">제외 🚫</span>
                 </button>
             </div>
-            
-            <button class="btn-action type-purple" onclick="closePopup('excludeOverlay')">취소 (그냥 계속하기)</button>
+            <button class="btn-action type-purple" onclick="closePopup('excludeOverlay')">취소</button>
         </div>
     </div>
 
@@ -102,24 +116,6 @@
         </div>
     </div>
 
-    <div id="inventoryOverlay" class="sheet-overlay">
-        <div class="comment-modal modal-wide">
-            <h3 class="margin-bottom-30">🎒 내 아이템 보관함</h3>
-            
-            <div class="tab-line-header">
-                <div class="tab-line-item active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
-                <div class="tab-line-item inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
-                <div class="tab-line-item inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
-            </div>
-
-            <div id="inventoryListArea" class="inventory-list-area"></div>
-
-            <div class="modal-btn-row margin-top-15">
-                <button class="btn-action type-purple" onclick="closePopup('inventoryOverlay')" style="width: 100%; margin-bottom: 0;">닫기</button>
-            </div>
-        </div>
-    </div>
-
     <div id="screen-login" class="screen active full-center">
         <div class="center-content">
             <div class="emoji-logo">🧐</div>
@@ -129,7 +125,6 @@
         <div class="login-btn-area">
             <button class="btn-action type-kakao btn-master" onclick="loginWithServer()">카카오로 시작하기</button>
             <button class="btn-action type-gray btn-master" onclick="loginWithServer()">이메일로 시작하기</button>
-            
             <div class="dev-login-area">
                 <p>🚧 개발자 테스트</p>
                 <div class="dev-login-row">
@@ -179,7 +174,7 @@
             
             <div class="avatar-area">
                 <div class="avatar-circle">
-                    <span id="myAvatar">👤</span>
+                    <span id="myAvatar" class="my-profile-icon">👤</span>
                     <div class="avatar-badge" id="myMbtiBadge">#???</div>
                 </div>
                 
@@ -283,15 +278,15 @@
                 <h2 class="main-screen-title">주변미터 랭킹</h2>
                 <div id="rankFilterContainer" class="rank-filter-wrapper">
                     <div class="filter-top-row">
-						<div class="ranking-switch-container">
-							<input type="radio" id="tabRank" name="rankView" checked onchange="switchRankView('rank')">
-							<label for="tabRank" class="switch-label">🏆 전체 랭킹</label>
+                        <div class="ranking-switch-container">
+                            <input type="radio" id="tabRank" name="rankView" checked onchange="switchRankView('rank')">
+                            <label for="tabRank" class="switch-label">🏆 전체 랭킹</label>
 
-							<input type="radio" id="tabFandom" name="rankView" onchange="switchRankView('fandom')">
-							<label for="tabFandom" class="switch-label">💖 나의 팬덤</label>
-							
-							<div class="switch-selection"></div>
-						</div>
+                            <input type="radio" id="tabFandom" name="rankView" onchange="switchRankView('fandom')">
+                            <label for="tabFandom" class="switch-label">💖 나의 팬덤</label>
+                            
+                            <div class="switch-selection"></div>
+                        </div>
                     </div>
                     <div class="filter-scroll-row no-scrollbar">
                         <div class="stat-pill" onclick="filterRank(this, 0)">🧠 <span class="pill-text">지성</span></div>
@@ -309,40 +304,40 @@
         </div>
     </div>
 
-	<div id="screen-shop" class="screen">
-		<div class="sticky-header-group">
-			<h2 class="main-screen-title padding-top-20">상점</h2>
-			<div class="shop-token-info" style="margin-bottom: 8px;">
-				내 보유 토큰: <span id="shopTokenDisplay">0</span> 💎
-			</div>
-			
-			<button class="btn-action type-gray small" onclick="openInventory()" 
-					style="width: auto; padding: 5px 15px; min-height: 36px; font-size: 13px; margin-bottom: 5px; box-shadow:none; border:1px solid #dfe6e9;">
-				🎒 구매한 아이템 확인 / 장착
-			</button>
-		</div>
+    <div id="screen-shop" class="screen">
+        <div class="sticky-header-group">
+            <h2 class="main-screen-title padding-top-20">상점</h2>
+            <div class="shop-token-info" style="margin-bottom: 8px;">
+                내 보유 토큰: <span id="shopTokenDisplay">0</span> 💎
+            </div>
+            
+            <button class="btn-action type-gray small" onclick="openInventory()" 
+                    style="width: auto; padding: 5px 15px; min-height: 36px; font-size: 13px; margin-bottom: 5px; box-shadow:none; border:1px solid #dfe6e9;">
+                🎒 구매한 아이템 확인 / 장착
+            </button>
+        </div>
 
-		<div class="scroll-body no-scrollbar padding-top-50">
-			<div class="ranking-switch-container shop-switch">
-				<input type="radio" id="shopUtil" name="shopView" checked onchange="filterShop('utility')">
-				<label for="shopUtil" class="switch-label">🪄</label>
+        <div class="scroll-body no-scrollbar padding-top-50">
+            <div class="ranking-switch-container shop-switch">
+                <input type="radio" id="shopUtil" name="shopView" checked onchange="filterShop('utility')">
+                <label for="shopUtil" class="switch-label">🪄</label>
 
-				<input type="radio" id="shopDeco" name="shopView" onchange="filterShop('deco')">
-				<label for="shopDeco" class="switch-label">🎨</label>
+                <input type="radio" id="shopDeco" name="shopView" onchange="filterShop('deco')">
+                <label for="shopDeco" class="switch-label">🎨</label>
 
-				<input type="radio" id="shopSocial" name="shopView" onchange="filterShop('social')">
-				<label for="shopSocial" class="switch-label">📢</label>
+                <input type="radio" id="shopSocial" name="shopView" onchange="filterShop('social')">
+                <label for="shopSocial" class="switch-label">📢</label>
 
-				<input type="radio" id="shopGacha" name="shopView" onchange="filterShop('gacha')">
-				<label for="shopGacha" class="switch-label">🎲</label>
-				
-				<div class="switch-selection"></div>
-			</div>
+                <input type="radio" id="shopGacha" name="shopView" onchange="filterShop('gacha')">
+                <label for="shopGacha" class="switch-label">🎲</label>
+                
+                <div class="switch-selection"></div>
+            </div>
 
-			<div class="shop-grid"></div>
+            <div class="shop-grid"></div>
 
-		</div>
-	</div>
+        </div>
+    </div>
 
     <div id="screen-settings" class="screen">
         <div class="sticky-header-group">
@@ -372,7 +367,7 @@
             </ul>
             
             <button class="btn-logout" onclick="logout()">로그아웃</button>
-			
+            
         </div>
     </div>
 
@@ -398,7 +393,6 @@
     window.addEventListener('DOMContentLoaded', function() {
         if (window.loadDataFromServer) {
             window.loadDataFromServer();
-            // 👇 [NEW] 이 한 줄을 추가해주세요! (DB 연결 후 리스너 실행)
             setTimeout(() => { if(window.initShoutListener) window.initShoutListener(); }, 2000);
         } else {
             console.error("Logic Module Load Failed.");

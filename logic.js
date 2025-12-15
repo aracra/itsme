@@ -1,8 +1,19 @@
 // logic.js
-// Version: v19.15.0
+// Version: v19.16.0
 // Description: Core Game Logic & Data Handling
 
-// [logic.js] 파일 맨 꼭대기에 추가해주세요!
+/*
+[logic.js 역할 맵]
+
+- 인증 / 유저 초기화
+- MBTI 저장 / 테스트 결과 계산
+- 토너먼트 로직
+- 점수, 업적, 배지 계산
+- Firebase 통신
+
+⚠ UI 직접 조작 있으면 표시 필요
+*/
+
 window.pageLoadTime = Date.now(); // ⏱️ 페이지 접속 시간 기록 (이 시간 이후의 메시지만 받음)
 
 // 1. Firebase Config
@@ -68,6 +79,7 @@ function getUserId() {
     return u;
 }
 
+// ❌ UI 침범
 window.initGame = async function() {
     if(window.updateStatus) window.updateStatus("● SDK 확인...");
     if (!initFirebase()) { if(window.updateStatus) window.updateStatus("● SDK 오류", 'error'); return; }
@@ -578,4 +590,100 @@ window.initShoutListener = function() {
             });
         });
     console.log("📡 확성기 채널 연결됨...");
+};
+
+
+// [ui.js] 맨 아래에 추가
+// ==========================================
+// 🎒 인벤토리 & 장착 시스템
+// ==========================================
+
+// 1. 인벤토리 열기
+// ❌ UI 침범
+window.openInventory = function() {
+    const list = window.myInfo.inventory || []; // 내 가방 데이터
+    const container = document.getElementById('inventoryGrid');
+    container.innerHTML = ""; // 일단 비우기
+
+    if (list.length === 0) {
+        container.innerHTML = `<p style="padding:20px; color:#999;">가방이 비어있습니다 텅~🗑️<br>상점에서 쇼핑을 즐겨보세요!</p>`;
+    } else {
+        // 최신순으로 정렬 (방금 산 게 위로)
+        const sortedList = [...list].reverse(); 
+
+        let html = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px;">';
+        
+        sortedList.forEach((item, index) => {
+            // 장착 중인지 확인 (아바타가 같거나, 배경이 같으면 표시)
+            const isEquipped = (item.type === 'avatar' && window.myInfo.avatar === item.value) ||
+                               (item.type === 'effect' && window.myInfo.bgEffect === item.value);
+            
+            const borderStyle = isEquipped ? "border:2px solid var(--primary); background:rgba(108,92,231,0.1);" : "border:1px solid var(--border);";
+
+            html += `
+            <div onclick="window.equipItem(${index})" style="${borderStyle} border-radius:12px; padding:10px 5px; text-align:center; cursor:pointer;">
+                <div style="font-size:30px;">${item.value || item.icon || '📦'}</div>
+                <div style="font-size:11px; margin-top:5px; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                    ${item.name}
+                </div>
+                ${isEquipped ? '<div style="font-size:10px; color:var(--primary);">[장착중]</div>' : ''}
+            </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    window.openPopup('inventoryOverlay');
+};
+
+// 2. 아이템 장착/사용
+// ❌ UI 침범
+window.equipItem = function(index) {
+    // 원본 리스트를 뒤집어서 보여줬으니, 찾을 때도 계산 필요
+    // (복잡함을 피하기 위해, 그냥 myInfo.inventory에서 데이터를 직접 찾는 게 아니라
+    //  위에서 렌더링할 때 사용한 정렬된 리스트를 기준으로 해야 하지만,
+    //  여기선 간단히 '값'으로 내 정보를 갱신하겠습니다.)
+    
+    // 편의상 다시 역정렬해서 해당 아이템 찾기
+    const list = window.myInfo.inventory || [];
+    const sortedList = [...list].reverse();
+    const item = sortedList[index];
+
+    if (!item) return;
+
+    // 변경사항 저장 변수
+    const updates = {};
+    let msg = "";
+
+    if (item.type === 'avatar') {
+        // 🦁 아바타 변경
+        window.myInfo.avatar = item.value;
+        updates.avatar = item.value;
+        msg = `아바타가 [${item.value}]로 변경되었습니다!`;
+        
+        // 화면 즉시 반영 (내비게이션 바 등)
+        const myProfileIcon = document.querySelector('.my-profile-icon');
+        if(myProfileIcon) myProfileIcon.innerText = item.value;
+
+    } else if (item.type === 'effect') {
+        // ✨ 배경/테마 변경
+        // (주의: 배경 기능은 css 변수를 바꿔야 해서 logic.js의 지원이 필요할 수 있음. 일단 DB만 저장)
+        window.myInfo.bgEffect = item.value; // ex: '✨'
+        updates.bgEffect = item.value;
+        msg = `테마 효과 [${item.value}] 적용!`;
+    } else {
+        alert("사용할 수 없는 아이템입니다.");
+        return;
+    }
+
+    // DB 저장
+    if (window.db) {
+        window.db.collection('users').doc(localStorage.getItem('my_uid')).update(updates)
+            .then(() => {
+                // 인벤토리 목록 다시 그려서 '장착중' 표시 갱신
+                window.openInventory();
+                window.openCustomAlert("장착 완료", msg);
+            });
+    }
 };
