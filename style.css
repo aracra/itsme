@@ -283,7 +283,78 @@ input:checked + label { color: var(--primary); }
 .shop-token-info { font-weight: bold; color: var(--primary); margin-top: 5px; }
 .shop-section { width: 100%; }
 .shop-title { margin-bottom: 10px; font-weight: bold; border-left: 4px solid var(--primary); padding-left: 10px; }
-.shop-grid { display: block; width: 100%; } 
+
+/* [style.css] 상점 디자인 */
+
+/* 1. 진열대 (전체 틀) */
+.shop-grid {
+    display: grid;
+    /* 한 줄에 2개씩 꽉 차게 배치 (화면 넓으면 3개도 됨) */
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); 
+    gap: 15px; /* 아이템 사이 간격 */
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* 2. 상품 카드 (개별 아이템) */
+.shop-item {
+    background: var(--bg-card, #ffffff); /* 카드 배경색 */
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 15px;   /* 둥근 모서리 */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;   /* 가운데 정렬 */
+    justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* 살짝 그림자 */
+    transition: transform 0.2s;
+}
+
+/* 마우스 올리면 살짝 튀어오르는 효과 */
+.shop-item:active {
+    transform: scale(0.95);
+}
+
+/* 3. 아이콘 */
+.item-icon {
+    font-size: 40px; /* 이모지 크기 */
+    margin-bottom: 10px;
+}
+
+/* 4. 상품 이름 */
+.item-name {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+    text-align: center;
+    color: var(--text-main, #333);
+}
+
+/* 5. 가격 */
+.item-price {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+/* 6. 구매 버튼 꾸미기 */
+.btn-buy {
+    background-color: #4CAF50; /* 초록색 */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 5px 15px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    width: 100%;
+}
+
+.btn-buy:hover {
+    background-color: #45a049;
+}
+
 .shop-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 5px; text-align: center; cursor: pointer; transition: 0.2s; }
 .shop-item:active { transform: scale(0.95); border-color: var(--primary); }
 .shop-item-name { color: var(--text-primary); font-size: 11px; font-weight: bold; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -351,3 +422,250 @@ input:checked + label { color: var(--primary); }
 .profile-view-badge { font-size: 14px; padding: 5px 10px; }
 .no-ticket-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-size: 18px; color: var(--text-secondary); background-color: var(--card); z-index: 10; }
 .no-ticket-icon { font-size: 60px; margin-bottom: 20px; }
+
+/* [style.css] 맨 아래 추가 (핵폭탄급 우선순위) */
+
+/* 다크 모드: 모든 주요 태그를 강제로 검게 만듦 */
+html body.bg-dark,
+html body.bg-dark #mainContainer,
+html body.bg-dark .screen,
+html body.bg-dark .sticky-header-group {
+    background-color: #2d3436 !important;
+    color: #dfe6e9 !important;
+}
+
+/* 카드랑 버튼도 확실하게 */
+html body.bg-dark .card,
+html body.bg-dark .btn-action.type-gray {
+    background-color: #636e72 !important;
+    color: #fff !important;
+    border: 1px solid #555 !important;
+}
+
+/* 골드 모드 */
+html body.bg-gold,
+html body.bg-gold #mainContainer,
+html body.bg-gold .screen {
+    background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%) !important;
+    color: #fff !important;
+}
+
+/* =========================================
+   [팝업창 스타일] 한줄 평 / 인벤토리 등 공용
+   ========================================= */
+
+/* 팝업 배경 (어두운 막) + 중앙 정렬 */
+.overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* 반투명 검정 */
+    z-index: 9999; /* 가장 위에 */
+    
+    /* ★ 핵심: flex를 이용한 정중앙 정렬 */
+    display: none; /* 기본은 숨김 */
+    justify-content: center; /* 가로 중앙 */
+    align-items: center; /* 세로 중앙 */
+}
+
+/* 팝업이 열렸을 때 (JS에서 .open 클래스를 붙임) */
+.overlay.open {
+    display: flex !important; /* flex로 보여야 중앙 정렬이 먹힘 */
+}
+
+/* 팝업창 본체 (하얀 박스) */
+.popup {
+    background: white;
+    width: 90%; /* 모바일: 화면의 90% */
+    max-width: 400px; /* PC: 최대 400px까지만 커짐 */
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    animation: slideUp 0.3s ease-out; /* 나타날 때 살짝 올라오는 효과 */
+    position: relative; /* 내부 배치 기준 */
+}
+
+/* (선택사항) 팝업 등장 애니메이션 */
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 팝업 헤더 (제목과 닫기 버튼) */
+.popup-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eee; /* 헤더 구분선 추가하면 더 예쁨 */
+    padding-bottom: 10px;
+}
+.popup-header h3 { margin: 0; font-size: 1.2em; color: #333; }
+.btn-close { 
+    background: none; border: none; 
+    font-size: 1.5em; cursor: pointer; color: #999; 
+    transition: color 0.2s;
+}
+.btn-close:hover { color: #ff5252; } /* 마우스 올리면 빨개짐 */
+
+/* =========================================
+   [토스트 메시지] 알림 팝업 스타일
+   ========================================= */
+#toast-container {
+    visibility: hidden; /* 평소엔 숨김 */
+    min-width: 250px;
+    background-color: rgba(50, 50, 50, 0.9); /* 진한 회색 반투명 */
+    color: #fff;
+    text-align: center;
+    border-radius: 50px; /* 둥글게 */
+    padding: 16px;
+    position: fixed;
+    z-index: 10000; /* 제일 위에 */
+    left: 50%;
+    bottom: 30px; /* 하단에서 30px 위 */
+    transform: translateX(-50%); /* 정확히 가운데 정렬 */
+    font-size: 17px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.5s, bottom 0.5s; /* 부드러운 효과 */
+}
+
+/* 토스트가 떴을 때 (.show 클래스 추가됨) */
+#toast-container.show {
+    visibility: visible;
+    opacity: 1;
+    bottom: 50px; /* 살짝 위로 올라오면서 등장 */
+}
+
+/* =========================================
+   [광장] 스타일
+   ========================================= */
+.section-title {
+    font-weight: bold; font-size: 18px; margin: 20px 0 10px 5px; color: #333;
+}
+
+/* 🏆 명예의 전당 (가로 스크롤) */
+.square-rank-container {
+    display: flex; gap: 12px; overflow-x: auto; padding: 5px;
+    scroll-snap-type: x mandatory; /* 스크롤 딱딱 멈추게 */
+    -webkit-overflow-scrolling: touch; /* 부드러운 스크롤 */
+}
+.rank-card {
+    min-width: 130px; flex: 0 0 auto;
+    background: #fff;
+    border: 1px solid #eee; border-radius: 15px;
+    padding: 15px; text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    scroll-snap-align: start; position: relative;
+    cursor: pointer; transition: transform 0.2s;
+}
+.rank-card:active { transform: scale(0.95); }
+.rank-card.gold { border: 2px solid #ffd700; background: #fffdf0; }
+
+.rank-badge {
+    position: absolute; top: 10px; left: 10px;
+    background: #333; color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold;
+}
+.rank-card.gold .rank-badge { background: #ffd700; color: #000; }
+
+/* 💬 피드 스타일 */
+.square-feed-container {
+    display: flex; flex-direction: column; gap: 10px;
+}
+.feed-item {
+    background: #fff; padding: 15px; border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+.feed-header {
+    display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: #888;
+}
+.feed-content { color: #444; line-height: 1.4; }
+.feed-target { 
+    color: #6c5ce7; font-weight: bold; background: #f0eeff; 
+    padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-right: 5px;
+}
+
+/* [style.css] 토글 버튼 스타일 (Underline Version) */
+
+/* 탭 컨테이너: 배경색 없애고 바닥에 회색 선 하나 */
+.tab-toggle-container {
+    display: flex;
+    background: transparent; /* 투명 */
+    margin: 10px 0 20px 0; /* 여백 정리 */
+    padding: 0;
+    border-radius: 0; /* 둥근 모서리 제거 */
+    border-bottom: 2px solid #f0f0f0; /* 전체 바닥 선 (연한 회색) */
+}
+
+/* 버튼 기본: 배경 없고 투명 */
+.tab-toggle-btn {
+    flex: 1; 
+    border: none;
+    background: transparent;
+    padding: 12px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #999; /* 기본은 연한 색 */
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative; /* 밑줄 위치 잡기 위해 */
+    bottom: -2px; /* 바닥 선이랑 겹치게 살짝 내림 */
+}
+
+/* 선택된 버튼: 진한 색 + 보라색 밑줄 */
+.tab-toggle-btn.active {
+    color: #333; /* 글자 진하게 */
+    border-bottom: 2px solid #6c5ce7; /* ★ 핵심: 보라색 밑줄 */
+    background: transparent; /* 배경색 없음 */
+    box-shadow: none; /* 그림자 제거 */
+}
+
+/* (선택사항) 마우스 올렸을 때 살짝 진하게 */
+.tab-toggle-btn:hover {
+    color: #666;
+}
+
+/* [style.css] 🥠 포춘쿠키 스타일 */
+.fortune-container {
+    text-align: center;
+    padding: 40px 20px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    margin-top: 10px;
+}
+.cookie-icon {
+    font-size: 80px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: inline-block;
+}
+.cookie-icon:active { transform: scale(0.9); }
+
+/* 흔들리는 애니메이션 */
+@keyframes shake {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(-10deg); }
+    75% { transform: rotate(10deg); }
+    100% { transform: rotate(0deg); }
+}
+.cookie-shake {
+    animation: shake 0.5s ease-in-out infinite;
+}
+
+.cookie-text {
+    margin-top: 20px;
+    font-size: 16px;
+    color: #555;
+    font-weight: bold;
+    min-height: 40px; /* 글자 바뀌어도 높이 유지 */
+}
+
+/* 운세 결과 카드 */
+.fortune-result {
+    border: 2px dashed #6c5ce7;
+    background: #f8f0ff;
+    padding: 20px;
+    border-radius: 15px;
+    margin-top: 20px;
+    animation: popIn 0.3s ease-out;
+}
+@keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }

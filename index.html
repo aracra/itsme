@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>It's me! v19.16.0</title>
-    <link rel="stylesheet" href="style.css?v=19.15.1">
+	<link rel="stylesheet" href="style.css?v=19.16.30">
 </head>
 <body>
 
@@ -15,11 +15,13 @@
             <div id="dbStatus" class="db-status">● 연결 중</div>
             <button onclick="toggleDevMenu()" class="btn-dev-toggle">⚙️ Dev</button>
         </div>
-        <div id="devMenuExpanded" class="dev-menu-box">
-            <button onclick="if(window.initializeTestDB) { initializeTestDB(); }" class="btn-dev-item">🔄 DB 리셋</button>
-            <button onclick="if(window.refillTickets) { window.refillTickets(); }" class="btn-dev-item">🎫 티켓 충전</button>
-            <button onclick="if(window.addRichTokens) { window.addRichTokens(); }" class="btn-dev-item">💰 돈복사</button>
-        </div>
+		<div id="devMenuExpanded" class="dev-menu-box">
+			<button onclick="if(window.initializeTestDB) { initializeTestDB(); }" class="btn-dev-item">🔄 DB 리셋</button>
+			<button onclick="if(window.refillTickets) { window.refillTickets(); }" class="btn-dev-item">🎫 티켓 충전</button>
+			<button onclick="if(window.addRichTokens) { window.addRichTokens(); }" class="btn-dev-item">💰 돈복사</button>
+			
+			<button onclick="if(window.createNPCs) { window.createNPCs(); }" class="btn-dev-item">🤖 NPC 생성</button>
+		</div>
     </div>
 
     <div id="customConfirmOverlay" class="sheet-overlay">
@@ -61,9 +63,9 @@
             <h3 class="margin-bottom-30">🎒 내 가방</h3>
             
             <div class="tab-line-header">
-                <div class="tab-line-item active inv-tab" onclick="updateInventoryList('all', this)">전체</div>
-                <div class="tab-line-item inv-tab" onclick="updateInventoryList('avatar', this)">아바타</div>
-                <div class="tab-line-item inv-tab" onclick="updateInventoryList('effect', this)">효과</div>
+                <div class="tab-line-item active inv-tab" onclick="renderInventory('all', this)">전체</div>
+                <div class="tab-line-item inv-tab" onclick="renderInventory('avatar', this)">아바타</div>
+                <div class="tab-line-item inv-tab" onclick="renderInventory('effect', this)">효과</div>
             </div>
 
             <div id="inventoryListArea" class="inventory-list-area"></div>
@@ -175,12 +177,12 @@
             <div class="avatar-area">
                 <div class="avatar-circle">
                     <span id="myAvatar" class="my-profile-icon">👤</span>
-                    <div class="avatar-badge" id="myMbtiBadge">#???</div>
+                    <div class="avatar-badge" id="myMbti">#???</div>
                 </div>
                 
                 <div class="avatar-text-group">
                     <div class="profile-header-row">
-                        <div id="myNicknameDisplay" class="profile-name">닉네임</div>
+                        <div id="myNickname" class="profile-name">닉네임</div>
                         <div class="header-badge">👑 상위 12% (종합)</div>
                     </div>
 
@@ -304,7 +306,48 @@
         </div>
     </div>
 
-    <div id="screen-shop" class="screen">
+<div id="screen-square" class="screen">
+        <div class="header">
+            <h2>📢 광장</h2>
+            <p class="subtitle">모두의 이야기가 모이는 곳</p>
+        </div>
+        
+        <div class="content-body" style="padding-bottom: 80px;">
+            
+            <div class="section-title">🏆 명예의 전당</div>
+            <div id="squareTopRank" class="square-rank-container">
+                <div class="loader">데이터 로딩 중...</div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="tab-toggle-container">
+                <button id="tabSquareAll" class="tab-toggle-btn active" onclick="window.switchSquareTab('ALL')">
+                    📢 전체
+                </button>
+                <button id="tabSquareMy" class="tab-toggle-btn" onclick="window.switchSquareTab('MY')">
+                    💌 내 소식
+                </button>
+                <button id="tabSquareLuck" class="tab-toggle-btn" onclick="window.switchSquareTab('LUCK')">
+                    🥠 운세
+                </button>
+            </div>
+
+            <div class="section-title" style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                <span id="squareListTitle">💬 실시간 톡</span>
+                <button id="btnRefreshSquare" class="btn-sm" onclick="window.refreshSquare()">새로고침 🔄</button>
+            </div>
+
+            <div id="squareFeed" class="square-feed-container"></div>
+
+            <div id="squareFortune" class="fortune-container" style="display:none;">
+                <div class="cookie-stage">
+                    <div id="cookieEmoji" class="cookie-icon" onclick="window.breakCookie()">🥠</div>
+                    <p id="cookieMsg" class="cookie-text">터치해서 쿠키를 열어보세요!</p>
+                </div>
+            </div>
+
+        </div> </div> <div id="screen-shop" class="screen">
         <div class="sticky-header-group">
             <h2 class="main-screen-title padding-top-20">상점</h2>
             <div class="shop-token-info" style="margin-bottom: 8px;">
@@ -319,27 +362,24 @@
 
         <div class="scroll-body no-scrollbar padding-top-50">
             <div class="ranking-switch-container shop-switch">
-                <input type="radio" id="shopUtil" name="shopView" checked onchange="filterShop('utility')">
+                <input type="radio" id="shopUtil" name="shopView" checked onchange="renderShop('utility')">
                 <label for="shopUtil" class="switch-label">🪄</label>
 
-                <input type="radio" id="shopDeco" name="shopView" onchange="filterShop('deco')">
+                <input type="radio" id="shopDeco" name="shopView" onchange="renderShop('deco')">
                 <label for="shopDeco" class="switch-label">🎨</label>
 
-                <input type="radio" id="shopSocial" name="shopView" onchange="filterShop('social')">
+                <input type="radio" id="shopSocial" name="shopView" onchange="renderShop('social')">
                 <label for="shopSocial" class="switch-label">📢</label>
 
-                <input type="radio" id="shopGacha" name="shopView" onchange="filterShop('gacha')">
+                <input type="radio" id="shopGacha" name="shopView" onchange="renderShop('gacha')">
                 <label for="shopGacha" class="switch-label">🎲</label>
                 
                 <div class="switch-selection"></div>
             </div>
 
-            <div class="shop-grid"></div>
-
+            <div id="shop-list" class="shop-grid"></div>
         </div>
-    </div>
-
-    <div id="screen-settings" class="screen">
+    </div> <div id="screen-settings" class="screen">
         <div class="sticky-header-group">
             <h2 class="main-screen-title">설정</h2>
         </div>
@@ -367,27 +407,39 @@
             </ul>
             
             <button class="btn-logout" onclick="logout()">로그아웃</button>
-            
+           
         </div>
-    </div>
-
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="goTab('screen-main', this)"><span class="nav-icon">🪞</span>거울</div>
-        <div class="nav-item" onclick="goTab('screen-vote', this)"><span class="nav-icon">⚖️</span>평가</div>
-        <div class="nav-item" onclick="goTab('screen-rank', this)"><span class="nav-icon">🏆</span>랭킹</div>
-        <div class="nav-item" onclick="goTab('screen-shop', this)"><span class="nav-icon">🛍️</span>상점</div>
-        <div class="nav-item" onclick="goTab('screen-settings', this)"><span class="nav-icon">⚙️</span>설정</div>
-    </div>
-</div>
+    </div> <nav class="bottom-nav">
+        <div class="nav-item active" onclick="window.goTab('screen-main', this)">
+            <span class="nav-icon">🪞</span>거울
+        </div>
+        <div class="nav-item" onclick="window.goTab('screen-vote', this)">
+            <span class="nav-icon">⚖️</span>평가
+        </div>
+        <div class="nav-item" onclick="window.goTab('screen-rank', this)">
+            <span class="nav-icon">🏆</span>랭킹
+        </div>
+        <div class="nav-item" onclick="window.goTab('screen-square', this)">
+            <span class="nav-icon">📢</span>광장
+        </div>
+        <div class="nav-item" onclick="window.goTab('screen-shop', this)">
+            <span class="nav-icon">🛍️</span>상점
+        </div>
+        <div class="nav-item" onclick="window.goTab('screen-settings', this)">
+            <span class="nav-icon">⚙️</span>설정
+        </div>
+    </nav>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js" defer></script>
+
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js" defer></script>
 
-<script src="logic.js?v=19.15.1" defer></script>
-<script src="ui.js?v=19.15.1" defer></script>
-<script src="init_test.js?v=19.15.0" defer></script> 
+<script src="ui.js?v=19.16.30" defer></script>
+<script src="logic.js?v=19.16.30" defer></script>
+<script src="init_test.js?v=19.16.30" defer></script>
 
 <script>
     window.addEventListener('DOMContentLoaded', function() {

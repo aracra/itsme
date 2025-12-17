@@ -1,83 +1,90 @@
-// [init_test.js] 개발자 모드 전용 스크립트
-// Version: v19.16.0
-console.log("🚧 개발자 테스트 모듈(init_test.js) 로드됨");
+// init_test.js
+// Version: v19.16.9 (Dev Button Fix & Auto Medic)
 
-// 1. 🔄 DB 리셋 및 초기화 (HTML의 'initializeTestDB'와 연결됨)
+console.log("🚧 개발자 모듈 로드됨");
+
+// 1. 개발자 버튼 연결 (이게 있어야 버튼이 눌림!)
 window.initializeTestDB = async function() {
-    if (!confirm("🚨 [개발자 모드] 경고!\n\n데이터가 초기화됩니다:\n- 내 지갑: 1000토큰 지급\n- 내 가방: 초기화\n- 친구: 8명 봇 생성\n\n진행하시겠습니까?")) return;
-
-    const db = window.db;
-    const myUid = localStorage.getItem('my_uid');
+    if(!confirm("⚠️ 데이터를 초기화하고 NPC를 재생성하시겠습니까?")) return;
+    if(!window.db) return alert("DB 연결 중...");
     
-    console.log("🧹 DB 대청소 및 초기 세팅 시작...");
-
-    try {
-        // (1) 🐯 '나(Player)' 다시 만들기 (지갑 두둑하게!)
-        const myData = {
-            nickname: "개굴선배", // 닉네임 (필요시 변경)
-            mbti: "ENTP",      // MBTI (필요시 변경)
-            stats: {           
-                strength: 20, speed: 20, intelligence: 20, 
-                luck: 20, charisma: 20, empathy: 20
-            },
-            tokens: 1000,      // 💎 테스트 자금 (1000원)
-            inventory: [],     // 🎒 빈 가방
-            avatar: "🐸",
-            bgEffect: null,    // 배경 초기화
-            joinedAt: new Date()
-        };
-
-        await db.collection('users').doc(myUid).set(myData);
-        console.log("✅ 내 데이터 생성 완료!");
-
-        // (2) 🤖 '토너먼트용 친구 8명' 만들기
-        const botNames = ["알파고", "베타고", "감마고", "델타고", "오메가", "제타", "시그마", "파이"];
-        const botMbtis = ["INTJ", "ENFP", "ISTJ", "ESFJ", "INTP", "ENTJ", "ISFP", "ESTP"];
-
-        for (let i = 0; i < 8; i++) {
-            const botId = `bot_${i+1}`;
-            const botData = {
-                nickname: botNames[i],
-                mbti: botMbtis[i],
-                stats: { // 랜덤 스탯
-                    strength: Math.floor(Math.random() * 30),
-                    speed: Math.floor(Math.random() * 30),
-                    intelligence: Math.floor(Math.random() * 30),
-                    luck: Math.floor(Math.random() * 30),
-                    charisma: Math.floor(Math.random() * 30),
-                    empathy: Math.floor(Math.random() * 30)
-                },
-                tokens: 0,
-                inventory: [],
-                avatar: "🤖",
-                bgEffect: null,
-                isBot: true
-            };
-            await db.collection('users').doc(botId).set(botData);
-        }
-        console.log("✅ 봇 8명 생성 완료!");
-
-        alert("🎉 개발자 리셋 완료! (새로고침 됩니다)");
-        location.reload();
-
-    } catch (error) {
-        console.error("❌ 리셋 중 오류 발생:", error);
-        alert("리셋 실패! 콘솔을 확인하세요.");
-    }
+    // NPC 생성 로직...
+    await window.createNPCs(); 
 };
 
-// 2. 💰 돈복사 (HTML의 'addRichTokens'와 연결)
+window.refillTickets = async function() {
+    const uid = localStorage.getItem('my_uid');
+    if(!uid) return;
+    await window.db.collection('users').doc(uid).update({ tickets: 5 });
+    if(window.myInfo) window.myInfo.tickets = 5;
+    if(window.updateTicketUI) window.updateTicketUI();
+    alert("🎫 티켓 충전 완료!");
+};
+
 window.addRichTokens = async function() {
-    const myUid = localStorage.getItem('my_uid');
-    // 현재 돈 + 10000원 추가
-    await window.db.collection('users').doc(myUid).update({
-        tokens: firebase.firestore.FieldValue.increment(10000)
-    });
-    alert("💰 10,000 토큰이 입금되었습니다!");
-    location.reload(); // 화면 갱신을 위해 새로고침
+    const uid = localStorage.getItem('my_uid');
+    if(!uid) return;
+    await window.db.collection('users').doc(uid).update({ tokens: firebase.firestore.FieldValue.increment(10000) });
+    alert("💰 10,000 토큰 지급!");
 };
 
-// 3. 🎫 티켓 충전 (HTML의 'refillTickets'와 연결 - 필요하면 구현)
-window.refillTickets = function() {
-    alert("🎫 티켓 충전 기능은 아직 구현 중입니다! (DB 필드 확인 필요)");
+window.createNPCs = async function() {
+    const npcList = [
+        { name: "개굴선배", mbti: "ENTP", icon: "🐸" },
+        { name: "시니컬한 고양이", mbti: "INTJ", icon: "🐱" },
+        { name: "열정맨 강아지", mbti: "ESFJ", icon: "🐶" },
+        { name: "나무늘보", mbti: "ISFP", icon: "🦥" },
+        { name: "똑똑한 부엉이", mbti: "INTP", icon: "🦉" },
+        { name: "화려한 공작", mbti: "ENTJ", icon: "🦚" },
+        { name: "수다쟁이 앵무새", mbti: "ESFP", icon: "🦜" },
+        { name: "든든한 곰", mbti: "ISTJ", icon: "🐻" }
+    ];
+
+    const batch = window.db.batch();
+    npcList.forEach((npc, i) => {
+        const ref = window.db.collection('users').doc(`npc_${i+1}`);
+        batch.set(ref, {
+            nickname: npc.name, avatar: npc.icon, mbti: npc.mbti,
+            stats: { strength: 50, speed: 50, intelligence: 80, luck: 50, charisma: 50, empathy: 50 },
+            tickets: 5, tokens: 0, is_npc: true, createdAt: new Date().toISOString()
+        });
+    });
+    await batch.commit();
+    alert("✅ NPC 생성 및 개굴선배 치료 완료!");
+    location.reload();
 };
+
+
+// 2. [자동 실행] NaN 환자 치료 & 자동 로그인
+window.addEventListener('load', async () => {
+    // (1) 자동 로그인
+    const savedUid = localStorage.getItem('my_uid');
+    const loginScreen = document.getElementById('screen-login');
+    if (savedUid && loginScreen && loginScreen.classList.contains('active')) {
+        console.log("🚀 자동 로그인...");
+        document.getElementById('mainContainer').classList.add('logged-in');
+        if(window.goTab) window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
+        if(window.initGame) window.initGame();
+    }
+
+    // (2) 개굴선배 및 NaN 환자 치료
+    setTimeout(async () => {
+        if(!window.candidates) return;
+        // 스탯이 없거나 깨진(NaN) 친구 찾기
+        const sickPatients = window.candidates.filter(u => !u.stats || isNaN(u.stats.intelligence));
+        
+        if (sickPatients.length > 0) {
+            console.log(`🚑 ${sickPatients.length}명의 환자 발견! 치료 시작...`);
+            const batch = window.db.batch();
+            sickPatients.forEach(p => {
+                const ref = window.db.collection('users').doc(p.id);
+                batch.set(ref, {
+                    stats: { strength: 50, speed: 50, intelligence: 50, luck: 50, charisma: 50, empathy: 50 }
+                }, { merge: true });
+            });
+            await batch.commit();
+            console.log("💉 전원 치료 완료! (랭킹 갱신 필요)");
+            if(window.renderRankList) window.renderRankList();
+        }
+    }, 2000); // 2초 뒤 실행
+});

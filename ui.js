@@ -1,607 +1,575 @@
 // ui.js
-// Version: v19.16.0 (Simple Standard)
-// Description: UI Controller & Animation Handler
+// Version: v19.16.7 (Clean & Fixed)
 
-let myMbti = "";
-let tempTestResult = [];
-let myChart = null;
-window.currentInvCategory = 'all'; 
-
-// 🟢 [Simple] 하이픈(-) 클래스명 정의
+// 1. 공통 유틸리티 & 설정
 const THEME_CLASSES = ['bg-gold', 'bg-dark', 'bg-pink']; 
 
-window.updateStatus = function(m, t = 'wait') {
-    const e = document.getElementById('dbStatus');
-    if (e) {
-        e.innerText = m;
-        e.classList.remove('on', 'error');
-        if (t === 'ok') e.classList.add('on');
-        if (t === 'error') { e.classList.add('error'); e.onclick = () => location.reload(); }
+window.updateStatus = function(msg, type = 'wait') {
+    const el = document.getElementById('dbStatus');
+    if (el) {
+        el.innerText = msg;
+        el.classList.remove('on', 'error');
+        if (type === 'ok') el.classList.add('on');
+        if (type === 'error') { el.classList.add('error'); el.onclick = () => location.reload(); }
     }
-    console.log(`[Sys] ${m}`);
-}
+    console.log(`[Sys] ${msg}`);
+};
 
 window.toggleDevMenu = function() {
     const el = document.getElementById('devMenuExpanded');
     if (el) el.style.display = (el.style.display === 'flex') ? 'none' : 'flex';
-}
+};
+
+// 2. 메인 UI 업데이트 (내 정보, 티켓 등)
+window.updateMyInfoUI = function() {
+    const info = window.myInfo;
+    if (!info) return;
+
+    const nameEl = document.getElementById('myNickname');
+    const avatarEl = document.getElementById('myAvatar');
+    const mbtiEl = document.getElementById('myMbti');
+
+    if (nameEl) nameEl.innerText = info.nickname;
+    if (mbtiEl) mbtiEl.innerText = info.mbti ? `#${info.mbti}` : '#???';
+    if (avatarEl) avatarEl.innerText = info.avatar || '🙂';
+
+    // 토큰 표시 (여러 군데 있을 수 있음)
+    document.querySelectorAll('.my-token-display').forEach(el => el.innerText = info.tokens);
+    const tokenEl = document.getElementById('shopTokenDisplay');
+    if(tokenEl) tokenEl.innerText = info.tokens;
+
+    // 배경 효과 적용
+    if(window.applyActiveEffects) window.applyActiveEffects();
+    window.updateTicketUI();
+    
+    console.log("🔄 UI 갱신 완료");
+};
 
 window.updateTicketUI = function() {
-    const e = document.getElementById('ticketDisplay');
-    const b = document.getElementById('startBtnBadge');
-    const count = (window.myInfo && window.myInfo.tickets) ? window.myInfo.tickets : 0;
+    const count = (window.myInfo && window.myInfo.tickets !== undefined) ? window.myInfo.tickets : 0;
     
-    if (e) e.innerText = `🎫 남은 티켓: ${count}/5`;
-    if (b) {
-        const numSpan = b.querySelector('.fb-count');
-        if(numSpan) numSpan.innerText = count;
-    }
-}
-
-window.updateProfileUI = function() {
-    if (!window.myInfo) return;
-    const d = {
-        mainMsg: `"${window.myInfo.msg || '상태 메시지'}"`,
-        shopTokenDisplay: window.myInfo.tokens,
-        myAvatar: window.myInfo.avatar,
-        myNicknameDisplay: window.myInfo.nickname,
-        myMbtiBadge: `#${window.myInfo.mbti}`,
-        settingsAccountDisplay: `kakao_${getUserId().substr(0,8)}***` 
-    };
-
-    for (const k in d) {
-        const e = document.getElementById(k);
-        if (e) e.innerText = d[k];
-    }
-
-    if (document.getElementById('tab-prism')?.classList.contains('active') && window.drawChart) window.drawChart();
-    if (window.applyActiveEffects) window.applyActiveEffects();
-    window.updateTicketUI();
+    const badge = document.getElementById('ticketDisplay');
+    if (badge) badge.innerText = `🎫 남은 티켓: ${count}/5`;
+    
+    const floatBadge = document.getElementById('ticketCountNum');
+    if (floatBadge) floatBadge.innerText = count;
 };
 
-window.setMyTypeUI = function(m) {
-    myMbti = m;
-    if (document.getElementById('myMbtiBadge')) document.getElementById('myMbtiBadge').innerText = `#${m}`;
-    document.getElementById('screen-login').classList.remove('active');
-    document.getElementById('screen-mbti').classList.remove('active');
-    document.getElementById('mainContainer').classList.add('logged-in');
-    if (window.goTab) window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
-}
+// 3. 화면 네비게이션
+// [ui.js] 탭 전환 함수 (전체 수리 버전)
+window.goTab = function(screenId, navElement) {
+    // 1. 모든 화면 숨기기
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(s => s.classList.remove('active'));
 
-// 🟢 [Simple] 복잡한 변환 없이 바로 적용
-window.updateMyInfoUI = function() {
-    if (!window.myInfo) return;
-    const tokenEl = document.getElementById('shopTokenDisplay');
-    if (tokenEl) tokenEl.innerText = window.myInfo.tokens;
-    
-    const avatarEls = document.querySelectorAll('.my-profile-icon, #myAvatar');
-    avatarEls.forEach(el => {
-        el.innerText = window.myInfo.avatar || '🙂'; 
-    });
+    // 2. 선택된 화면 보여주기
+    const target = document.getElementById(screenId);
+    if (target) {
+        target.classList.add('active');
+    }
 
-    // 테마 적용 (있는 그대로 사용)
-    document.body.classList.remove(...THEME_CLASSES);
-    if (window.myInfo.bgEffect) {
-        document.body.classList.add(window.myInfo.bgEffect);
+    // 3. 하단 메뉴 활성화 표시 (CSS class)
+    if (navElement) {
+        const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+        navItems.forEach(item => item.classList.remove('active'));
+        navElement.classList.add('active');
+    }
+
+    // 4. 화면별 데이터 새로고침 (Refresh Logic)
+    if (screenId === 'screen-vote') {
+        // 투표 화면: 새 질문 로드 등
+        if (window.initVoteScreenUI && window.currentQ) {
+             // (필요 시 로직 추가)
+        }
+    } else if (screenId === 'screen-rank') {
+        // 랭킹 화면: 리스트 새로고침
+        if (window.refreshRank) window.refreshRank();
+
+    } else if (screenId === 'screen-shop') {
+        // 상점 화면: 아이템 목록 새로고침
+        if (window.renderShop) window.renderShop();
+
+    } else if (screenId === 'screen-square') {
+        // 📢 [광장] 화면: 랭킹+댓글 새로고침 (여기가 추가된 부분!)
+        if (window.refreshSquare) window.refreshSquare();
     }
 };
 
-// 2. Navigation
-window.goTab = function(s, n) {
-    const activeScreen = document.querySelector('.screen.active');
-    if (activeScreen && activeScreen.id === 'screen-vote' && window.isGameRunning) {
-        window.openCustomConfirm(
-            "⚠️ 평가 이탈", 
-            "평가 중 이탈하면 티켓은 복구되지 않습니다.<br><span class='warn-text'>그래도 나가시겠습니까?</span>", 
-            () => {
-                window.isGameRunning = false;
-                proceedTab(s, n);
-            }
-        );
-        return; 
-    }
-    proceedTab(s, n);
-}
-
-function proceedTab(s, n) {
-    document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
-    document.getElementById(s).classList.add('active');
-    document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
-    if (n) n.classList.add('active');
-
-    if (s === 'screen-main') {
-        setTimeout(() => window.goSubTab('tab-prism', document.querySelector('.sub-tab:first-child')), 0);
-    } 
-    else if (s === 'screen-rank') {
-        if (window.initRankScreen) window.initRankScreen(); 
-    } 
-    else if (s === 'screen-vote') {
-        if(window.prepareVoteScreen) window.prepareVoteScreen();
-    }
+window.goSubTab = function(contentId, tabEl) {
+    document.querySelectorAll('.sub-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(contentId).classList.add('active');
     
-    if (window.updateProfileUI) window.updateProfileUI();
-}
-
-window.goSubTab = function(c, t) {
-    document.querySelectorAll('.sub-content').forEach(x => x.classList.remove('active'));
-    document.getElementById(c).classList.add('active');
-    if (t) {
-        const parent = t.parentNode;
-        Array.from(parent.children).forEach(child => child.classList.remove('active'));
-        t.classList.add('active');
+    if (tabEl && tabEl.parentNode) {
+        Array.from(tabEl.parentNode.children).forEach(c => c.classList.remove('active'));
+        tabEl.classList.add('active');
     }
-    if (c === 'tab-prism' && window.drawChart) setTimeout(window.drawChart, 50);
-    else if (c === 'tab-history' && window.renderHistoryList) window.renderHistoryList();
-    else if (c === 'tab-trophy' && window.renderAchievementsList) window.renderAchievementsList();
-}
 
-window.goScreen = function(s) {
-    document.querySelectorAll('.screen').forEach(x => x.classList.remove('active'));
-    document.getElementById(s).classList.add('active');
-}
+    if (contentId === 'tab-prism' && window.drawChart) setTimeout(window.drawChart, 50);
+    else if (contentId === 'tab-history' && window.renderHistoryList) window.renderHistoryList();
+    else if (contentId === 'tab-trophy' && window.renderAchievementsList) window.renderAchievementsList();
+};
 
-// 3. Vote Screen Handlers
+window.goScreen = function(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+};
+
+// 4. 로그인 및 설정 관련 함수 (★ 여기가 에러 나던 부분!)
+window.logout = function() { 
+    if(confirm("로그아웃 하시겠습니까?")) {
+        localStorage.clear(); 
+        location.reload(); 
+    }
+};
+
+window.loginWithServer = function() { 
+    window.goScreen('screen-nickname'); 
+};
+
+window.debugLogin = function(uid) { 
+    if (!uid) return; 
+    localStorage.setItem('my_uid', uid); 
+    location.reload(); 
+};
+
+// 5. 토너먼트 & 투표 화면
 window.prepareVoteScreen = function() {
-    if (window.candidates.length < 2) { alert("후보가 부족합니다. (최소 2명)"); return; }
+    if (!window.candidates || window.candidates.length < 2) {
+        alert("⚠️ 후보 데이터가 부족합니다 (최소 2명).\n개발자 메뉴에서 [NPC 생성]을 먼저 해주세요!");
+        window.goTab('screen-rank', document.querySelectorAll('.nav-item')[2]);
+        return;
+    }
+    
     window.isGameRunning = false;
-    if (window.myInfo && window.myInfo.tickets <= 0) { window.disableVoteScreen(); return; }
-    const noMsg = document.getElementById('noTicketMsg'); if(noMsg) noMsg.remove();
-    document.getElementById('screen-vote').style.position = ''; 
     document.getElementById('voteIntro').style.display = 'flex';
     document.getElementById('voteWrapper').style.display = 'none';
     document.getElementById('winnerContainer').style.display = 'none';
-    document.getElementById('passBtn').style.display = 'none';
-    document.getElementById('roundBadge').style.display = 'none';
-    document.getElementById('voteTitle').style.display = 'none';
     window.updateTicketUI();
-}
+};
 
 window.initVoteScreenUI = function(title) {
     const titleEl = document.getElementById('voteTitle');
     if(titleEl) { titleEl.innerText = title; titleEl.style.display = 'block'; }
     document.getElementById('voteIntro').style.display = 'none';
     document.getElementById('voteWrapper').style.display = 'flex';
-    document.getElementById('passBtn').style.display = 'block';
     document.getElementById('roundBadge').style.display = 'inline-block';
-}
+};
 
-window.updateRoundBadgeUI = function(total, current) {
-    const b = document.getElementById('roundBadge');
-    if (b && total) {
-        const t = total / 2;
-        const c = (total - current) / 2 + 1;
-        b.innerText = total === 2 ? "👑 결승전" : `🏆 ${total}강전 (${c}/${t})`;
-    }
-}
+window.updateVsCardUI = function(c1, c2) {
+    document.getElementById('nameA').innerText = c1.nickname;
+    document.getElementById('avatarA').innerText = c1.avatar || '🙂';
+    document.getElementById('descA').innerText = c1.mbti ? `#${c1.mbti}` : '';
 
-window.updateVsCardUI = function(uA, uB) {
-    if(!uA || !uB) return;
-    document.getElementById('vsContainer').style.display = 'flex';
-    document.getElementById('winnerContainer').style.display = 'none';
-    const cards = document.querySelectorAll('.vs-card');
-    cards.forEach(c => c.classList.remove('selected-choice'));
-    updateCard('A', uA);
-    updateCard('B', uB);
-}
+    document.getElementById('nameB').innerText = c2.nickname;
+    document.getElementById('avatarB').innerText = c2.avatar || '🙂';
+    document.getElementById('descB').innerText = c2.mbti ? `#${c2.mbti}` : '';
 
-function updateCard(p, u) {
-    document.getElementById('name' + p).innerText = u.nickname;
-    document.getElementById('desc' + p).innerText = u.desc || '';
-    document.getElementById('avatar' + p).innerText = u.avatar;
-}
+    // 선택 효과 초기화
+    document.querySelectorAll('.vs-card').forEach(c => c.classList.remove('selected-choice'));
+};
 
 window.animateVoteSelection = function(idx) {
     return new Promise(resolve => {
-        const cards = document.querySelectorAll('#vsContainer .vs-card');
-        const selectedCard = cards[idx];
-        if (selectedCard) { selectedCard.classList.add('selected-choice'); }
-        setTimeout(() => { resolve(); }, 550);
+        const cards = document.querySelectorAll('.vs-card');
+        if (cards[idx]) cards[idx].classList.add('selected-choice');
+        setTimeout(resolve, 500);
     });
-}
+};
 
+// 우승 화면
+// [ui.js] 우승 화면 (버튼 2개 완벽 복구 버전)
 window.showWinnerScreen = function(w) {
-    document.getElementById('vsContainer').style.display = 'none';
-    document.getElementById('passBtn').style.display = 'none';
-    document.getElementById('roundBadge').style.display = 'none';
-    document.getElementById('winnerContainer').style.display = 'flex';
+    console.log("🏆 우승 화면 출력:", w.nickname);
+
+    // 1. 화면 전환 (VS 카드 숨기고, 우승 박스 보이기)
+    document.getElementById('voteIntro').style.display = 'none';
+    document.getElementById('voteWrapper').style.display = 'none'; // 대결 카드 숨김
+    document.getElementById('roundBadge').style.display = 'none'; // 라운드 배지 숨김
+    
+    const winnerContainer = document.getElementById('winnerContainer');
+    winnerContainer.style.display = 'flex'; // 우승 박스 등장
+
+    // 2. 우승자 데이터 채우기
     document.getElementById('winnerName').innerText = w.nickname;
-    document.getElementById('winnerAvatar').innerText = w.avatar;
-    document.getElementById('winnerTitle').innerText = "🏆 최종 우승!";
-    document.getElementById('winnerText').innerText = "이 친구에게 점수가 전달되었습니다.";
-    const actionArea = document.getElementById('winnerActionArea');
-    actionArea.innerHTML = ''; 
+    document.getElementById('winnerAvatar').innerText = w.avatar || '🏆';
+    document.getElementById('winnerTitle').innerText = "👑 최종 선택!";
+    document.getElementById('winnerText').innerText = `${w.nickname}님이 우승했습니다!`;
+
+	// [ui.js] showWinnerScreen 함수 내부의 '3. 버튼 영역' 부분 교체
+	// 3. ★ 핵심: 남은 티켓에 따라 버튼 다르게 보여주기
+	const actionArea = document.getElementById('winnerActionArea');
+	if (actionArea) {
+	actionArea.innerHTML = ''; // 기존 버튼 비우기
+
+    // (A) 댓글 버튼 (공통)
     const btnComment = document.createElement('button');
-    btnComment.className = 'btn-action type-white btn-master';
-    btnComment.innerText = "💬 한줄평 남기기";
-    btnComment.onclick = () => window.openCommentPopup(w.id, w.nickname);
+    btnComment.className = 'btn-action type-gray btn-master';
+    btnComment.innerText = "💬 한줄 평 남기기";
+    btnComment.style.marginBottom = "10px";
+    btnComment.onclick = () => {
+        if (window.openCommentPopup) window.openCommentPopup(w.id, w.nickname);
+        else alert("댓글 기능 준비 중입니다 🚧");
+    };
     actionArea.appendChild(btnComment);
-    const btnNext = document.createElement('button');
-    btnNext.className = 'btn-action type-purple btn-master';
-    if (window.myInfo.tickets <= 0) {
-        btnNext.innerText = "티켓 소진 (메인으로)";
-        btnNext.onclick = () => window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
+
+    // (B) 갈림길: 티켓이 남았니?
+    const remainingTickets = (window.myInfo && window.myInfo.tickets !== undefined) ? window.myInfo.tickets : 0;
+
+    if (remainingTickets > 0) {
+        // [CASE 1] 티켓 있음 -> "이어서 하기" (빠른 진행)
+        const btnNext = document.createElement('button');
+        btnNext.className = 'btn-action type-blue btn-master'; // 파란색(긍정)
+        btnNext.innerHTML = `이어서 하기 (🎫 ${remainingTickets}장 남음)`;
+        btnNext.onclick = () => {
+            // 우승 화면 닫고 바로 새 게임 시작
+            document.getElementById('winnerContainer').style.display = 'none';
+            if (window.realStartGame) window.realStartGame();
+        };
+        actionArea.appendChild(btnNext);
+
     } else {
-        btnNext.innerText = "다음 토너먼트 시작하기";
-        btnNext.onclick = window.prepareVoteScreen;
+        // [CASE 2] 티켓 없음 -> "메인으로" (퇴장)
+        const btnHome = document.createElement('button');
+        btnHome.className = 'btn-action type-purple btn-master'; // 보라색(기본)
+        btnHome.innerText = "메인으로 돌아가기 (티켓 소진)";
+        btnHome.onclick = () => {
+            window.isGameRunning = false;
+            if (window.goTab) window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
+            else location.reload();
+        };
+        actionArea.appendChild(btnHome);
     }
-    actionArea.appendChild(btnNext);
-    if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 120, origin: { y: 0.6 }, colors: ['#ffd700', '#ffa500'] });
 }
 
-window.fireRoundEffect = function(r) {
-    const b = document.getElementById('roundBadge');
-    if (b) { b.classList.remove('pulse-anim'); void b.offsetWidth; b.classList.add('pulse-anim'); }
+    // 4. 축하 폭죽 효과 🎉
     if (typeof confetti === 'function') {
-        confetti({ particleCount: 100, spread: 80, origin: { y: 0.2 }, colors: r === 2 ? ['#ffd700', '#ffa500'] : ['#6c5ce7', '#00b894'], disableForReducedMotion: true });
-    }
-}
-
-// 4. Ticket Empty Screen
-window.disableVoteScreen = function() {
-    ['voteWrapper', 'passBtn', 'winnerContainer', 'roundBadge', 'voteIntro', 'voteTitle'].forEach(i => { 
-        const e = document.getElementById(i); if(e) e.style.display = 'none'; 
-    });
-    if (document.getElementById('noTicketMsg')) return;
-    const s = document.getElementById('screen-vote');
-    if (s) {
-        s.style.position = 'relative'; 
-        const d = document.createElement('div');
-        d.id = 'noTicketMsg';
-        d.className = 'no-ticket-screen'; 
-        d.innerHTML = `
-            <div class="no-ticket-icon">😴</div>
-            <h2 class="margin-bottom-30">티켓 소진!</h2>
-            <p class="margin-bottom-30">내일 다시 충전돼요.</p>
-            <button class="btn-action type-purple btn-master" onclick="goTab('screen-main',document.querySelector('.nav-item:first-child'))">메인으로</button>
-        `;
-        s.appendChild(d);
-    }
-}
-window.resetVoteScreenUI = function() {
-    const noMsg = document.getElementById('noTicketMsg'); if(noMsg) noMsg.remove();
-    document.getElementById('screen-vote').style.position = '';
-}
-
-// 5. Modals
-window.showConfirmModal = function(title, msg, onConfirm) { window.openCustomConfirm(title, msg, onConfirm); }
-window.openCustomConfirm = function(title, msg, onConfirm) {
-    const el = document.getElementById('customConfirmOverlay');
-    const titleEl = document.getElementById('customConfirmTitle');
-    const msgEl = document.getElementById('customConfirmMsg');
-    const btn = document.getElementById('btnCustomConfirmAction');
-    if (el && msgEl && btn) {
-        if (titleEl) titleEl.innerText = title;
-        msgEl.innerText = msg; 
-        const newBtn = btn.cloneNode(true);
-        btn.parentNode.replaceChild(newBtn, btn);
-        newBtn.onclick = function() { if (onConfirm) onConfirm(); window.closeCustomConfirm(); };
-        el.classList.add('open');
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     }
 };
-window.closeCustomConfirm = function() { document.getElementById('customConfirmOverlay').classList.remove('open'); };
-window.openCustomAlert = function(title, msg) {
-    const el = document.getElementById('customAlertOverlay');
-    const titleEl = document.getElementById('customAlertTitle');
-    const msgEl = document.getElementById('customAlertMsg');
-    const btn = document.getElementById('btnCustomAlertOk');
-    if (el && msgEl && btn) {
-        if(titleEl) titleEl.innerText = title;
-        msgEl.innerText = msg;
-        btn.onclick = function() { el.classList.remove('open'); };
-        el.classList.add('open');
-    } else { alert(msg); }
-};
-window.alert = function(msg) { window.openCustomAlert("알림", msg); };
-window.openSheet = function(icon, title, msg, subMsg) {
-    const overlayId = 'genericAlertOverlay';
-    let overlay = document.getElementById(overlayId); if(overlay) overlay.remove();
-    overlay = document.createElement('div'); overlay.id = overlayId; overlay.className = 'sheet-overlay open'; overlay.style.zIndex = '11000'; 
-    overlay.innerHTML = `
-        <div class="comment-modal">
-            <div class="sheet-icon">${icon}</div>
-            <h3 class="sheet-title-text">${title}</h3>
-            <p class="sheet-sub-text">
-                <span style="font-weight:bold; display:block; margin-bottom:5px;">${msg}</span>
-                ${subMsg || ''}
-            </p>
-            <div class="modal-btn-row">
-                <button class="btn-action type-gray" onclick="document.getElementById('${overlayId}').remove()">확인</button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
-}
-window.closePopup = function(id) { document.getElementById(id).classList.remove('open'); }
-window.openPopup = function(id) { document.getElementById(id).classList.add('open'); }
 
-window.openProfilePopup = function(id) {
-    const user = window.candidates.find(u => u.id === id); if (!user) return;
-    const overlayId = 'profileViewOverlay'; let overlay = document.getElementById(overlayId);
-    if (!overlay) { overlay = document.createElement('div'); overlay.id = overlayId; overlay.className = 'sheet-overlay'; overlay.innerHTML = `<div class="comment-modal"><div id="profileViewContent"></div><div class="modal-btn-row"><button class="btn-action type-gray" onclick="closePopup('${overlayId}')">닫기</button></div></div>`; document.body.appendChild(overlay); }
-    const content = `
-        <div class="profile-view-box">
-            <div class="avatar-circle profile-view-avatar">
-                ${user.avatar}
-                <div class="avatar-badge profile-view-badge">#${user.mbti}</div>
-            </div>
-            <h2 class="margin-bottom-30">${user.nickname}</h2>
-            <div class="sheet-message-box">"${user.msg || user.desc || "상태 메시지가 없습니다."}"</div>
-        </div>`;
-    document.getElementById('profileViewContent').innerHTML = content;
-    overlay.classList.add('open');
-}
-window.openCommentPopup = function(id, n) { window.currentWinnerId = id; document.getElementById('commentTargetName').innerText = `${n}님에게 한마디`; document.getElementById('commentInput').value = ''; document.getElementById('commentOverlay').classList.add('open'); }
-window.submitComment = function() { const t = document.getElementById('commentInput').value.trim(); if (!t) { alert("내용을 입력해주세요."); return; } if (window.sendCommentToDB) window.sendCommentToDB(window.currentWinnerId, t); window.closePopup('commentOverlay'); }
-window.showToast = function(msg) {
-    const existing = document.querySelector('.toast-msg'); if(existing) existing.remove();
-    const div = document.createElement('div'); div.className = 'toast-msg'; div.innerText = msg;
-    document.body.appendChild(div);
-    setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.5s'; setTimeout(() => div.remove(), 500); }, 2000);
-}
-window.showExcludePopup = function(userA, userB) {
-    const elA = document.getElementById('txtExcludeA'); const elB = document.getElementById('txtExcludeB');
-    const btnA = document.getElementById('btnExcludeA'); const btnB = document.getElementById('btnExcludeB');
-    if (elA && userA) { elA.innerText = `${userA.nickname} (${userA.avatar})`; btnA.onclick = () => window.confirmExclude(userA.id, userA.nickname); }
-    if (elB && userB) { elB.innerText = `${userB.nickname} (${userB.avatar})`; btnB.onclick = () => window.confirmExclude(userB.id, userB.nickname); }
-    document.getElementById('excludeOverlay').classList.add('open');
+// ★ 중복되었던 종료 함수 하나로 통합
+window.closeTournament = function() {
+    const overlay = document.getElementById('tournamentOverlay');
+    if (overlay) overlay.classList.remove('open');
+    
+    alert("수고하셨습니다 심판님! 보상으로 50💎을 드립니다.");
+    if (window.myInfo) window.myInfo.tokens = (window.myInfo.tokens || 0) + 50;
+    if (window.updateMyInfoUI) window.updateMyInfoUI();
+    
+    // 메인으로 복귀
+    window.isGameRunning = false;
+    window.goTab('screen-main', document.querySelector('.nav-item:first-child'));
 };
 
-// 🟢 [Simple] 그냥 있는 그대로 적용 (안전장치 삭제)
-window.applyActiveEffects = function() { 
-    const b = document.body; 
-    b.classList.remove(...THEME_CLASSES); 
-    if(!window.myInfo?.inventory) return; 
-    const activeEffect = window.myInfo.inventory.find(i=>i.type==='effect' && i.isActive); 
-    if(activeEffect) {
-        if(THEME_CLASSES.includes(activeEffect.value)){ b.classList.add(activeEffect.value); }
-    } 
-}
+// [ui.js] 라운드 배지 업그레이드 (진행 상황 표시)
+window.updateRoundBadgeUI = function(roundSize, current, total) {
+    const b = document.getElementById('roundBadge');
+    if (!b) return;
 
-window.drawChart = function() {
-    const c = document.getElementById('myRadarChart'); if (!c) return;
-    if (window.myChart) window.myChart.destroy();
-    const style = getComputedStyle(document.body);
-    window.myChart = new Chart(c, {
-        type: 'radar',
-        data: { labels: ['지성','센스','멘탈','인성','텐션','광기'], datasets: [{ label: '나', data: window.myInfo.stats, fill: true, backgroundColor: style.getPropertyValue('--chart-fill').trim(), borderColor: style.getPropertyValue('--chart-stroke').trim(), pointBackgroundColor: style.getPropertyValue('--chart-stroke').trim(), pointBorderColor: '#fff' }] },
-        options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: style.getPropertyValue('--chart-grid').trim() }, grid: { color: style.getPropertyValue('--chart-grid').trim() }, pointLabels: { color: style.getPropertyValue('--chart-label').trim(), font: { size: 14, weight: 'bold' } }, suggestedMin: 0, suggestedMax: 100, ticks: { display: false, stepSize: 25 } } }, plugins: { legend: { display: false } } }
-    });
-};
-window.renderRankList = function(filterIdx) {
-    const container = document.getElementById('rankListContainer'); if (!container) return;
-    let list = [...(window.candidates || [])];
-    if (list.length === 0) { container.innerHTML = `<p class="list-empty-msg">랭킹 데이터가 없습니다.</p>`; return; }
-    if (filterIdx === -1) list.sort((a, b) => (b.stats.reduce((x,y)=>x+y,0) - a.stats.reduce((x,y)=>x+y,0)));
-    else list.sort((a, b) => (b.stats[filterIdx] || 0) - (a.stats[filterIdx] || 0));
-    let html = '';
-    list.forEach((u, idx) => {
-        let score = (filterIdx === -1) ? Math.round(u.stats.reduce((a,b)=>a+b,0)/6) : u.stats[filterIdx] || 0;
-        let medal = (idx===0)?'🥇':(idx===1)?'🥈':(idx===2)?'🥉':`${idx+1}`;
-        html += `<li class="list-item" onclick="window.openProfilePopup('${u.id}')"><div style="font-weight:900; font-size:16px; width:30px; text-align:center; margin-right:10px; color:${idx<3?'var(--primary)':'#ccc'}">${medal}</div><div class="common-circle-frame" style="margin-right:10px;">${u.avatar}</div><div class="list-item-text"><div style="font-weight:bold; font-size:14px;">${u.nickname}</div><div style="font-size:11px; color:var(--text-secondary);">${u.mbti ? '#'+u.mbti : ''}</div></div><div class="list-item-score">${score}점</div></li>`;
-    });
-    container.innerHTML = html;
-};
-
-// [Ranking Logic]
-window.currentRankView = 'rank'; 
-window.initRankScreen = function() {
-    const radioRank = document.getElementById('tabRank');
-    if(radioRank) radioRank.checked = true;
-    window.switchRankView('rank');
-}
-window.switchRankView = function(viewType) {
-    window.currentRankView = viewType; 
-    document.querySelectorAll('#rankFilterContainer .stat-pill').forEach(x => x.classList.remove('active'));
-    if (viewType === 'fandom') window.renderFandomList(-1);
-    else window.renderRankList(-1);
-}
-window.filterRank = function(el, type) { 
-    document.querySelectorAll('#rankFilterContainer .stat-pill').forEach(x => x.classList.remove('active')); 
-    if (el) el.classList.add('active'); 
-    if (window.currentRankView === 'fandom') window.renderFandomList(type); 
-    else { window.currentFilter = type; window.renderRankList(type); }
-};
-window.renderFandomList = async function(filterIdx) { 
-    const container = document.getElementById('rankListContainer'); if (!container) return;
-    container.innerHTML = `<div style="text-align:center; padding:50px;"><span style="font-size:30px;">🛰️</span><br><br>팬덤 신호를 수신 중입니다...</div>`;
-    const fandomData = await window.getMyFandomData(filterIdx);
-    let html = '';
-    if (fandomData.length === 0) {
-        const emptyComment = (filterIdx === -1) ? "아직 팬이 없네요... 🥲<br>친구들에게 매력을 어필해보세요!" : "이 능력으로는 아직<br>받은 표가 없어요!";
-        html = `<p class="list-empty-msg" style="margin-top:50px; line-height:1.6;">${emptyComment}</p>`;
+    if (roundSize === 2) {
+        b.innerText = "👑 결승전";
+        b.style.backgroundColor = "#ffc107"; 
+        b.style.color = "#000";
     } else {
-        fandomData.forEach((fan, idx) => {
-            let rankBadge = (idx===0)?'🥇':(idx===1)?'🥈':(idx===2)?'🥉':`${idx+1}`;
-            let rankColor = (idx<3) ? '#e84393' : '#ccc'; 
-            let scoreLabel = (filterIdx !== -1) ? '표 (해당)' : '표 (누적)';
-            html += `<li class="list-item" onclick="window.openProfilePopup('${fan.id}')"><div style="font-weight:900; font-size:16px; width:30px; text-align:center; margin-right:10px; color:${rankColor}">${rankBadge}</div><div class="common-circle-frame" style="margin-right:10px;">${fan.avatar}</div><div class="list-item-text"><div style="font-weight:bold; font-size:14px;">${fan.nickname}</div><div style="font-size:11px; color:var(--text-secondary);">${fan.mbti ? '#'+fan.mbti : ''}</div></div><div class="list-item-score" style="background:#fff0f6; color:#e84393; border:1px solid #ffc9c9;">${fan.voteCount}${scoreLabel}</div></li>`;
-        });
-    }
-    container.innerHTML = html;
-}
-
-window.logout = function() { localStorage.clear(); location.reload(); }
-window.loginWithServer = function() { goScreen('screen-nickname'); }
-window.debugLogin = function(u) { if (!u) return; localStorage.setItem('my_uid', u); location.reload(); }
-window.nextTest = function(v, n) { tempTestResult.push(v); goScreen(n); }
-window.finishTest = function(l) { tempTestResult.push(l); const c={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0}; tempTestResult.forEach(v=>c[v]++); let m=(c['E']>=c['I']?'E':'I')+(c['S']>=c['N']?'S':'N')+(c['T']>=c['F']?'T':'F')+(c['J']>=c['P']?'J':'P'); window.saveMbtiToServer ? window.saveMbtiToServer(m) : setMyTypeUI(m); tempTestResult=[]; }
-window.saveNicknameAndNext = function() { const n=document.getElementById('inputNickname').value.trim(); if(!n){alert("닉네임을 입력해주세요!");return;} if(!window.myInfo)window.myInfo={nickname:""}; window.myInfo.nickname=n; if(window.db)window.db.collection("users").doc(localStorage.getItem('my_uid')).update({nickname:n}); goScreen('screen-mbti'); }
-window.editProfileMsg = function() { if(!window.myInfo)return; document.getElementById('profileMsgInput').value=window.myInfo.msg==='상태 메시지'?'':window.myInfo.msg; document.getElementById('profileMsgOverlay').classList.add('open'); }
-window.submitProfileMsg = async function() { const m=document.getElementById('profileMsgInput').value; if(window.saveProfileMsgToDB && await window.saveProfileMsgToDB(m.trim().substring(0,50))) closePopup('profileMsgOverlay'); }
-window.renderAchievementsList = function() { const container = document.querySelector('.achieve-grid'); if(!container) return; const list = window.achievementsList||[]; const myIds = new Set(window.myInfo.achievedIds||[]); let html=''; list.forEach(a=>{ const isUnlocked=myIds.has(a.id); const cls=isUnlocked?'':'locked'; const date=window.achievedDateMap[a.id]||''; html+=`<div class="achieve-item ${cls}" onclick="window.showToast('${isUnlocked?'달성일: '+date:'미달성: '+a.desc}')"><div style="font-size:30px; margin-bottom:5px;">${a.icon}</div><div class="achieve-title">${a.title}</div>${isUnlocked?'<div style="font-size:9px; color:var(--primary); margin-top:2px;">✔ 달성</div>':''}</div>`; }); if(html==='') html=`<p class="list-empty-msg" style="grid-column:1/-1;">업적 데이터 로딩 중...</p>`; container.innerHTML=html; }
-window.renderHistoryList = async function() { const container = document.querySelector('#tab-history .list-wrap'); if(!container) return; container.innerHTML=`<div style="text-align:center; padding:20px;">🔄 기록 불러오는 중...</div>`; if(!window.db){container.innerHTML=`<p class="list-empty-msg">DB 연결이 필요합니다.</p>`;return;} try{const uid=localStorage.getItem('my_uid'); const snapshot=await window.db.collection("logs").where("target_uid","==",uid).orderBy("timestamp","desc").limit(20).get(); if(snapshot.empty){container.innerHTML=`<p class="list-empty-msg">아직 기록이 없어요.</p>`;return;} let html=''; snapshot.forEach(doc=>{ const data=doc.data(); const date=data.timestamp?data.timestamp.toDate().toLocaleDateString():'날짜 미상'; let icon='📩'; if(data.action_type==='VOTE')icon='🗳️';else if(data.action_type==='ACHIEVE')icon='🏆';else if(data.action_type==='PURCHASE')icon='🛍️'; html+=`<li class="list-item"><div class="common-circle-frame">${icon}</div><div class="list-item-text"><div style="font-weight:bold; font-size:13px;">${data.message}</div><div style="font-size:11px; color:var(--text-secondary);">${date}</div></div>${data.score_change!==0?`<div class="list-item-score" style="background:transparent; color:${data.score_change>0?'#ff7675':'var(--text-secondary)'};">${data.score_change>0?'+':''}${data.score_change}</div>`:''}</li>`; }); container.innerHTML=html; } catch(e){console.error(e);container.innerHTML=`<p class="list-empty-msg">기록 로드 실패</p>`;} }
-
-window.shareLink = function() {
-    const url = window.location.href;
-    const title = "It's me! - 남들이 보는 진짜 나";
-    const text = "친구들이 보는 내 이미지는 어떨까? 지금 확인해보세요!";
-    if (navigator.share) {
-        navigator.share({ title: title, text: text, url: url }).catch((error) => console.log('공유 취소 또는 실패', error));
-    } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = url;
-        textarea.style.position = 'fixed'; textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try { document.execCommand('copy'); if(window.showToast) window.showToast("링크가 복사되었습니다! 🔗"); else alert("링크가 복사되었습니다!"); } catch (err) { alert("링크 복사에 실패했습니다."); }
-        document.body.removeChild(textarea);
+        // 예: 🏆 8강 (1/4)
+        b.innerText = `🏆 ${roundSize}강 (${current}/${total})`;
+        b.style.backgroundColor = ""; 
+        b.style.color = "";
     }
 };
 
-// 🟢 [Simple Standard] SHOP_ITEMS 아이디를 모두 하이픈(-)으로 통일
-const SHOP_ITEMS = [
-    { id: 'ticket_1', tab: 'utility', section: '💎 토큰 충전소', type: 'item', icon: '🎫', name: '티켓 1장', price: 100, desc: '즉시 충전' },
-    { id: 'ticket_5', tab: 'utility', section: '💎 토큰 충전소', type: 'item', icon: '🎫', name: '티켓 5장', price: 450, desc: '5장 묶음' },
-    { id: 'name_change', tab: 'utility', section: '🏷️ 계정 관리', type: 'item', icon: '📝', name: '닉변권', price: 300, desc: '닉네임 변경' },
-    { id: 'avatar_tiger', tab: 'deco', section: '🐯 동물 아바타 (영구)', type: 'avatar', icon: '🐯', name: '호랑이', price: 50 },
-    { id: 'avatar_rabbit', tab: 'deco', section: '🐯 동물 아바타 (영구)', type: 'avatar', icon: '🐰', name: '토끼', price: 50 },
-    { id: 'avatar_robot', tab: 'deco', section: '🤖 스페셜 아바타', type: 'avatar', icon: '🤖', name: '로봇', price: 100 },
-    { id: 'avatar_alien', tab: 'deco', section: '🤖 스페셜 아바타', type: 'avatar', icon: '👽', name: '외계인', price: 100 },
-    // 🟢 하이픈 사용 (bg-gold)
-    { id: 'bg-gold', tab: 'deco', section: '✨ 테마 아이템', type: 'effect', icon: '✨', name: '황금 배경', price: 30 },
-    { id: 'bg-dark', tab: 'deco', section: '✨ 테마 아이템', type: 'effect', icon: '🌑', name: '다크 모드', price: 30 },
-    { id: 'bg-pink', tab: 'deco', section: '✨ 테마 아이템', type: 'effect', icon: '🌸', name: '핑크 모드', price: 30 },
-    { id: 'shout', tab: 'social', section: '📢 확성기', type: 'item', icon: '📢', name: '전체 외치기', price: 50, desc: '메시지 전송' },
-    { id: 'random_box', tab: 'gacha', section: '🎁 행운의 상자', type: 'gacha', icon: '❓', name: '랜덤 박스', price: 20, desc: '뭐가 나올까?' }
+// [ui.js] 상점 아이템 목록 (전역 변수로 승격!)
+window.SHOP_ITEMS = [
+    { id: 'ticket_1', type: 'item', icon: '🎫', name: '티켓 1장', price: 100 },
+    { id: 'ticket_5', type: 'item', icon: '🎫', name: '티켓 5장', price: 450 },
+    
+    // ▼ 테마 아이템 (type: 'theme' 추가)
+    { id: 'theme_default', type: 'theme', icon: '☀️', name: '순정 모드', price: 0, value: 'default' }, // 기본
+    { id: 'theme_dark', type: 'theme', icon: '🌙', name: '다크 모드', price: 50, value: 'dark' },    // 다크
+    
+    { id: 'random_box', type: 'gacha', icon: '❓', name: '랜덤 박스', price: 20 }
 ];
 
-window.filterShop = function(category) {
-    const container = document.querySelector('#screen-shop .shop-grid');
-    if (!container) return; 
-    const items = SHOP_ITEMS.filter(item => item.tab === category);
-    container.innerHTML = ''; 
-    if (items.length === 0) { container.innerHTML = `<div class="list-empty-msg" style="padding:50px;">준비 중인 상점입니다. 🧹</div>`; return; }
-    const groups = {};
-    items.forEach(item => { if (!groups[item.section]) groups[item.section] = []; groups[item.section].push(item); });
-    let html = '';
-    for (const [sectionTitle, groupItems] of Object.entries(groups)) {
-        html += `<div class="shop-title" style="width:100%; margin-top:20px; margin-bottom:10px; font-weight:bold; font-size:16px; border-left:4px solid var(--primary); padding-left:10px; text-align:left;">${sectionTitle}</div><div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; width:100%; margin-bottom:20px;">`;
-        groupItems.forEach(item => { html += `<div class="shop-item" onclick="window.tryPurchase('${item.id}')"><div style="font-size:30px; margin-bottom:5px;">${item.icon}</div><div class="shop-item-name">${item.name}</div><div class="shop-item-price">💎 ${item.price}</div></div>`; });
-        html += `</div>`; 
-    }
-    container.innerHTML = html;
-};
+// [ui.js] 상점 화면 그리기 (업그레이드 버전)
+window.renderShop = function() {
+    const container = document.getElementById('shop-list');
+    if (!container) return;
+    container.innerHTML = '';
 
-window.tryPurchase = function(itemId) {
-    const item = SHOP_ITEMS.find(i => i.id === itemId);
-    if (!item) return;
-    if (item.id === 'shout') { window.openShoutInputModal(item); return; }
-    if (item.type === 'gacha') { window.runGachaSystem(item); return; }
-    
-    // 🟢 [Simple] 단순 비교
-    let checkVal = (item.type === 'effect') ? item.id : item.icon; 
-    if (window.myInfo.inventory.some(i => i.value === checkVal)) {
-        window.openCustomAlert("알림", "이미 보유한 아이템입니다!");
-        return;
-    }
-    if (window.purchaseItem) window.purchaseItem(item.price, item.type, checkVal, item.name);
-};
+    // 0. 내 정보 가져오기
+    const myInventory = window.myInfo.inventory || [];
+    const equippedTheme = window.myInfo.equippedTheme || 'default'; // 현재 장착 중인 테마
 
-window.runGachaSystem = function(item) {
-    if (window.myInfo.tokens < item.price) { window.openCustomAlert("잔액 부족 💸", "토큰이 부족합니다!"); return; }
-    const doGacha = function() {
-        window.myInfo.tokens -= item.price;
-        document.getElementById('shopTokenDisplay').innerText = window.myInfo.tokens;
-        const rand = Math.random() * 100;
-        let rewardType = "token"; let rewardVal = 10; let msgTitle = "😭 꽝..."; let msgBody = "아쉽네요...\n위로금 10💎을 드립니다.";
-        if (rand < 40) { } 
-        else if (rand < 90) { rewardType = 'token'; rewardVal = 50; msgTitle = "💰 축하합니다!"; msgBody = "본전 뽑았다!\n토큰 50💎 획득!"; } 
-        else {
-            if (window.myInfo.inventory.some(i => i.value === '👻')) { rewardType = 'token'; rewardVal = 500; msgTitle = "👻 [전설] 중복"; msgBody = "이미 유령이 있네요!\n대신 500토큰을 드립니다!"; } 
-            else { rewardType = 'avatar'; rewardVal = '👻'; msgTitle = "👻 대박 사건!!"; msgBody = "[전설] 유령 아바타 당첨!!\n지금 바로 장착해보세요."; }
+    // window.SHOP_ITEMS 사용!
+    window.SHOP_ITEMS.forEach(item => {
+        // 1. 소유 여부 확인
+        const isOwned = myInventory.some(saved => saved.id === item.id);
+
+        // 2. 버튼 HTML 결정 (핵심!)
+        let btnHtml = '';
+
+        if (isOwned) {
+            // (A) 이미 샀을 때
+            if (item.type === 'theme') {
+                // 테마인 경우: 장착 상태 확인
+                if (equippedTheme === item.value) {
+                    // 이미 끼고 있음 -> 비활성화
+                    btnHtml = `<button class="btn-buy" disabled style="background-color:#4cd137; opacity:0.8; cursor:default;">장착중 ✅</button>`;
+                } else {
+                    // 샀는데 안 끼고 있음 -> [장착] 버튼 (requestEquip 호출)
+                    btnHtml = `<button class="btn-buy" onclick="window.requestEquip('${item.id}')" style="background-color:#6c5ce7;">장착</button>`;
+                }
+            } else {
+                // 소모품(티켓 등)인데 샀을 때 -> 그냥 보유중 (나중에 필요하면 '사용' 추가)
+                btnHtml = `<button class="btn-buy" disabled style="background-color: #6c757d; cursor: default; opacity: 0.7;">보유중</button>`;
+            }
+        } else {
+            // (B) 안 샀을 때 -> [구매] 버튼
+            btnHtml = `<button class="btn-buy" onclick="window.requestBuy('${item.id}')">구매</button>`;
         }
-        const updates = { tokens: window.myInfo.tokens }; 
-        if (rewardType === 'token') { updates.tokens += rewardVal; window.myInfo.tokens += rewardVal; document.getElementById('shopTokenDisplay').innerText = window.myInfo.tokens; } 
-        else if (rewardType === 'avatar') { const newItem = { type: 'avatar', value: rewardVal, name: '유령 아바타', date: new Date() }; window.myInfo.inventory.push(newItem); updates.inventory = window.myInfo.inventory; }
-        if (window.db) { window.db.collection('users').doc(localStorage.getItem('my_uid')).update(updates).then(() => { window.openCustomAlert(msgTitle, msgBody); }).catch((err) => { console.error(err); }); }
-    };
-    window.openCustomConfirm("🎁 랜덤 박스", `${item.name}를 구매하시겠습니까?\n(가격: ${item.price} 💎)`, doGacha);
-};
 
-window.openShoutInputModal = function(item) {
-    if (window.myInfo.tokens < item.price) { window.openCustomAlert("잔액 부족 💸", "토큰이 부족합니다!"); return; }
-    document.getElementById('shoutInputPrice').innerText = `가격: ${item.price} 💎`;
-    document.getElementById('shoutInputText').value = ""; 
-    const btn = document.getElementById('btnShoutSubmit');
-    const newBtn = btn.cloneNode(true);
-    btn.parentNode.replaceChild(newBtn, btn);
-    newBtn.onclick = function() {
-        const message = document.getElementById('shoutInputText').value.trim();
-        if (message.length === 0) { window.openCustomAlert("입력 오류", "보낼 메시지를 입력해주세요."); return; }
-        window.submitShoutMessage(item, message);
-    };
-    window.openPopup('shoutInputOverlay');
-};
-
-window.submitShoutMessage = function(item, message) {
-    window.myInfo.tokens -= item.price;
-    document.getElementById('shopTokenDisplay').innerText = window.myInfo.tokens;
-    window.closePopup('shoutInputOverlay'); 
-    const updates = { tokens: window.myInfo.tokens }; 
-    const shoutLog = { senderNickname: window.myInfo.nickname, senderAvatar: window.myInfo.avatar, message: message, timestamp: new Date() };
-    if (window.db) {
-        window.db.collection('users').doc(localStorage.getItem('my_uid')).update(updates)
-            .then(() => { if(window.saveShoutLog) window.saveShoutLog(shoutLog); window.openCustomAlert("📢 전송 완료", `메시지를 전체에게 보냈습니다!`); })
-            .catch((err) => { console.error(err); window.openCustomAlert("오류", "전송에 실패했습니다."); });
-    }
-};
-
-window.showShoutNotification = function(data) {
-    const toast = document.createElement('div');
-    toast.style.cssText = `position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: rgba(0, 0, 0, 0.85); color: white; padding: 12px 20px; border-radius: 50px; z-index: 9999; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 14px; white-space: nowrap; max-width: 90%;`;
-    toast.innerHTML = `<span style="font-size:18px;">${data.senderAvatar || '📢'}</span><span style="font-weight:bold; color:#a29bfe;">${data.senderNickname}</span><span style="opacity:0.9;">: ${data.message}</span>`;
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.style.transform = "translateX(-50%) translateY(0)"; }, 100);
-    setTimeout(() => { toast.style.transform = "translateX(-50%) translateY(-100px)"; setTimeout(() => { document.body.removeChild(toast); }, 500); }, 5000);
-};
-
-window.currentDisplayedList = [];
-window.openInventory = function() { window.openPopup('inventoryOverlay'); window.updateInventoryList('all', null); };
-window.updateInventoryList = function(category, tabEl) {
-    window.currentInvCategory = category;
-    if (document.querySelector('.inv-tab')) {
-        if (tabEl) { document.querySelectorAll('.inv-tab').forEach(el => el.classList.remove('active')); tabEl.classList.add('active'); }
-        else { const firstTab = document.querySelector('.inv-tab'); if(firstTab) { document.querySelectorAll('.inv-tab').forEach(el => el.classList.remove('active')); firstTab.classList.add('active'); } }
-    }
-    const fullList = window.myInfo.inventory || [];
-    let filtered = [];
-    if (category === 'all') filtered = fullList;
-    else if (category === 'avatar') filtered = fullList.filter(item => item.type === 'avatar');
-    else if (category === 'effect') filtered = fullList.filter(item => item.type === 'effect');
-    window.currentDisplayedList = [...filtered].reverse();
-    let container = document.getElementById('inventoryListArea'); 
-    if (!container) container = document.getElementById('inventoryGrid'); 
-    if (!container) { console.error("❌ 가방 영역(inventoryGrid)을 찾을 수 없습니다!"); return; }
-    container.innerHTML = "";
-    if (window.currentDisplayedList.length === 0) { container.innerHTML = `<div class="list-empty-msg" style="padding:40px; text-align:center; color:#999;">아이템이 없습니다 텅~🗑️</div>`; return; }
-    let html = '<div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; width:100%;">';
-    window.currentDisplayedList.forEach((item, index) => {
-        let displayIcon = item.value || item.icon;
-        if ((!displayIcon || displayIcon === "") && typeof SHOP_ITEMS !== 'undefined') { const originalItem = SHOP_ITEMS.find(si => si.id === item.id); if (originalItem) displayIcon = originalItem.icon; }
-        displayIcon = displayIcon || '📦';
-        
-        // 🟢 [Simple] 있는 그대로 비교 (하이픈)
-        const isEquipped = (item.type === 'avatar' && window.myInfo.avatar === item.value) || 
-                           (item.type === 'effect' && window.myInfo.bgEffect === item.value);
-                           
-        const borderStyle = isEquipped ? "border:2px solid var(--primary); background:rgba(108,92,231,0.1);" : "border:1px solid var(--border);";
-        html += `<div onclick="window.equipItem(${index})" style="${borderStyle} border-radius:12px; padding:10px 5px; text-align:center; cursor:pointer; position:relative;"><div style="font-size:30px; margin-bottom:5px;">${displayIcon}</div><div style="font-size:11px; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.name}</div>${isEquipped ? '<div style="position:absolute; top:5px; right:5px; width:8px; height:8px; background:var(--primary); border-radius:50%;"></div>' : ''}</div>`;
+        const card = document.createElement('div');
+        card.className = 'shop-item card';
+        card.innerHTML = `
+            <div class="item-icon">${item.icon}</div>
+            <div class="item-info">
+                <div class="item-name">${item.name}</div>
+                <div class="item-price">💎 ${item.price}</div>
+            </div>
+            ${btnHtml} 
+        `;
+        container.appendChild(card);
     });
-    html += '</div>';
-    container.innerHTML = html;
 };
 
-// 🟢 [Simple] 있는 그대로 저장
-window.equipItem = function(index) {
-    const item = window.currentDisplayedList[index];
-    if (!item) return;
-    const updates = {};
-    if (item.type === 'avatar') { window.myInfo.avatar = item.value; updates.avatar = item.value; } 
-    else if (item.type === 'effect') { 
-        window.myInfo.bgEffect = item.value; 
-        updates.bgEffect = item.value; 
+window.requestBuy = function(itemId) {
+    const item = SHOP_ITEMS.find(i => i.id === itemId);
+    if(window.buyItem) window.buyItem(item);
+};
+
+// 7. 인벤토리 (Inventory)
+// [수정 후] 이렇게 딱 한 줄만 남기세요!
+// 인벤토리 열 때, logic.js에 있는 새 함수(renderInventory)를 실행하도록 연결
+window.openInventory = function() { 
+    window.openPopup('inventoryOverlay'); 
+    if(window.renderInventory) window.renderInventory(); 
+};
+
+// 🛑 중요: window.updateInventoryList 와 window.equipItem 함수 덩어리는 전부 삭제하세요!
+
+// 8. 랭킹 (Ranking)
+window.initRankScreen = function() {
+    if (!window.candidates || window.candidates.length === 0) {
+        document.getElementById('rankListContainer').innerHTML = '<div style="padding:40px; text-align:center;">🔄 데이터 로딩 중...</div>';
+        if (window.loadCandidatesFromDB) window.loadCandidatesFromDB().then(() => window.renderRankList());
+    } else {
+        window.renderRankList();
     }
-    if (window.db) { window.db.collection('users').doc(localStorage.getItem('my_uid')).update(updates).then(() => { window.updateInventoryList(window.currentInvCategory, document.querySelector('.inv-tab.active')); if(window.updateMyInfoUI) window.updateMyInfoUI(); }); }
 };
 
-function initShopSafe() { setTimeout(() => { if (typeof window.filterShop === 'function') { window.filterShop('utility'); } }, 300); }
-if (document.readyState === 'loading') { window.addEventListener('DOMContentLoaded', initShopSafe); } else { initShopSafe(); }
+window.renderRankList = function() {
+    const listEl = document.getElementById('rankListContainer');
+    if (!listEl) return;
+    
+    const users = [...(window.candidates || [])];
+    // 점수(stats 합계) 순 정렬
+    users.sort((a, b) => {
+        const scoreA = Object.values(a.stats || {}).reduce((sum, v) => sum + v, 0);
+        const scoreB = Object.values(b.stats || {}).reduce((sum, v) => sum + v, 0);
+        return scoreB - scoreA;
+    });
+
+    let html = '';
+    users.forEach((u, i) => {
+        const score = Object.values(u.stats || {}).reduce((sum, v) => sum + v, 0);
+        const rank = i < 3 ? ['🥇','🥈','🥉'][i] : (i + 1);
+        html += `
+            <li class="list-item">
+                <div style="font-weight:bold; width:30px;">${rank}</div>
+                <div class="common-circle-frame" style="margin-right:10px;">${u.avatar||'🙂'}</div>
+                <div class="list-item-text">
+                    <div style="font-weight:bold;">${u.nickname}</div>
+                    <div style="font-size:12px; color:#888;">#${u.mbti}</div>
+                </div>
+                <div class="list-item-score">${score}점</div>
+            </li>
+        `;
+    });
+    listEl.innerHTML = html || '<div style="padding:20px; text-align:center;">데이터 없음</div>';
+};
+
+// 9. 기타 팝업
+window.openPopup = function(id) { document.getElementById(id).classList.add('open'); };
+window.closePopup = function(id) { document.getElementById(id).classList.remove('open'); };
+
+// [ui.js] 🍞 토스트 메시지 출력 함수 (Real Version)
+window.showToast = function(message) {
+    // 1. 토스트 박스가 없으면 만들기 (최초 1회)
+    let toast = document.getElementById("toast-container");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "toast-container";
+        document.body.appendChild(toast);
+    }
+
+    // 2. 메시지 넣고 보여주기
+    toast.innerText = message;
+    toast.className = "show";
+
+    // 3. 3초 뒤에 사라지게 하기
+    setTimeout(function(){ 
+        toast.className = toast.className.replace("show", ""); 
+    }, 3000);
+};
+
+
+// [ui.js] 이 함수가 있어야 테마가 바뀝니다!
+// [ui.js] 테마 및 효과 적용 함수 (경고 제거 버전)
+window.applyActiveEffects = function() {
+    // 1. 내 정보에서 테마 값 가져오기 (없으면 'default')
+    const theme = window.myInfo.equippedTheme || window.myInfo.bgEffect || 'default';
+
+    // 2. 기존에 입고 있던 테마들 싹 벗기기 (초기화)
+    document.body.classList.remove('theme-dark', 'bg-dark', 'bg-gold', 'bg-pink', 'theme-mint');
+
+    // 3. 테마별 적용 로직
+    if (theme === 'default') {
+        // ★ 핵심 수정: 'default'는 에러가 아님! 그냥 여기서 끝내면 됨.
+        console.log("✨ 순정 모드(Default) 적용 완료");
+        return; 
+    }
+
+    if (theme === 'dark' || theme === 'bg-dark') {
+        document.body.classList.add('theme-dark');
+    } 
+    else if (theme === 'pink' || theme === 'bg-pink') {
+        document.body.classList.add('theme-pink'); // CSS에 .theme-pink가 있다면
+    }
+    else {
+        // 진짜로 이상한 코드가 들어왔을 때만 경고 띄우기
+        console.warn("⚠️ 테마 적용 실패 (알 수 없는 코드):", theme);
+    }
+};
+
+// 10. 차트 (Chart.js)
+window.drawChart = function() {
+    const canvas = document.getElementById('myRadarChart');
+    if (!canvas || !window.myInfo) return;
+    if (window.myChart) window.myChart.destroy();
+    
+    const stats = window.myInfo.stats || { strength:0, speed:0, intelligence:0, luck:0, charisma:0, empathy:0 };
+    
+    window.myChart = new Chart(canvas, {
+        type: 'radar',
+        data: {
+            labels: ['지성','센스','멘탈','인성','텐션','광기'],
+            datasets: [{
+                label: '내 능력치',
+                data: Object.values(stats),
+                backgroundColor: 'rgba(108, 92, 231, 0.2)',
+                borderColor: '#6c5ce7',
+                pointBackgroundColor: '#6c5ce7'
+            }]
+        },
+        options: {
+            scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { display: false } } },
+            plugins: { legend: { display: false } }
+        }
+    });
+};
+
+// [ui.js] openCommentPopup 함수 수정
+window.openCommentPopup = function(targetId, targetName) {
+    // 1. 기존 팝업 제거 (청소)
+    const oldPopup = document.getElementById('commentPopupOverlay');
+    if (oldPopup) oldPopup.remove();
+
+    // 2. HTML 새로 생성
+    const popup = document.createElement('div');
+    popup.id = 'commentPopupOverlay';
+    popup.className = 'overlay'; 
+    popup.innerHTML = `
+        <div class="popup">
+            <div class="popup-header">
+                <h3>💬 한줄 평 남기기</h3>
+                <button class="btn-close" onclick="document.getElementById('commentPopupOverlay').remove()">✖</button>
+            </div>
+            <div class="popup-body">
+                <p style="color:#6c5ce7; font-weight:bold; margin-bottom:10px;">To. ${targetName} 님</p>
+                <textarea id="commentInput" placeholder="이 캐릭터에게 하고 싶은 말을 남겨주세요!" maxlength="50" 
+                    style="width:100%; height:80px; padding:10px; border-radius:10px; border:1px solid #ddd; font-family: 'Malgun Gothic', sans-serif;"></textarea>
+                <button id="btnSubmitComment" class="btn-action type-purple" style="width:100%; margin-top:10px;">등록하기</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(popup);
+
+    setTimeout(() => popup.classList.add('open'), 10);
+    
+    // 4. ★ 핵심 수정: 문서 전체가 아니라 'popup' 변수 안에서만 찾기!
+    // 이렇게 하면 밖에 좀비가 있든 말든 무조건 지금 뜬 창의 내용을 읽어옵니다.
+    const inputEl = popup.querySelector('#commentInput'); 
+    const btnEl = popup.querySelector('#btnSubmitComment');
+
+    btnEl.onclick = function() {
+        const text = inputEl.value.trim(); // 여기서 안전하게 가져옴
+        
+        if (!text) return alert("내용을 입력해주세요!");
+        
+        if (window.submitComment) {
+            window.submitComment(targetId, text);
+            popup.remove();
+        } else {
+            alert("저장 기능 오류");
+        }
+    };
+};
+
+// [ui.js] 📢 광장 화면 그리기
+window.renderSquareScreen = function(rankList, feedList) {
+    // 1. 명예의 전당 (Top 5까지 보여줍시다)
+    const rankContainer = document.getElementById('squareTopRank');
+    if (rankContainer) {
+        let html = '';
+        const topMembers = rankList.slice(0, 5); // 5명
+        
+        topMembers.forEach((u, i) => {
+            const isGold = i === 0 ? 'gold' : '';
+            const rankText = `${i + 1}위`;
+            const score = Object.values(u.stats || {}).reduce((a,b)=>a+b, 0);
+
+            html += `
+                <div class="rank-card ${isGold}" onclick="window.openProfilePopup('${u.id}')">
+                    <div class="rank-badge">${rankText}</div>
+                    <div class="common-circle-frame" style="width:50px; height:50px; font-size:25px; margin:15px auto 10px;">${u.avatar || '🙂'}</div>
+                    <div style="font-weight:bold; font-size:14px; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.nickname}</div>
+                    <div style="font-size:12px; color:#888;">${score}점</div>
+                </div>
+            `;
+        });
+        if(topMembers.length === 0) html = '<div style="padding:20px; text-align:center; color:#999; width:100%;">아직 랭킹이 없어요 🕸️</div>';
+        rankContainer.innerHTML = html;
+    }
+
+    // 2. 피드 그리기
+    const feedContainer = document.getElementById('squareFeed');
+    if (feedContainer) {
+        let html = '';
+        feedList.forEach(c => {
+            html += `
+                <div class="feed-item">
+                    <div class="feed-header">
+                        <span style="font-weight:bold;">${c.from_name || '익명'}</span>
+                        <span>${c.date ? c.date.substring(5,10) : ''}</span>
+                    </div>
+                    <div class="feed-content">
+                        <span class="feed-target">@${c.to_name || '???'}</span>
+                        ${c.content}
+                    </div>
+                </div>
+            `;
+        });
+        if(feedList.length === 0) html = '<div style="padding:30px; text-align:center; color:#999;">첫 번째 글을 남겨보세요! 💬</div>';
+        feedContainer.innerHTML = html;
+    }
+};
