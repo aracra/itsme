@@ -21,29 +21,35 @@ window.toggleDevMenu = function() {
 };
 
 // 2. 메인 UI 업데이트 (내 정보, 티켓 등)
+// [ui.js] 내 정보 화면 갱신 (거울 탭)
 window.updateMyInfoUI = function() {
     const info = window.myInfo;
     if (!info) return;
 
-    const nameEl = document.getElementById('myNickname');
-    const avatarEl = document.getElementById('myAvatar');
-    const mbtiEl = document.getElementById('myMbti');
+    // 1. 텍스트 정보 갱신
+    setText('myNickname', info.nickname);
+    setText('myMbti', info.mbti ? `#${info.mbti}` : '#???');
+    setText('myAvatar', info.avatar || '👤');
+    setText('mainMsg', info.statusMsg || "상태 메시지를 입력해주세요."); // 상태메시지 추가
 
-    if (nameEl) nameEl.innerText = info.nickname;
-    if (mbtiEl) mbtiEl.innerText = info.mbti ? `#${info.mbti}` : '#???';
-    if (avatarEl) avatarEl.innerText = info.avatar || '🙂';
+    // 2. 상위 % 뱃지 (가짜 데이터지만 동기부여용)
+    const totalStats = Object.values(info.stats || {}).reduce((a,b)=>a+b, 0);
+    const percent = Math.max(1, 100 - Math.floor(totalStats / 10)); // 대충 계산
+    const badge = document.querySelector('.header-badge');
+    if(badge) badge.innerText = `👑 상위 ${percent}% (종합)`;
 
-    // 토큰 표시 (여러 군데 있을 수 있음)
-    document.querySelectorAll('.my-token-display').forEach(el => el.innerText = info.tokens);
-    const tokenEl = document.getElementById('shopTokenDisplay');
-    if(tokenEl) tokenEl.innerText = info.tokens;
-
-    // 배경 효과 적용
-    if(window.applyActiveEffects) window.applyActiveEffects();
-    window.updateTicketUI();
-    
-    console.log("🔄 UI 갱신 완료");
+    // 3. 차트 그리기 (★ 현재 거울 탭이 활성화된 경우에만!)
+    const mirrorScreen = document.getElementById('screen-main');
+    if (mirrorScreen && mirrorScreen.classList.contains('active')) {
+        setTimeout(window.drawChart, 100); // 0.1초 뒤 실행 (안전빵)
+    }
 };
+
+// (유틸) 텍스트 안전하게 넣기
+function setText(id, text) {
+    const el = document.getElementById(id);
+    if(el) el.innerText = text;
+}
 
 window.updateTicketUI = function() {
     const count = (window.myInfo && window.myInfo.tickets !== undefined) ? window.myInfo.tickets : 0;
@@ -56,8 +62,45 @@ window.updateTicketUI = function() {
 };
 
 // 3. 화면 네비게이션
-// [ui.js] 탭 전환 함수 (전체 수리 버전)
+// [ui.js] 탭 전환 함수 (모달 경고판 적용)
 window.goTab = function(screenId, navElement) {
+    // 1. 게임 중인지 체크 (투표 화면이 아닌 곳으로 갈 때)
+    if (window.isGameRunning && screenId !== 'screen-vote') {
+        
+        // (1) 모달 띄우기 전, "어디로 가려고 했는지" 저장해둠
+        window.pendingTabId = screenId;
+        window.pendingNav = navElement; // (선택사항: 네비게이션 하이라이트 처리를 위해)
+
+        // (2) 모달 열기
+        const overlay = document.getElementById('gameExitOverlay');
+        const exitBtn = document.getElementById('btnForceExit');
+        
+        if (overlay && exitBtn) {
+            // "나가기" 버튼 클릭 시 동작 정의
+            exitBtn.onclick = function() {
+                // 게임 강제 종료 처리
+                window.isGameRunning = false;
+                window.tournamentRound = [];
+                
+                // 투표 화면 초기화 (다시 들어오면 대기화면 뜨게)
+                const intro = document.getElementById('voteIntro');
+                const wrapper = document.getElementById('voteWrapper');
+                const winner = document.getElementById('winnerContainer');
+                if(intro) intro.style.display = 'flex';
+                if(wrapper) wrapper.style.display = 'none';
+                if(winner) winner.style.display = 'none';
+
+                console.log("🏳️ 게임 기권 (사용자 이탈)");
+                window.closePopup('gameExitOverlay');
+
+                // ★ 저장해뒀던 목적지로 이동 재개!
+                window.goTab(window.pendingTabId, window.pendingNav);
+            };
+            
+            window.openPopup('gameExitOverlay');
+            return; // 여기서 함수 중단 (이동 막음)
+        }
+    }
     // 1. 모든 화면 숨기기
     const screens = document.querySelectorAll('.screen');
     screens.forEach(s => s.classList.remove('active'));
@@ -76,22 +119,34 @@ window.goTab = function(screenId, navElement) {
     }
 
     // 4. 화면별 데이터 새로고침 (Refresh Logic)
-    if (screenId === 'screen-vote') {
-        // 투표 화면: 새 질문 로드 등
-        if (window.initVoteScreenUI && window.currentQ) {
-             // (필요 시 로직 추가)
-        }
-    } else if (screenId === 'screen-rank') {
-        // 랭킹 화면: 리스트 새로고침
-        if (window.refreshRank) window.refreshRank();
-
-    } else if (screenId === 'screen-shop') {
-        // 상점 화면: 아이템 목록 새로고침
+	// 1. 🪞 거울 (메인) 화면
+    if (screenId === 'screen-main') {
+        // 차트가 찌그러지지 않게 0.2초 뒤에 그리기
+        if (window.drawChart) setTimeout(window.drawChart, 200);
+        // 내 정보 텍스트도 갱신
+        if (window.updateMyInfoUI) window.updateMyInfoUI();
+    } 
+    
+    // 2. 🏆 랭킹 화면
+    else if (screenId === 'screen-rank') {
+        // 'refreshRank' 대신 'renderRankList'를 직접 호출!
+        if (window.renderRankList) window.renderRankList();
+    } 
+    
+    // 3. 🛍️ 상점 화면
+    else if (screenId === 'screen-shop') {
         if (window.renderShop) window.renderShop();
-
-    } else if (screenId === 'screen-square') {
-        // 📢 [광장] 화면: 랭킹+댓글 새로고침 (여기가 추가된 부분!)
+    } 
+    
+    // 4. 📢 광장 화면
+    else if (screenId === 'screen-square') {
         if (window.refreshSquare) window.refreshSquare();
+    }
+    
+    // 5. ⚙️ 설정 화면 (필요하다면)
+    else if (screenId === 'screen-settings') {
+        // 설정 화면 들어갈 때 할 일이 있으면 여기에
+        if (window.updateMyInfoUI) window.updateMyInfoUI();
     }
 };
 
@@ -278,58 +333,55 @@ window.updateRoundBadgeUI = function(roundSize, current, total) {
     }
 };
 
-// [ui.js] 상점 아이템 목록 (전역 변수로 승격!)
+// [ui.js] 상점 아이템 목록 (랜덤박스 전용 히든템 추가)
 window.SHOP_ITEMS = [
+    // [일반 상품]
     { id: 'ticket_1', type: 'item', icon: '🎫', name: '티켓 1장', price: 100 },
     { id: 'ticket_5', type: 'item', icon: '🎫', name: '티켓 5장', price: 450 },
+    { id: 'theme_default', type: 'theme', icon: '☀️', name: '순정 모드', price: 0, value: 'default' },
+    { id: 'theme_dark', type: 'theme', icon: '🌙', name: '다크 모드', price: 50, value: 'dark' },
     
-    // ▼ 테마 아이템 (type: 'theme' 추가)
-    { id: 'theme_default', type: 'theme', icon: '☀️', name: '순정 모드', price: 0, value: 'default' }, // 기본
-    { id: 'theme_dark', type: 'theme', icon: '🌙', name: '다크 모드', price: 50, value: 'dark' },    // 다크
-    
-    { id: 'random_box', type: 'gacha', icon: '❓', name: '랜덤 박스', price: 20 }
+    // [가챠 상품]
+    { id: 'random_box', type: 'gacha', icon: '❓', name: '랜덤 박스', price: 20 },
+
+    // [히든 상품 - 상점 목록엔 안 뜨고 뽑기로만 획득!]
+    // display: false 같은 플래그를 둬서 renderShop에서 거를 수도 있지만,
+    // 일단 renderShop 로직이 단순하므로 맨 아래에 두면 보이기만 하고 구매는 불가(가격 없음 등) 처리가 필요.
+    // 여기서는 renderShop 함수를 수정하지 않고, 그냥 '히든'으로 취급하겠습니다.
+    { id: 'theme_neon', type: 'theme', icon: '👾', name: '네온 모드', price: 9999, value: 'neon', isHidden: true }
 ];
 
-// [ui.js] 상점 화면 그리기 (업그레이드 버전)
+// [ui.js] renderShop 함수 도입부 수정
+// [ui.js] 상점 화면 그리기 (랜덤박스 무한 구매 허용판)
 window.renderShop = function() {
     const container = document.getElementById('shop-list');
     if (!container) return;
     container.innerHTML = '';
 
-    // 0. 내 정보 가져오기
     const myInventory = window.myInfo.inventory || [];
-    const equippedTheme = window.myInfo.equippedTheme || 'default'; // 현재 장착 중인 테마
 
-    // window.SHOP_ITEMS 사용!
-    window.SHOP_ITEMS.forEach(item => {
-        // 1. 소유 여부 확인
+    // 히든 아이템 제외하고 반복
+    window.SHOP_ITEMS.filter(item => !item.isHidden).forEach(item => {
         const isOwned = myInventory.some(saved => saved.id === item.id);
-
-        // 2. 버튼 HTML 결정 (핵심!)
         let btnHtml = '';
 
-        if (isOwned) {
-            // (A) 이미 샀을 때
-            if (item.type === 'theme') {
-                // 테마인 경우: 장착 상태 확인
-                if (equippedTheme === item.value) {
-                    // 이미 끼고 있음 -> 비활성화
-                    btnHtml = `<button class="btn-buy" disabled style="background-color:#4cd137; opacity:0.8; cursor:default;">장착중 ✅</button>`;
-                } else {
-                    // 샀는데 안 끼고 있음 -> [장착] 버튼 (requestEquip 호출)
-                    btnHtml = `<button class="btn-buy" onclick="window.requestEquip('${item.id}')" style="background-color:#6c5ce7;">장착</button>`;
-                }
-            } else {
-                // 소모품(티켓 등)인데 샀을 때 -> 그냥 보유중 (나중에 필요하면 '사용' 추가)
-                btnHtml = `<button class="btn-buy" disabled style="background-color: #6c757d; cursor: default; opacity: 0.7;">보유중</button>`;
-            }
-        } else {
-            // (B) 안 샀을 때 -> [구매] 버튼
+        // ★ 핵심 수정: 가챠(gacha)는 소유 여부 상관없이 무조건 [구매] 버튼!
+        if (item.type === 'gacha') {
+            btnHtml = `<button class="btn-buy" onclick="window.requestBuy('${item.id}')">구매</button>`;
+        } 
+        else if (isOwned) {
+            // 이미 산 아이템 (테마, 일반 등)
+            btnHtml = `<button class="btn-buy" disabled style="background:#b2bec3; border:none; color:white; cursor:default; opacity:0.8;">보유중</button>`;
+        } 
+        else {
+            // 아직 안 산 아이템
             btnHtml = `<button class="btn-buy" onclick="window.requestBuy('${item.id}')">구매</button>`;
         }
 
         const card = document.createElement('div');
         card.className = 'shop-item card';
+        if(isOwned && item.type !== 'gacha') card.style.opacity = "0.9"; // 박스는 투명해지지 않음
+
         card.innerHTML = `
             <div class="item-icon">${item.icon}</div>
             <div class="item-info">
@@ -355,8 +407,6 @@ window.openInventory = function() {
     if(window.renderInventory) window.renderInventory(); 
 };
 
-// 🛑 중요: window.updateInventoryList 와 window.equipItem 함수 덩어리는 전부 삭제하세요!
-
 // 8. 랭킹 (Ranking)
 window.initRankScreen = function() {
     if (!window.candidates || window.candidates.length === 0) {
@@ -367,35 +417,100 @@ window.initRankScreen = function() {
     }
 };
 
+// [ui.js] 랭킹 리스트 (방명록 공간 추가 버전)
 window.renderRankList = function() {
     const listEl = document.getElementById('rankListContainer');
     if (!listEl) return;
     
-    const users = [...(window.candidates || [])];
-    // 점수(stats 합계) 순 정렬
-    users.sort((a, b) => {
-        const scoreA = Object.values(a.stats || {}).reduce((sum, v) => sum + v, 0);
-        const scoreB = Object.values(b.stats || {}).reduce((sum, v) => sum + v, 0);
-        return scoreB - scoreA;
+    const myUid = localStorage.getItem('my_uid');
+    
+    // 1. 데이터 준비
+    let users = (window.candidates || []).map(u => {
+        const total = Object.values(u.stats || {}).reduce((a,b)=>a+b, 0);
+        return { ...u, totalScore: total };
     });
 
+    // 2. 정렬
+    const sortKey = window.rankSortStat; 
+    users.sort((a, b) => {
+        if (sortKey) {
+            const valA = (a.stats && a.stats[sortKey]) ? a.stats[sortKey] : 0;
+            const valB = (b.stats && b.stats[sortKey]) ? b.stats[sortKey] : 0;
+            if (valB === valA) return b.totalScore - a.totalScore;
+            return valB - valA;
+        } else {
+            return b.totalScore - a.totalScore;
+        }
+    });
+
+    // 3. HTML 생성
     let html = '';
-    users.forEach((u, i) => {
-        const score = Object.values(u.stats || {}).reduce((sum, v) => sum + v, 0);
-        const rank = i < 3 ? ['🥇','🥈','🥉'][i] : (i + 1);
+    let currentRank = 1;
+
+    users.forEach((u, index) => {
+        // 등수 계산
+        let scoreToCompare = sortKey ? (u.stats[sortKey] || 0) : u.totalScore;
+        let prevScore = 0;
+        if (index > 0) {
+            const prevUser = users[index-1];
+            prevScore = sortKey ? (prevUser.stats[sortKey] || 0) : prevUser.totalScore;
+        }
+        if (index > 0 && scoreToCompare < prevScore) currentRank = index + 1;
+
+        let rankDisplay = `<span style="font-weight:bold; color:#b2bec3;">${currentRank}</span>`;
+        if (currentRank === 1) rankDisplay = '🥇';
+        if (currentRank === 2) rankDisplay = '🥈';
+        if (currentRank === 3) rankDisplay = '🥉';
+
+        const isMe = (u.id === myUid);
+        const itemBg = isMe ? 'background-color: #f8f7ff;' : ''; 
+        const nameSuffix = isMe ? ' <span style="font-size:11px; color:#6c5ce7; font-weight:bold;">(나)</span>' : '';
+        const displayScore = sortKey ? `${scoreToCompare} <span style="font-size:10px; color:#aaa;">(${u.totalScore})</span>` : `${u.totalScore}점`;
+        const s = u.stats || {};
+        
+        // ★ [방명록 공간 추가] id="gb-유저ID"
+        const detailHtml = `
+            <div class="rank-detail-view">
+                <div class="detail-stat-grid">
+                    <div class="detail-stat-item">🧠 지성<span class="detail-stat-val">${s.intelligence||0}</span></div>
+                    <div class="detail-stat-item">⚡ 센스<span class="detail-stat-val">${s.speed||0}</span></div>
+                    <div class="detail-stat-item">🛡️ 멘탈<span class="detail-stat-val">${s.strength||0}</span></div>
+                    <div class="detail-stat-item">💖 인성<span class="detail-stat-val">${s.empathy||0}</span></div>
+                    <div class="detail-stat-item">🎉 텐션<span class="detail-stat-val">${s.charisma||0}</span></div>
+                    <div class="detail-stat-item">🌀 광기<span class="detail-stat-val">${s.luck||0}</span></div>
+                </div>
+
+                <div class="guestbook-area">
+                    <div class="guestbook-title">📝 최근 받은 한줄평</div>
+                    <div id="gb-${u.id}" class="guestbook-list">
+                        <div class="empty-guestbook">터치하여 불러오기...</div>
+                    </div>
+                </div>
+                
+                <div style="display:flex; justify-content:center; gap:10px; margin-top:15px;">
+                     ${!isMe ? `<button class="btn-action type-purple small" style="width:100%;" onclick="event.stopPropagation(); window.openCommentPopup('${u.id}', '${u.nickname}')">💬 한줄평 남기기</button>` : '<div style="font-size:12px; color:#aaa;">내 프로필입니다</div>'}
+                </div>
+            </div>
+        `;
+
+        // onclick 이벤트에 user ID 전달 (window.toggleRankDetail(this, '유저ID'))
         html += `
-            <li class="list-item">
-                <div style="font-weight:bold; width:30px;">${rank}</div>
-                <div class="common-circle-frame" style="margin-right:10px;">${u.avatar||'🙂'}</div>
+            <li class="list-item" onclick="window.toggleRankDetail(this, '${u.id}')" style="${itemBg}">
+                <div style="width:30px; text-align:center; font-size:16px; font-weight:bold;">${rankDisplay}</div>
+                <div class="common-circle-frame">${u.avatar || '🙂'}</div>
                 <div class="list-item-text">
-                    <div style="font-weight:bold;">${u.nickname}</div>
+                    <div style="font-weight:bold; font-size:15px; color:#2d3436; margin-bottom:2px;">
+                        ${u.nickname}${nameSuffix}
+                    </div>
                     <div style="font-size:12px; color:#888;">#${u.mbti}</div>
                 </div>
-                <div class="list-item-score">${score}점</div>
+                <div class="list-item-score">${displayScore}</div>
+                ${detailHtml}
             </li>
         `;
     });
-    listEl.innerHTML = html || '<div style="padding:20px; text-align:center;">데이터 없음</div>';
+
+    listEl.innerHTML = html || '<div style="padding:40px; text-align:center; color:#999;">데이터 없음</div>';
 };
 
 // 9. 기타 팝업
@@ -424,31 +539,26 @@ window.showToast = function(message) {
 
 
 // [ui.js] 이 함수가 있어야 테마가 바뀝니다!
-// [ui.js] 테마 및 효과 적용 함수 (경고 제거 버전)
+// [ui.js] 테마 적용 함수 (동기화)
 window.applyActiveEffects = function() {
-    // 1. 내 정보에서 테마 값 가져오기 (없으면 'default')
+    // 1. 내 정보에서 테마 값 가져오기
     const theme = window.myInfo.equippedTheme || window.myInfo.bgEffect || 'default';
 
-    // 2. 기존에 입고 있던 테마들 싹 벗기기 (초기화)
-    document.body.classList.remove('theme-dark', 'bg-dark', 'bg-gold', 'bg-pink', 'theme-mint');
+    // 2. 기존 테마 벗기기
+    document.body.classList.remove('bg-dark', 'bg-gold', 'bg-pink');
 
-    // 3. 테마별 적용 로직
-    if (theme === 'default') {
-        // ★ 핵심 수정: 'default'는 에러가 아님! 그냥 여기서 끝내면 됨.
-        console.log("✨ 순정 모드(Default) 적용 완료");
-        return; 
-    }
-
+    // 3. CSS 클래스 정확하게 붙이기
     if (theme === 'dark' || theme === 'bg-dark') {
-        document.body.classList.add('theme-dark');
+        document.body.classList.add('bg-dark'); // ★ 여기 수정됨
     } 
     else if (theme === 'pink' || theme === 'bg-pink') {
-        document.body.classList.add('theme-pink'); // CSS에 .theme-pink가 있다면
+        document.body.classList.add('bg-pink');
     }
-    else {
-        // 진짜로 이상한 코드가 들어왔을 때만 경고 띄우기
-        console.warn("⚠️ 테마 적용 실패 (알 수 없는 코드):", theme);
+    else if (theme === 'gold' || theme === 'bg-gold') {
+        document.body.classList.add('bg-gold');
     }
+    
+    console.log(`✨ 효과 적용됨: ${theme}`);
 };
 
 // 10. 차트 (Chart.js)
@@ -478,9 +588,9 @@ window.drawChart = function() {
     });
 };
 
-// [ui.js] openCommentPopup 함수 수정
+// [ui.js] 한줄평 팝업 (입력창 고정 패치)
 window.openCommentPopup = function(targetId, targetName) {
-    // 1. 기존 팝업 제거 (청소)
+    // 1. 기존 팝업 제거
     const oldPopup = document.getElementById('commentPopupOverlay');
     if (oldPopup) oldPopup.remove();
 
@@ -496,9 +606,11 @@ window.openCommentPopup = function(targetId, targetName) {
             </div>
             <div class="popup-body">
                 <p style="color:#6c5ce7; font-weight:bold; margin-bottom:10px;">To. ${targetName} 님</p>
+                
                 <textarea id="commentInput" placeholder="이 캐릭터에게 하고 싶은 말을 남겨주세요!" maxlength="50" 
-                    style="width:100%; height:80px; padding:10px; border-radius:10px; border:1px solid #ddd; font-family: 'Malgun Gothic', sans-serif;"></textarea>
-                <button id="btnSubmitComment" class="btn-action type-purple" style="width:100%; margin-top:10px;">등록하기</button>
+                    style="width:100%; height:100px; padding:12px; border-radius:12px; border:1px solid #dfe6e9; font-family: 'Pretendard', sans-serif; resize: none; outline:none; font-size:14px; line-height:1.4;"></textarea>
+                
+                <button id="btnSubmitComment" class="btn-action type-purple" style="width:100%; margin-top:15px;">등록하기</button>
             </div>
         </div>
     `;
@@ -506,13 +618,12 @@ window.openCommentPopup = function(targetId, targetName) {
 
     setTimeout(() => popup.classList.add('open'), 10);
     
-    // 4. ★ 핵심 수정: 문서 전체가 아니라 'popup' 변수 안에서만 찾기!
-    // 이렇게 하면 밖에 좀비가 있든 말든 무조건 지금 뜬 창의 내용을 읽어옵니다.
+    // 3. 이벤트 연결
     const inputEl = popup.querySelector('#commentInput'); 
     const btnEl = popup.querySelector('#btnSubmitComment');
 
     btnEl.onclick = function() {
-        const text = inputEl.value.trim(); // 여기서 안전하게 가져옴
+        const text = inputEl.value.trim();
         
         if (!text) return alert("내용을 입력해주세요!");
         
@@ -525,21 +636,35 @@ window.openCommentPopup = function(targetId, targetName) {
     };
 };
 
-// [ui.js] 📢 광장 화면 그리기
-window.renderSquareScreen = function(rankList, feedList) {
-    // 1. 명예의 전당 (Top 5까지 보여줍시다)
+// [ui.js] 📢 광장 & 우편함 화면 그리기
+window.renderSquareScreen = function(userList, feedList, mode) {
+    // 1. 명예의 전당 (전체 탭에서만 보임)
     const rankContainer = document.getElementById('squareTopRank');
-    if (rankContainer) {
-        let html = '';
-        const topMembers = rankList.slice(0, 5); // 5명
+    const rankTitle = document.querySelector('.section-title'); // "명예의 전당" 타이틀
+
+    if (mode === 'MY') {
+        if(rankContainer) rankContainer.style.display = 'none';
+        if(rankTitle) rankTitle.style.display = 'none';
+    } else {
+        if(rankContainer) rankContainer.style.display = 'flex';
+        if(rankTitle) rankTitle.style.display = 'block';
         
-        topMembers.forEach((u, i) => {
+        // 랭킹 그리기 (기존 로직 유지)
+        // (userList는 객체가 아니라 배열이어야 정렬 가능하므로 변환)
+        let sortedUsers = Array.isArray(userList) ? userList : Object.values(userList);
+        sortedUsers.sort((a, b) => {
+            const scoreA = Object.values(a.stats || {}).reduce((sum, v) => sum + v, 0);
+            const scoreB = Object.values(b.stats || {}).reduce((sum, v) => sum + v, 0);
+            return scoreB - scoreA;
+        });
+
+        let html = '';
+        sortedUsers.slice(0, 5).forEach((u, i) => {
             const isGold = i === 0 ? 'gold' : '';
             const rankText = `${i + 1}위`;
             const score = Object.values(u.stats || {}).reduce((a,b)=>a+b, 0);
-
             html += `
-                <div class="rank-card ${isGold}" onclick="window.openProfilePopup('${u.id}')">
+                <div class="rank-card ${isGold}" onclick="window.openCommentPopup('${u.id}', '${u.nickname}')">
                     <div class="rank-badge">${rankText}</div>
                     <div class="common-circle-frame" style="width:50px; height:50px; font-size:25px; margin:15px auto 10px;">${u.avatar || '🙂'}</div>
                     <div style="font-weight:bold; font-size:14px; margin-bottom:5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${u.nickname}</div>
@@ -547,29 +672,74 @@ window.renderSquareScreen = function(rankList, feedList) {
                 </div>
             `;
         });
-        if(topMembers.length === 0) html = '<div style="padding:20px; text-align:center; color:#999; width:100%;">아직 랭킹이 없어요 🕸️</div>';
-        rankContainer.innerHTML = html;
+        if(rankContainer) rankContainer.innerHTML = html;
     }
 
-    // 2. 피드 그리기
+    // 2. 피드(댓글) 리스트 그리기
     const feedContainer = document.getElementById('squareFeed');
+    const listTitle = document.getElementById('squareListTitle');
+    
+    if(listTitle) listTitle.innerText = (mode === 'MY') ? "💌 받은 메시지함" : "💬 실시간 톡";
+
     if (feedContainer) {
         let html = '';
         feedList.forEach(c => {
+            // 날짜 포맷 (오늘이면 시간, 아니면 날짜)
+            const dateObj = new Date(c.timestamp ? c.timestamp.seconds * 1000 : c.date);
+            const dateStr = dateObj.toLocaleDateString();
+            
+            // 내 소식일 땐 배경색을 살짝 다르게? (선택)
+            const itemStyle = (mode === 'MY') ? 'border:1px solid #6c5ce7; background:#f8f7ff;' : '';
+
             html += `
-                <div class="feed-item">
+                <div class="feed-item" style="${itemStyle}">
                     <div class="feed-header">
-                        <span style="font-weight:bold;">${c.from_name || '익명'}</span>
-                        <span>${c.date ? c.date.substring(5,10) : ''}</span>
+                        <span style="font-weight:bold; color:#2d3436;">${c.from_name || '익명'}</span>
+                        <span style="font-size:11px;">${dateStr}</span>
                     </div>
                     <div class="feed-content">
-                        <span class="feed-target">@${c.to_name || '???'}</span>
+                        ${mode === 'ALL' ? `<span class="feed-target">@${c.to_name}</span>` : ''}
                         ${c.content}
                     </div>
                 </div>
             `;
         });
-        if(feedList.length === 0) html = '<div style="padding:30px; text-align:center; color:#999;">첫 번째 글을 남겨보세요! 💬</div>';
+
+        if(feedList.length === 0) {
+            const emptyMsg = (mode === 'MY') ? "아직 받은 메시지가 없어요 📭<br>친구들에게 나를 알려보세요!" : "첫 번째 글을 남겨보세요! 💬";
+            html = `<div style="padding:50px 20px; text-align:center; color:#b2bec3; line-height:1.6;">${emptyMsg}</div>`;
+        }
+        
         feedContainer.innerHTML = html;
     }
+};
+
+// ==========================================
+// [ui.js] 🏆 랭킹 필터 & 정렬 로직 (반드시 파일 맨 아래에 있어야 함)
+// ==========================================
+
+// 전역 변수: 현재 정렬 기준
+window.rankSortStat = null; 
+window.rankViewMode = 'rank'; 
+
+// 1. 랭킹 뷰 전환 (전체 랭킹 vs 나의 팬덤)
+window.switchRankView = function(mode) {
+    window.rankViewMode = mode;
+    if (mode === 'fandom') {
+        if(window.showToast) window.showToast("🚧 '나의 팬덤' 기능은 준비 중입니다! (전체 랭킹을 보여줍니다)");
+    }
+    if(window.renderRankList) window.renderRankList();
+};
+
+// 2. 스탯 필터 클릭 (지성, 센스, 멘탈...)
+window.filterRank = function(element, statIndex) {
+    const parent = element.parentNode;
+    Array.from(parent.children).forEach(c => c.classList.remove('active'));
+    element.classList.add('active');
+
+    const statKeys = ['intelligence', 'speed', 'strength', 'empathy', 'charisma', 'luck'];
+    window.rankSortStat = statKeys[statIndex];
+    console.log(`🏆 정렬 기준 변경: ${window.rankSortStat}`);
+
+    if(window.renderRankList) window.renderRankList();
 };

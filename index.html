@@ -117,6 +117,65 @@
             </div>
         </div>
     </div>
+	
+	<div id="gachaBuyOverlay" class="sheet-overlay">
+		<div class="comment-modal">
+			<h3 style="margin-bottom:15px;">🛍️ 구매 확인</h3>
+			
+			<div style="font-size:50px; margin-bottom:10px;">❓</div>
+			
+			<p class="modal-msg" style="font-size:16px; line-height:1.5;">
+				<span style="color:#6c5ce7; font-weight:bold;">20 토큰</span>을 사용하여<br>
+				[랜덤 박스]를 여시겠습니까?
+			</p>
+
+			<div class="modal-btn-row" style="margin-top:20px;">
+				<button class="btn-action type-gray small" onclick="closePopup('gachaBuyOverlay')">취소</button>
+				<button id="btnGachaConfirm" class="btn-action type-purple small">확인</button>
+			</div>
+		</div>
+	</div>
+
+	<div id="gachaResultOverlay" class="sheet-overlay">
+		<div class="comment-modal">
+			<h3 style="margin-bottom:10px;">🎁 개봉 결과 🎁</h3>
+			
+			<div id="gachaResultIcon" style="font-size:80px; margin:20px 0; animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+				📦
+			</div>
+
+			<div id="gachaResultName" style="font-size:18px; font-weight:800; color:#333; margin-bottom:5px;">
+				...
+			</div>
+			<div id="gachaResultSub" style="font-size:14px; color:#6c5ce7; font-weight:bold;">
+				...
+			</div>
+
+			<div class="modal-btn-row" style="margin-top:25px;">
+				<button class="btn-action type-purple small" onclick="closePopup('gachaResultOverlay')">확인</button>
+			</div>
+		</div>
+	</div>
+	
+	<div id="gameExitOverlay" class="sheet-overlay">
+		<div class="comment-modal">
+			<h3 style="margin-bottom:15px; color:#d63031;">🚧 경고 🚧</h3>
+			
+			<div style="font-size:50px; margin-bottom:10px;">🏳️</div>
+			
+			<p class="modal-msg" style="font-size:16px; line-height:1.5;">
+				지금 나가시면 <b>기권 처리</b>되며,<br>
+				사용된 티켓은 반환되지 않습니다.<br>
+				<span style="font-size:14px; color:#999;">(정말 나가시겠습니까?)</span>
+			</p>
+
+			<div class="modal-btn-row" style="margin-top:20px;">
+				<button class="btn-action type-gray small" onclick="closePopup('gameExitOverlay')">아니요</button>
+				<button id="btnForceExit" class="btn-action type-purple small" style="background: linear-gradient(to bottom, #ff7675, #d63031);">나가기</button>
+			</div>
+		</div>
+	</div>
+	
 
     <div id="screen-login" class="screen active full-center">
         <div class="center-content">
@@ -342,7 +401,7 @@
 
             <div id="squareFortune" class="fortune-container" style="display:none;">
                 <div class="cookie-stage">
-                    <div id="cookieEmoji" class="cookie-icon" onclick="window.breakCookie()">🥠</div>
+                    <div id="cookieEmoji" class="cookie-icon">🥠</div>
                     <p id="cookieMsg" class="cookie-text">터치해서 쿠키를 열어보세요!</p>
                 </div>
             </div>
@@ -407,7 +466,7 @@
             </ul>
             
             <button class="btn-logout" onclick="logout()">로그아웃</button>
-           
+            
         </div>
     </div> <nav class="bottom-nav">
         <div class="nav-item active" onclick="window.goTab('screen-main', this)">
